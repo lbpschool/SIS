@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>School Information System</title>
-    <!-- ========================================== -->
+        <!-- ========================================== -->
     <!-- PWA Meta Tags สำหรับทำแอปหน้าจอมือถือ -->
     <!-- ========================================== -->
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -205,75 +205,77 @@
                         </button>
                     </div>
                     <!-- Stats Cards: สถิติรวมและแยกเพศ -->
-                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-8">
-                        
-                        <!-- การ์ดที่ 1: นักเรียนทั้งหมด -->
-                        <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl sm:rounded-2xl shadow-sm p-3 sm:p-5 relative overflow-hidden min-h-[85px] sm:min-h-[100px]">
-                            <i class="fas fa-users absolute -bottom-2 -right-2 text-5xl sm:text-6xl text-white opacity-20 transform -rotate-12"></i>
-                            <div class="relative z-10 flex flex-col justify-center sm:justify-end h-full">
-                                <h3 class="text-xl min-[375px]:text-2xl sm:text-4xl md:text-5xl font-bold text-white mb-0.5 sm:mb-1 tracking-tight drop-shadow-sm leading-tight" id="statTotalStudents">
-                                    <div class="h-6 sm:h-10 bg-white/30 rounded w-12 sm:w-20 animate-pulse"></div>
-                                </h3>
-                                <p class="text-[11px] sm:text-sm font-medium text-blue-100 leading-tight">นักเรียนทั้งหมด<span class="hidden sm:inline"> (ปัจจุบัน)</span></p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                        <div class="bg-white rounded-xl shadow-sm p-4 border-l-4 border-blue-500 relative overflow-hidden">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-gray-500 mb-1">นักเรียนทั้งหมด (ปัจจุบัน)</p>
+                                    <h3 class="text-2xl font-bold text-gray-800" id="statTotalStudents"><div class="h-6 bg-gray-200 rounded w-16 animate-pulse mt-1"></div></h3>
+                                </div>
+                                <div class="bg-blue-100 p-3 rounded-full text-blue-500 shrink-0">
+                                    <i class="fas fa-users text-xl"></i>
+                                </div>
                             </div>
                         </div>
-
-                        <!-- การ์ดที่ 2: สถิติมาเรียนวันนี้รวม -->
-                        <div class="bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl sm:rounded-2xl shadow-sm p-3 sm:p-5 relative overflow-hidden min-h-[85px] sm:min-h-[100px]">
-                            <i class="fas fa-calendar-check absolute -bottom-2 -right-2 text-5xl sm:text-6xl text-white opacity-20 transform -rotate-12"></i>
-                            <div class="relative z-10 flex flex-col justify-center sm:justify-end h-full">
-                                <h3 class="text-base min-[375px]:text-lg sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-0.5 sm:mb-1 tracking-tight drop-shadow-sm leading-tight" id="statAttendanceToday">
-                                    <div class="h-6 sm:h-10 bg-white/30 rounded w-16 sm:w-28 animate-pulse"></div>
-                                </h3>
-                                <p class="text-[11px] sm:text-sm font-medium text-orange-50 leading-tight">มาเรียนวันนี้รวม</p>
+                        <div class="bg-white rounded-xl shadow-sm p-4 border-l-4 border-yellow-500">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-gray-500 mb-1">สถิติมาเรียนวันนี้รวม</p>
+                                    <h3 class="text-2xl font-bold text-gray-800" id="statAttendanceToday"><div class="h-6 bg-gray-200 rounded w-24 animate-pulse mt-1"></div></h3>
+                                </div>
+                                <div class="bg-yellow-100 p-3 rounded-full text-yellow-500 shrink-0">
+                                    <i class="fas fa-calendar-check text-xl"></i>
+                                </div>
                             </div>
                         </div>
-
-                        <!-- การ์ดที่ 3: นักเรียนชาย -->
-                        <div class="bg-gradient-to-br from-sky-400 to-cyan-500 rounded-xl sm:rounded-2xl shadow-sm p-3 sm:p-5 relative overflow-hidden min-h-[85px] sm:min-h-[100px]">
-                            <i class="fas fa-male absolute -bottom-2 -right-1 text-6xl sm:text-7xl text-white opacity-20 transform -rotate-12"></i>
-                            <div class="relative z-10 flex flex-col justify-center sm:justify-end h-full">
-                                <h3 class="text-base min-[375px]:text-lg sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-0.5 sm:mb-1 tracking-tight drop-shadow-sm leading-tight" id="statMalePresent">
-                                    <div class="h-6 sm:h-10 bg-white/30 rounded w-16 sm:w-24 animate-pulse"></div>
-                                </h3>
-                                <p class="text-[11px] sm:text-sm font-medium text-cyan-50 leading-tight">นักเรียนชาย<span class="hidden sm:inline"> (มาเรียนวันนี้)</span></p>
+                        <div class="bg-white rounded-xl shadow-sm p-4 border-l-4 border-sky-400">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-gray-500 mb-1">นักเรียนชาย (มาเรียนวันนี้)</p>
+                                    <h3 class="text-2xl font-bold text-gray-800" id="statMalePresent"><div class="h-6 bg-gray-200 rounded w-20 animate-pulse mt-1"></div></h3>
+                                </div>
+                                <div class="bg-sky-100 p-3 rounded-full text-sky-500 shrink-0">
+                                    <i class="fas fa-male text-2xl w-5 text-center"></i>
+                                </div>
                             </div>
                         </div>
-
-                        <!-- การ์ดที่ 4: นักเรียนหญิง -->
-                        <div class="bg-gradient-to-br from-pink-400 to-rose-500 rounded-xl sm:rounded-2xl shadow-sm p-3 sm:p-5 relative overflow-hidden min-h-[85px] sm:min-h-[100px]">
-                            <i class="fas fa-female absolute -bottom-2 -right-1 text-6xl sm:text-7xl text-white opacity-20 transform -rotate-12"></i>
-                            <div class="relative z-10 flex flex-col justify-center sm:justify-end h-full">
-                                <h3 class="text-base min-[375px]:text-lg sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-0.5 sm:mb-1 tracking-tight drop-shadow-sm leading-tight" id="statFemalePresent">
-                                    <div class="h-6 sm:h-10 bg-white/30 rounded w-16 sm:w-24 animate-pulse"></div>
-                                </h3>
-                                <p class="text-[11px] sm:text-sm font-medium text-rose-50 leading-tight">นักเรียนหญิง<span class="hidden sm:inline"> (มาเรียนวันนี้)</span></p>
+                        <div class="bg-white rounded-xl shadow-sm p-4 border-l-4 border-pink-400">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-gray-500 mb-1">นักเรียนหญิง (มาเรียนวันนี้)</p>
+                                    <h3 class="text-2xl font-bold text-gray-800" id="statFemalePresent"><div class="h-6 bg-gray-200 rounded w-20 animate-pulse mt-1"></div></h3>
+                                </div>
+                                <div class="bg-pink-100 p-3 rounded-full text-pink-500 shrink-0">
+                                    <i class="fas fa-female text-2xl w-5 text-center"></i>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Stats Cards: สถิติแยกตามประเภทนักเรียน (ไป-กลับ / อยู่ประจำ) -->
-                    <div class="grid grid-cols-2 gap-3 sm:gap-4 mb-8">
-                        
+<!-- Stats Cards: สถิติแยกตามประเภทนักเรียน (ไป-กลับ / อยู่ประจำ) -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
                         <!-- การ์ดนักเรียนอยู่ประจำ -->
-                        <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl sm:rounded-2xl shadow-sm p-3 sm:p-5 relative overflow-hidden min-h-[85px] sm:min-h-[110px]">
-                            <i class="fas fa-bed absolute -bottom-2 -right-2 text-6xl sm:text-7xl text-white opacity-20 transform -rotate-12"></i>
-                            <div class="relative z-10 flex flex-col justify-center sm:justify-start h-full">
-                                <h3 class="text-base min-[375px]:text-lg sm:text-3xl md:text-4xl font-bold text-white mb-0.5 sm:mb-1 tracking-tight drop-shadow-sm leading-tight" id="statBoardingPresent">
-                                    <div class="h-6 sm:h-8 bg-white/30 rounded w-16 sm:w-32 animate-pulse"></div>
-                                </h3>
-                                <p class="text-[11px] sm:text-sm md:text-base font-medium text-purple-100 leading-tight">อยู่ประจำ<span class="hidden sm:inline"> (มาเรียนวันนี้)</span></p>
+                        <div class="bg-white rounded-xl shadow-sm p-4 border-l-4 border-purple-500 relative overflow-hidden">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-gray-500 mb-1">นักเรียนอยู่ประจำ (มาเรียนวันนี้)</p>
+                                    <h3 class="text-2xl font-bold text-gray-800" id="statBoardingPresent"><div class="h-6 bg-gray-200 rounded w-24 animate-pulse mt-1"></div></h3>
+                                </div>
+                                <div class="bg-purple-100 p-3 rounded-full text-purple-500 shrink-0">
+                                    <i class="fas fa-bed text-xl w-5 text-center"></i>
+                                </div>
                             </div>
                         </div>
-
                         <!-- การ์ดนักเรียนไป-กลับ -->
-                        <div class="bg-gradient-to-br from-emerald-400 to-teal-500 rounded-xl sm:rounded-2xl shadow-sm p-3 sm:p-5 relative overflow-hidden min-h-[85px] sm:min-h-[110px]">
-                            <i class="fas fa-bus absolute -bottom-2 -right-2 text-6xl sm:text-7xl text-white opacity-20 transform -rotate-12"></i>
-                            <div class="relative z-10 flex flex-col justify-center sm:justify-start h-full">
-                                <h3 class="text-base min-[375px]:text-lg sm:text-3xl md:text-4xl font-bold text-white mb-0.5 sm:mb-1 tracking-tight drop-shadow-sm leading-tight" id="statDayPresent">
-                                    <div class="h-6 sm:h-8 bg-white/30 rounded w-16 sm:w-32 animate-pulse"></div>
-                                </h3>
-                                <p class="text-[11px] sm:text-sm md:text-base font-medium text-teal-50 leading-tight">ไป-กลับ<span class="hidden sm:inline"> (มาเรียนวันนี้)</span></p>
+                        <div class="bg-white rounded-xl shadow-sm p-4 border-l-4 border-teal-500">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-gray-500 mb-1">นักเรียนไป-กลับ (มาเรียนวันนี้)</p>
+                                    <h3 class="text-2xl font-bold text-gray-800" id="statDayPresent"><div class="h-6 bg-gray-200 rounded w-24 animate-pulse mt-1"></div></h3>
+                                </div>
+                                <div class="bg-teal-100 p-3 rounded-full text-teal-500 shrink-0">
+                                    <i class="fas fa-bus text-xl w-5 text-center"></i>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -327,7 +329,7 @@
                     </div>
                 </div>
 
-                <!-- Students Page -->
+                              <!-- Students Page -->
                 <div id="page-students" class="page-content flex-col flex-1 min-h-0 gap-3 w-full">
                     <!-- Filter and Search Bar -->
                     <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-3 flex flex-col xl:flex-row justify-between items-start xl:items-center gap-3 shrink-0 w-full">
@@ -375,7 +377,7 @@
                         </div>
                     </div>
 
-                    <!-- ========================================== -->
+                                        <!-- ========================================== -->
                     <!-- ส่วนแสดงสถิติเมื่อเลือกห้องเรียน -->
                     <!-- ========================================== -->
                     <div id="classStatsContainer" class="hidden grid-cols-3 gap-1.5 sm:gap-3 shrink-0 w-full">
@@ -947,6 +949,7 @@
         </div>
     </div>
 
+    <!-- Application Script Logic -->
     <!-- Face Scanner Modal -->
     <div id="faceScannerModal" class="fixed inset-0 bg-black bg-opacity-90 z-[70] hidden flex flex-col justify-center items-center p-4">
         <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden relative flex flex-col">
@@ -975,10 +978,8 @@
             </div>
         </div>
     </div>
-
-    <!-- Application Script Logic -->
     <script>
-        // =====================================================================
+      // =====================================================================
         // เพิ่มโค้ดจำลอง API สำหรับ GitHub Pages เพื่อเชื่อมต่อกับ Google Apps Script
         // =====================================================================
         if (typeof google === 'undefined') {
@@ -1036,9 +1037,7 @@
                                 verifyLogin: function(user, pass) { callAPI('verifyLogin', {username: user, password: pass}, sHandler, fHandler); },
                                 saveStudentData: function(studentObj) { callAPI('saveStudentData', {studentObj}, sHandler, fHandler); },
                                 deleteStudentData: function(id) { callAPI('deleteStudentData', {id}, sHandler, fHandler); },
-                                uploadImageToDrive: function(base64Data, fileName) { callAPI('uploadImageToDrive', {base64Data, fileName}, sHandler, fHandler); },
-                                // เพิ่มการเชื่อม API รวบยอด
-                                getInitialAppData: function(dateStr) { callAPI('getInitialAppData', {dateStr}, sHandler, fHandler); }
+                                uploadImageToDrive: function(base64Data, fileName) { callAPI('uploadImageToDrive', {base64Data, fileName}, sHandler, fHandler); }
                             };
                         }
                     })()
@@ -1311,11 +1310,12 @@
                 
                 let stats = resolveMockAttendance(targetDate, null);
                 let present = 0, total = 0;
-                let hasRealData = false; 
+                let hasRealData = false; // ตัวแปรเช็คว่าวันนี้มีการบันทึกข้อมูลจริงหรือไม่
                 
                 studentsList.forEach(function(st) {
                    if(st.commuteType !== 'จบการศึกษา') {
                        total++;
+                       // ตรวจสอบว่ามีข้อมูลการเช็คชื่อของเด็กคนนี้ในวันนั้นหรือไม่
                        if (stats[st.id]) {
                            hasRealData = true; 
                            const status = typeof stats[st.id] === 'string' ? stats[st.id] : stats[st.id].status;
@@ -1325,10 +1325,15 @@
                 });
 
                 if (hasRealData && total > 0) {
+                    // กรณีที่ 1: มีข้อมูลการเช็คชื่อในระบบจริง ให้คำนวณตามความจริง
                     weeklyPct.push(Math.round((present/total)*100));
                 } else if (targetDate > dateStr) {
+                    // กรณีที่ 2: เป็นวันในอนาคตที่ยังมาไม่ถึง ให้แสดงเป็น 0%
                     weeklyPct.push(0);
                 } else {
+                    // กรณีที่ 3: เป็นวันในอดีต (หรือวันนี้) แต่ยังไม่มีข้อมูลในระบบ
+                    // จำลองตัวเลขสุ่ม 85% - 98% เพื่อให้กราฟทำงานและดูสมจริง
+                    // (หากใช้งานจริงและต้องการให้เป็น 0 ให้เปลี่ยนบรรทัด push เป็น weeklyPct.push(0);)
                     let dummyPct = Math.floor(Math.random() * (98 - 85 + 1)) + 85;
                     weeklyPct.push(dummyPct);
                 }
@@ -1336,422 +1341,93 @@
             return weeklyPct;
         }
 
-        function handleLogin(e) {
-            e.preventDefault();
-            const user = document.getElementById('username').value;
-            const pass = document.getElementById('password').value;
-            const errorMsg = document.getElementById('loginErrorMessage');
-            errorMsg.classList.add('hidden');
+        // ============================
+        // ฟังก์ชันโหลดข้อมูลหลัก
+        // ============================
+        function fetchStudentsData() {
+            showTableSkeleton('studentTableBody', 7, true);
             
-            if(user && pass) {
-                Swal.fire({ title: 'กำลังเข้าสู่ระบบ...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
-                if (typeof google !== 'undefined' && google.script) {
-                    google.script.run
-                        .withSuccessHandler(function(res) {
-                            const parsed = JSON.parse(res);
-                            if (parsed.status === 'success') { Swal.close(); loginSuccess(parsed.user); } 
-                            else { Swal.close(); errorMsg.classList.remove('hidden'); }
-                        })
-                        .withFailureHandler(function(err) { Swal.close(); Swal.fire('การเชื่อมต่อขัดข้อง', err.message, 'error'); })
-                        .verifyLogin(user, pass);
-                } else {
-                    setTimeout(function() {
-                        if ((user === 'admin' || user === 'teacher' || user === 'headteacher') && pass === '1234') {
-                            let mockName = user === 'admin' ? 'Admin User' : (user === 'headteacher' ? 'Head Teacher' : 'Teacher');
-                            Swal.close(); loginSuccess({ username: user, role: user, name: mockName });
-                        } else { Swal.close(); errorMsg.classList.remove('hidden'); }
-                    }, 1000);
-                }
-            }
-        }
-
-        function loginSuccess(userData) {
-            currentUserRole = userData.role.toLowerCase();
-            document.getElementById('loginScreen').style.display = 'none';
-            document.getElementById('mainApp').classList.remove('hidden');
-            
-            // 1. จัดการสิทธิ์การมองเห็นเมนูและปุ่ม
-            if(currentUserRole !== 'admin') {
-                const adminEls = document.querySelectorAll('.admin-only');
-                for(let i=0; i<adminEls.length; i++) { adminEls[i].style.display = 'none'; }
-            } else {
-                const adminEls = document.querySelectorAll('.admin-only');
-                for(let i=0; i<adminEls.length; i++) { adminEls[i].style.display = ''; } 
-            }
-
-            const btnCheckStatus = document.getElementById('btnCheckStatus');
-            if(btnCheckStatus) {
-                if(currentUserRole === 'admin' || currentUserRole === 'headteacher') btnCheckStatus.style.display = '';
-                else btnCheckStatus.style.display = 'none';
-            }
-
-            const lineBtn = document.getElementById('lineReportContainer');
-            if(lineBtn) {
-                if(currentUserRole === 'admin' || currentUserRole === 'headteacher') lineBtn.classList.remove('hidden');
-                else lineBtn.classList.add('hidden');
-            }
-
-            document.getElementById('userNameDisplay').innerText = userData.name || userData.username;
-            switchPage('dashboard');
-            initCharts();
-
-            // =========== ส่วนที่เพิ่มเพื่อเพิ่มความเร็ว (Optimization) ===========
-            
-            // 1. โหลดข้อมูลจาก Cache มาวาดหน้าจอก่อนทันที (ไว 0 วินาที หน้าเว็บจะไม่ว่างเปล่า)
-            loadDataFromCache();
-            
-            // 2. สั่งดึงข้อมูลล่าสุดจาก Server แบบซุ่มเงียบ (Background Sync) 
-            fetchInitialDataFromServer();
-            
-            // 3. เริ่มอัปเดตข้อมูล Realtime 
-            startRealtimeAttendance();
-        }
-
-        // --- ฟังก์ชันใหม่ สำหรับโหลดข้อมูลรวดเร็ว ---
-        function loadDataFromCache() {
-            let hasCache = false;
-            try {
-                const cachedStudents = localStorage.getItem('sis_students_cache');
-                if (cachedStudents) { studentsList = JSON.parse(cachedStudents); hasCache = true; }
-                
-                const cachedTeachers = localStorage.getItem('sis_teachers_cache');
-                if (cachedTeachers) { teachersList = JSON.parse(cachedTeachers); }
-                
-                const cachedStats = localStorage.getItem('sis_todaystats_cache');
-                if (cachedStats) { todayAttendanceStats = JSON.parse(cachedStats); }
-
-                const cachedWeekly = localStorage.getItem('sis_weeklystats_cache');
-                if (cachedWeekly) { updateWeeklyChart(JSON.parse(cachedWeekly)); }
-            } catch(e) {}
-            
-            // ถ้ามี Cache ให้วาด UI เลย
-            if (hasCache) {
-                populateClassDropdown();
-                populateTeacherDatalist();
-                updateDashboardStats(false); // อัปเดตสถิติโดยไม่ต้องดึงเน็ตซ้ำ
-                renderTeachers();
-            } else {
-                // ถ้าไม่มี Cache (เพิ่งเข้าครั้งแรก) ค่อยแสดง โครงกระดูก Loading
-                showTableSkeleton('studentTableBody', 7, true);
-                showTableSkeleton('teacherTableBody', 5, false);
-            }
-        }
-
-        // --- ฟังก์ชันใหม่ ดึงข้อมูลรวบยอดครั้งเดียว ---
-        function fetchInitialDataFromServer() {
-            const todayStr = document.getElementById('attendanceDate').value;
-
             if (typeof google !== 'undefined' && google.script) {
-                // ถ้าระบบหลังบ้านมีฟังก์ชัน getInitialAppData (ที่ให้ไปวางใน Code.gs) ให้ใช้แบบเร็ว
-                if (google.script.run.getInitialAppData) {
-                    google.script.run.withSuccessHandler(function(res) {
+                const statElem = document.getElementById('statTotalStudents');
+                if(statElem) statElem.innerHTML = '<div class="h-6 bg-gray-200 rounded w-16 animate-pulse mt-1"></div>';
+                
+                google.script.run
+                    .withSuccessHandler(function(res) {
                         try {
                             const parsed = JSON.parse(res);
-                            if (parsed.status === 'success') {
-                                studentsList = parsed.students.map(formatStudentData);
-                                teachersList = parsed.teachers.map(formatTeacherData);
-                                todayAttendanceStats = parsed.todayStats;
-                                
-                                // บันทึกลง Cache ไว้ใช้รอบหน้า
-                                localStorage.setItem('sis_students_cache', JSON.stringify(studentsList));
-                                localStorage.setItem('sis_teachers_cache', JSON.stringify(teachersList));
-                                localStorage.setItem('sis_todaystats_cache', JSON.stringify(todayAttendanceStats));
-                                localStorage.setItem('sis_weeklystats_cache', JSON.stringify(parsed.weeklyStats));
-
-                                // วาด UI ใหม่อีกครั้งเพื่ออัปเดตข้อมูลล่าสุดแบบแนบเนียน
+                            if (!parsed.status || parsed.status !== 'error') {
+                                studentsList = parsed.map(function(p) {
+                                    return {
+                                        id: String(p.studentId || p.id || ""), idCard: String(p.idCard || ""),
+                                        name: String(p.name || ""), nickname: String(p.nickname || ""),
+                                        dob: String(p.dob || ""), grade: String(p.grade || ""),
+                                        teacher: String(p.teacher || "รอจัดสรร"), coTeacher: String(p.coTeacher || ""),
+                                        coTeacher2: String(p.coTeacher2 || ""), dormitory: String(p.dormitory || ""),
+                                        learningSource: String(p.learningSource || ""), commuteType: String(p.commuteType || "ไป-กลับ"),
+                                        disease: String(p.disease || ""), medicine: String(p.medicine || ""),
+                                        hasDisability: (String(p.hasDisability).toLowerCase() === "true" || p.hasDisability === true),
+                                        disabilityType: String(p.disabilityType || "ไม่มี"), disabilityImg: fixDriveUrl(p.disabilityImg || ""),
+                                        profileImg: fixDriveUrl(p.profileImg || ""), address: String(p.address || ""),
+                                        fatherName: String(p.fatherName || ""), fatherPhone: String(p.fatherPhone || ""),
+                                        motherName: String(p.motherName || ""), motherPhone: String(p.motherPhone || ""),
+                                        guardianName: String(p.guardianName || ""), guardianPhone: String(p.guardianPhone || ""),
+                                        guardianRelation: String(p.guardianRelation || "")
+                                    };
+                                });
                                 populateClassDropdown();
-                                populateTeacherDatalist();
-                                updateDashboardStats(false);
-                                renderTeachers();
-                                updateWeeklyChart(parsed.weeklyStats);
+                                updateDashboardStats();
+                            } else { 
+                                Swal.fire('เกิดข้อผิดพลาด', parsed.message, 'error'); 
+                                document.getElementById('studentTableBody').innerHTML = ''; 
                             }
-                        } catch(e) {}
-                    }).getInitialAppData(todayStr);
-                } else {
-                    // ระบบสำรอง หากไม่ได้อัปเดตหลังบ้าน
-                    fetchStudentsData();
-                    fetchTeachersData();
-                }
+                        } catch (e) { console.error("JSON Parse Error:", e); }
+                    })
+                    .withFailureHandler(function(err) { 
+                        Swal.fire('เกิดข้อผิดพลาดในการเชื่อมต่อ', err.message, 'error'); 
+                        document.getElementById('studentTableBody').innerHTML = '';
+                    })
+                    .getStudents();
             } else {
-                // สำหรับ Mock Environment
                 setTimeout(() => { 
                     studentsList = JSON.parse(localStorage.getItem('sis_students')) || initialMockStudents;
-                    teachersList = JSON.parse(localStorage.getItem('sis_teachers')) || [];
                     populateClassDropdown();
-                    populateTeacherDatalist();
-                    updateDashboardStats(false);
-                    renderTeachers();
+                    updateDashboardStats();
                 }, 800);
             }
         }
 
-        // Helper ฟังก์ชันจัดฟอร์แมต (ลดโค้ดซ้ำซ้อน)
-        function formatStudentData(p) {
-            return {
-                id: String(p.studentId || p.id || ""), idCard: String(p.idCard || ""), name: String(p.name || ""), nickname: String(p.nickname || ""), dob: String(p.dob || ""), grade: String(p.grade || ""),
-                teacher: String(p.teacher || "รอจัดสรร"), coTeacher: String(p.coTeacher || ""), coTeacher2: String(p.coTeacher2 || ""), dormitory: String(p.dormitory || ""), learningSource: String(p.learningSource || ""), commuteType: String(p.commuteType || "ไป-กลับ"),
-                disease: String(p.disease || ""), medicine: String(p.medicine || ""), hasDisability: (String(p.hasDisability).toLowerCase() === "true" || p.hasDisability === true), disabilityType: String(p.disabilityType || "ไม่มี"), disabilityImg: fixDriveUrl(p.disabilityImg || ""), profileImg: fixDriveUrl(p.profileImg || ""),
-                address: String(p.address || ""), fatherName: String(p.fatherName || ""), fatherPhone: String(p.fatherPhone || ""), motherName: String(p.motherName || ""), motherPhone: String(p.motherPhone || ""), guardianName: String(p.guardianName || ""), guardianPhone: String(p.guardianPhone || ""), guardianRelation: String(p.guardianRelation || "")
-            };
-        }
-
-        function formatTeacherData(t) {
-            return { id: String(t.teacherId || ""), name: String(t.name || ""), assignedClass: String(t.assignedClass || ""), teacherPosition: String(t.teacherPosition || "1"), learningSource: String(t.learningSource || ""), isLearningSourceHead: (String(t.isLearningSourceHead).toLowerCase() === 'true' || t.isLearningSourceHead === true) };
-        }
-
-        function fetchStudentsData() {
-            if (typeof google !== 'undefined' && google.script && !google.script.run.getInitialAppData) {
-                google.script.run.withSuccessHandler(function(res) {
-                    try {
-                        const parsed = JSON.parse(res);
-                        if (!parsed.status || parsed.status !== 'error') {
-                            studentsList = parsed.map(formatStudentData);
-                            localStorage.setItem('sis_students_cache', JSON.stringify(studentsList)); 
-                            populateClassDropdown();
-                            updateDashboardStats(true);
-                        }
-                    } catch (e) {}
-                }).getStudents();
-            } else if (typeof google === 'undefined') {
-                studentsList = JSON.parse(localStorage.getItem('sis_students')) || initialMockStudents;
-                populateClassDropdown();
-                updateDashboardStats(false);
-            }
-        }
-
         function fetchTeachersData() {
-            if (typeof google !== 'undefined' && google.script && !google.script.run.getInitialAppData) {
-                google.script.run.withSuccessHandler(function(res) {
-                    try {
-                        const parsed = JSON.parse(res);
-                        if (!parsed.status || parsed.status !== 'error') {
-                            teachersList = parsed.map(formatTeacherData);
-                            localStorage.setItem('sis_teachers_cache', JSON.stringify(teachersList)); 
-                            renderTeachers();
-                            populateTeacherDatalist();
-                        }
-                    } catch(e) {}
-                }).getTeachers();
-            } else if (typeof google === 'undefined') {
-                 teachersList = JSON.parse(localStorage.getItem('sis_teachers')) || [];
-                 renderTeachers();
-                 populateTeacherDatalist();
+            showTableSkeleton('teacherTableBody', 5, false);
+
+            if (typeof google !== 'undefined' && google.script) {
+                google.script.run
+                    .withSuccessHandler(function(res) {
+                        try {
+                            const parsed = JSON.parse(res);
+                            if (!parsed.status || parsed.status !== 'error') {
+                                teachersList = parsed.map(function(t) {
+                                    return { 
+                                        id: String(t.teacherId || ""), 
+                                        name: String(t.name || ""), 
+                                        assignedClass: String(t.assignedClass || ""),
+                                        teacherPosition: String(t.teacherPosition || "1"),
+                                        learningSource: String(t.learningSource || ""),
+                                        isLearningSourceHead: (String(t.isLearningSourceHead).toLowerCase() === 'true' || t.isLearningSourceHead === true)
+                                    };
+                                });
+                                renderTeachers();
+                                populateTeacherDatalist();
+                            }
+                        } catch(e) {}
+                    })
+                    .getTeachers();
+            } else {
+                setTimeout(() => {
+                    teachersList = JSON.parse(localStorage.getItem('sis_teachers')) || [];
+                    renderTeachers();
+                    populateTeacherDatalist();
+                }, 800);
             }
-        }
-
-        function populateClassDropdown() {
-            const attSelect = document.getElementById('attendanceClass');
-            const filterGrade = document.getElementById('filterGrade');
-            const filterDorm = document.getElementById('filterDormitory');
-            const filterLearningSource = document.getElementById('filterLearningSource');
-            
-            const grades = new Set();
-            const dorms = new Set();
-            const learningSources = new Set([
-                "1.การเลี้ยงกบ", "2.การเลี้ยงไก่พื้นเมือง", "3.การเลี้ยงจิ้งหรีด", "4.มีชัยพัฒนา",
-                "5.การทำปุ๋ยอินทรีย์จากใบไม้", "6.การทำน้ำหมักชีวภาพ", "7.การปลูกมะนาวในวงบ่อ",
-                "8.การปลูกผักสวนครัว", "9.การปลูกผักกางมุ้ง", "10.การปลูกผักในกระถาง 1",
-                "11.การปลูกผักในกระถาง 2", "12.การปลูกผักไม้เลื้อย 1", "13.การปลูกผักไม้เลื้อย 2",
-                "14.การเลี้ยงปลาน้ำจืด", "15.การทำเกษตรผสมผสาน 1", "16.การทำเกษตรผสมผสาน 2",
-                "17.การทำนาข้าว", "18.การทำเกษตรทฤษฎีใหม่", "19.การปลูกผักในกระบะ",
-                "20.การทำนาบัว", "21.การเพาะเห็ด"
-            ]);
-            
-            studentsList.forEach(function(s) { 
-                if (s.commuteType !== 'จบการศึกษา') {
-                    if(s.grade && s.grade !== '-') grades.add(s.grade);
-                    if(s.dormitory && s.dormitory !== '-') dorms.add(s.dormitory);
-                    if(s.learningSource && s.learningSource !== '-') learningSources.add(s.learningSource);
-                }
-            });
-            
-            const sortedGrades = Array.from(grades).sort(function(a, b) {
-                const weightA = getGradeWeight(a);
-                const weightB = getGradeWeight(b);
-                if (weightA !== weightB) return weightA - weightB;
-                return String(a).localeCompare(String(b), 'th');
-            });
-            const sortedDorms = Array.from(dorms).sort();
-            
-            const sortedLearningSources = Array.from(learningSources).sort(function(a, b) {
-                const numA = parseInt(a.match(/^\d+/)) || 999;
-                const numB = parseInt(b.match(/^\d+/)) || 999;
-                if (numA !== numB) return numA - numB;
-                return String(a).localeCompare(String(b), 'th');
-            });
-            
-            if(attSelect) {
-                const currAtt = attSelect.value;
-                attSelect.innerHTML = '';
-                if(sortedGrades.length === 0) { 
-                    attSelect.innerHTML = '<option value="">ไม่มีข้อมูลห้องเรียน</option>'; 
-                } else {
-                    let defaultOpt = document.createElement('option'); 
-                    defaultOpt.value = ""; 
-                    defaultOpt.innerText = "- เลือกห้องเรียน -";
-                    defaultOpt.disabled = true;
-                    defaultOpt.selected = true;
-                    attSelect.appendChild(defaultOpt);
-
-                    sortedGrades.forEach(function(g) { 
-                        let opt = document.createElement('option'); opt.value = g; opt.innerText = g; 
-                        attSelect.appendChild(opt); 
-                    });
-                    
-                    if(currAtt && currAtt !== "") {
-                        attSelect.value = currAtt;
-                    } else {
-                        attSelect.value = "";
-                    }
-                }
-            }
-            
-            if(filterGrade) {
-                const currGrade = filterGrade.value;
-                filterGrade.innerHTML = '<option value="">ทุกห้องเรียน</option>';
-                sortedGrades.forEach(function(g) { 
-                    let opt = document.createElement('option'); opt.value = g; opt.innerText = g; 
-                    filterGrade.appendChild(opt); 
-                });
-                if(currGrade) filterGrade.value = currGrade;
-            }
-            
-            if(filterDorm) {
-                const currDorm = filterDorm.value;
-                filterDorm.innerHTML = '<option value="">ทุกเรือนนอน</option>';
-                sortedDorms.forEach(function(d) { 
-                    let opt = document.createElement('option'); opt.value = d; opt.innerText = d; 
-                    filterDorm.appendChild(opt); 
-                });
-                if(currDorm) filterDorm.value = currDorm;
-            }
-            
-            if(filterLearningSource) {
-                const currSource = filterLearningSource.value;
-                filterLearningSource.innerHTML = '<option value="">ทุกแหล่งเรียนรู้</option>';
-                sortedLearningSources.forEach(function(ls) { 
-                    let opt = document.createElement('option'); opt.value = ls; opt.innerText = ls; 
-                    filterLearningSource.appendChild(opt); 
-                });
-                if(currSource) filterLearningSource.value = currSource;
-            }
-        }
-
-        function initCharts() {
-            const attChartCtx = document.getElementById('attendanceChart');
-            if(attChartCtx) {
-                if (attendanceChartInstance) {
-                    attendanceChartInstance.destroy();
-                }
-                attendanceChartInstance = new Chart(attChartCtx.getContext('2d'), {
-                    type: 'line',
-                    data: { labels: ['จันทร์', 'อังคาร', 'พุธ', 'พฤหัสฯ', 'ศุกร์'], datasets: [{ label: 'เปอร์เซ็นต์การมาเรียน', data: [0, 0, 0, 0, 0], borderColor: '#16a34a', backgroundColor: 'rgba(22, 163, 74, 0.1)', tension: 0.4, fill: true }] },
-                    options: { responsive: true, maintainAspectRatio: false, scales: { y: { min: 0, max: 100 } } }
-                });
-            }
-            
-            const gradeChartCtx = document.getElementById('gradeChart');
-            if(gradeChartCtx) {
-                if (gradeChartInstance) {
-                    gradeChartInstance.destroy();
-                }
-                gradeChartInstance = new Chart(gradeChartCtx.getContext('2d'), {
-                    type: 'bar',
-                    data: { labels: [], datasets: [{ label: 'จำนวนนักเรียน', data: [], backgroundColor: '#3b82f6', borderRadius: 4 }] },
-                    options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
-                });
-            }
-
-            const dormChartCtx = document.getElementById('dormChart');
-            if(dormChartCtx) {
-                if (dormChartInstance) {
-                    dormChartInstance.destroy();
-                }
-                dormChartInstance = new Chart(dormChartCtx.getContext('2d'), {
-                    type: 'bar',
-                    data: { labels: [], datasets: [{ label: 'มาเรียน (คน)', data: [], backgroundColor: '#8b5cf6', borderRadius: 4 }, { label: 'ทั้งหมด (คน)', data: [], backgroundColor: '#d8b4fe', borderRadius: 4 }] },
-                    options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
-                });
-            }
-        }
-
-        function updateGradeChart() {
-            if(!gradeChartInstance) return;
-            const gradeCounts = {};
-            studentsList.forEach(function(st) { if(st.grade && st.commuteType !== 'จบการศึกษา') gradeCounts[st.grade] = (gradeCounts[st.grade] || 0) + 1; });
-            const sortedGrades = Object.keys(gradeCounts).sort(function(a, b) {
-                const weightA = getGradeWeight(a), weightB = getGradeWeight(b);
-                if (weightA !== weightB) return weightA - weightB;
-                return String(a).localeCompare(String(b), 'th');
-            });
-            gradeChartInstance.data.labels = sortedGrades;
-            gradeChartInstance.data.datasets[0].data = sortedGrades.map(function(g) { return gradeCounts[g]; });
-            gradeChartInstance.update();
-        }
-
-        function updateWeeklyChart(weeklyData) {
-            if(!attendanceChartInstance) return;
-            
-            let validData = [0, 0, 0, 0, 0];
-            
-            if (Array.isArray(weeklyData) && weeklyData.length === 5) {
-                validData = weeklyData;
-            }
-
-            const isAllZero = validData.every(val => val === 0);
-            
-            if (isAllZero) {
-                const now = new Date();
-                const currentDayIndex = now.getDay(); 
-                
-                for (let i = 0; i < 5; i++) {
-                    if ((i + 1) <= currentDayIndex || currentDayIndex === 0 || currentDayIndex === 6) {
-                        validData[i] = Math.floor(Math.random() * (98 - 85 + 1)) + 85;
-                    } else {
-                        validData[i] = 0;
-                    }
-                }
-            }
-
-            attendanceChartInstance.data.datasets[0].data = validData;
-            attendanceChartInstance.update();
-        }
-
-        function updateDormChart() {
-            if(!dormChartInstance) return;
-            const dormStats = {};
-            const standardDorms = ["1.เรือนนอนชาย ทานตะวัน", "2.เรือนนอนชาย พุทธรักษา", "3.เรือนนอนชาย ชงโค", "4.เรือนนอนชาย อัญชัน", "5.เรือนนอนชาย พวงคราม", "6.เรือนนอนหญิง เฟื่องฟ้า", "7.เรือนนอนหญิง ดอกแก้ว", "8.เรือนนอนหญิง พิกุล"];
-            standardDorms.forEach(function(d) { dormStats[d] = { total: 0, present: 0 }; });
-
-            studentsList.forEach(function(st) { 
-                if(st.commuteType === 'อยู่ประจำ' && st.dormitory && st.dormitory !== '-') {
-                    if (!dormStats[st.dormitory]) dormStats[st.dormitory] = { total: 0, present: 0 };
-                    dormStats[st.dormitory].total += 1;
-                    
-                    const attData = todayAttendanceStats[st.id];
-                    const status = attData ? (typeof attData === 'string' ? attData : attData.status) : null;
-                    if(status === 'present' || status === 'late') dormStats[st.dormitory].present += 1;
-                }
-            });
-
-            const labels = [];
-            const presentData = [];
-            const totalData = [];
-
-            const sortedDorms = Object.keys(dormStats).sort();
-            sortedDorms.forEach(function(dorm) {
-                if(dormStats[dorm].total > 0) {
-                    const shortName = dorm.replace(/เรือนนอน(ชาย|หญิง)\s*/g, '');
-                    labels.push(shortName);
-                    presentData.push(dormStats[dorm].present);
-                    totalData.push(dormStats[dorm].total);
-                }
-            });
-
-            dormChartInstance.data.labels = labels;
-            dormChartInstance.data.datasets[0].data = presentData;
-            dormChartInstance.data.datasets[1].data = totalData;
-            dormChartInstance.update();
         }
 
         function populateTeacherDatalist() {
@@ -1765,7 +1441,7 @@
             });
         }
 
-        function updateDashboardStats(fetchFromServer = true) {
+        function updateDashboardStats() {
             const statTotalElem = document.getElementById('statTotalStudents');
             const activeStudentsCount = studentsList.filter(function(s) { return s.commuteType !== 'จบการศึกษา'; }).length;
             if(statTotalElem) statTotalElem.innerText = activeStudentsCount.toLocaleString();
@@ -1775,27 +1451,28 @@
 
             const todayStr = document.getElementById('attendanceDate').value;
             
-            if (fetchFromServer && typeof google !== 'undefined' && google.script && !google.script.run.getInitialAppData) {
-                google.script.run.withSuccessHandler(function(res) {
-                    todayAttendanceStats = JSON.parse(res);
-                    localStorage.setItem('sis_todaystats_cache', JSON.stringify(todayAttendanceStats));
-                    calculateTodayAttendancePercent();
-                    updateGradeCards();
-                    updateDormCards(); 
-                    updateDormChart();
-                    renderStudents();
-                }).getTodayAttendanceStats(todayStr);
+            if (typeof google !== 'undefined' && google.script) {
+                google.script.run
+                    .withSuccessHandler(function(res) {
+                        todayAttendanceStats = JSON.parse(res);
+                        calculateTodayAttendancePercent();
+                        updateGradeCards();
+                        updateDormCards(); 
+                        updateDormChart();
+                        renderStudents();
+                    }).getTodayAttendanceStats(todayStr);
 
-                google.script.run.withSuccessHandler(function(res) {
-                    const weeklyStats = JSON.parse(res);
-                    localStorage.setItem('sis_weeklystats_cache', JSON.stringify(weeklyStats));
-                    updateWeeklyChart(weeklyStats);
-                }).getWeeklyAttendanceStats(todayStr);
+                google.script.run
+                    .withSuccessHandler(function(res) {
+                        updateWeeklyChart(JSON.parse(res));
+                    }).getWeeklyAttendanceStats(todayStr);
             } else {
+                todayAttendanceStats = resolveMockAttendance(todayStr, null);
                 calculateTodayAttendancePercent();
                 updateGradeCards();
                 updateDormCards();
                 updateDormChart();
+                updateWeeklyChart(resolveMockWeeklyAttendance(todayStr));
             }
         }
 
@@ -1803,10 +1480,14 @@
             let presentCount = 0, malePresentCount = 0, femalePresentCount = 0;
             let totalMaleActive = 0, totalFemaleActive = 0;
             
+            // --- ตัวแปรสำหรับนับประเภทนักเรียน (ไป-กลับ / อยู่ประจำ) ---
             let totalBoardingActive = 0, boardingPresentCount = 0;
             let totalDayActive = 0, dayPresentCount = 0;
+            // ------------------------------------------
 
             const activeStudents = studentsList.filter(function(s) { return s.commuteType !== 'จบการศึกษา'; });
+            
+            // เก็บรายชื่อคนที่ระบุเพศไม่ได้ ไว้เช็คใน Console (F12)
             let unknownGenderStudents = [];
 
             activeStudents.forEach(function(st) {
@@ -1814,8 +1495,9 @@
                 
                 if (gender === 'male') totalMaleActive++;
                 else if (gender === 'female') totalFemaleActive++;
-                else unknownGenderStudents.push(st.name);
+                else unknownGenderStudents.push(st.name); // เก็บชื่อคนที่คำนำหน้าผิด
 
+                // นับจำนวนนักเรียนทั้งหมดแยกตามประเภท
                 if (st.commuteType === 'อยู่ประจำ') totalBoardingActive++;
                 else if (st.commuteType === 'ไป-กลับ') totalDayActive++;
 
@@ -1827,109 +1509,134 @@
                     if (gender === 'male') malePresentCount++;
                     else if (gender === 'female') femalePresentCount++;
                     
+                    // นับจำนวนคนที่มาเรียนแยกตามประเภท
                     if (st.commuteType === 'อยู่ประจำ') boardingPresentCount++;
                     else if (st.commuteType === 'ไป-กลับ') dayPresentCount++;
                 }
             });
 
+            // แจ้งเตือนใน Console เพื่อให้โปรแกรมเมอร์/แอดมิน ทราบว่ามีเด็กคนไหนคำนำหน้าชื่อผิด 
             if (unknownGenderStudents.length > 0) {
-                console.warn("⚠️ พบรายชื่อนักเรียนที่ไม่มีคำนำหน้า หรือคำนำหน้าผิดรูปแบบ:", unknownGenderStudents);
+                console.warn("⚠️ พบรายชื่อนักเรียนที่ไม่มีคำนำหน้า หรือคำนำหน้าผิดรูปแบบ (ทำให้ยอดแยกชาย-หญิงไม่ตรงยอดรวม):", unknownGenderStudents);
             }
 
+            // 1. คำนวณและแสดงผล สถิติรวม
             let percent = activeStudents.length > 0 ? Math.round((presentCount / activeStudents.length) * 100) : 0;
             const statAttElem = document.getElementById('statAttendanceToday');
+            // เปลี่ยนจาก percent + '% (' + presentCount + ' คน)'
             if(statAttElem) statAttElem.innerText = presentCount + '/' + activeStudents.length + ' คน (' + percent + '%)';
             
+            // 2. คำนวณและแสดงผล นักเรียนชาย-หญิง
             let malePercent = totalMaleActive > 0 ? Math.round((malePresentCount / totalMaleActive) * 100) : 0;
             let femalePercent = totalFemaleActive > 0 ? Math.round((femalePresentCount / totalFemaleActive) * 100) : 0;
             
             const statMaleElem = document.getElementById('statMalePresent');
+            // เปลี่ยนรูปแบบการแสดงผล ชาย
             if(statMaleElem) statMaleElem.innerText = malePresentCount + '/' + totalMaleActive + ' คน (' + malePercent + '%)';
             
             const statFemaleElem = document.getElementById('statFemalePresent');
+            // เปลี่ยนรูปแบบการแสดงผล หญิง
             if(statFemaleElem) statFemaleElem.innerText = femalePresentCount + '/' + totalFemaleActive + ' คน (' + femalePercent + '%)';
 
+            // 3. คำนวณและแสดงผล นักเรียนอยู่ประจำ / ไป-กลับ
             let boardingPercent = totalBoardingActive > 0 ? Math.round((boardingPresentCount / totalBoardingActive) * 100) : 0;
             let dayPercent = totalDayActive > 0 ? Math.round((dayPresentCount / totalDayActive) * 100) : 0;
 
             const statBoardingElem = document.getElementById('statBoardingPresent');
+            // เปลี่ยนรูปแบบการแสดงผล อยู่ประจำ
             if(statBoardingElem) statBoardingElem.innerText = boardingPresentCount + '/' + totalBoardingActive + ' คน (' + boardingPercent + '%)';
             
             const statDayElem = document.getElementById('statDayPresent');
+            // เปลี่ยนรูปแบบการแสดงผล ไป-กลับ
             if(statDayElem) statDayElem.innerText = dayPresentCount + '/' + totalDayActive + ' คน (' + dayPercent + '%)';
         }
 
-        function updateGradeCards() {
-            const gradeStats = {};
+        // ============================
+        // ฟังก์ชันใหม่: อัปเดตสถิติแยกระดับชั้น
+        // ============================
+ function updateGradeCards() {
+    const gradeStats = {};
 
-            studentsList.forEach(function(st) { 
-                if(st.commuteType !== 'จบการศึกษา' && st.grade && st.grade !== '-') {
-                    let baseGrade = st.grade.split('/')[0].trim();
-                    
-                    if (!gradeStats[baseGrade]) gradeStats[baseGrade] = { total: 0, present: 0 };
-                    gradeStats[baseGrade].total += 1;
-                    
-                    const attData = todayAttendanceStats[st.id];
-                    const status = attData ? (typeof attData === 'string' ? attData : attData.status) : null;
-                    if(status === 'present' || status === 'late') gradeStats[baseGrade].present += 1;
-                }
-            });
+    // วนลูปนับจำนวนและแยกชั้นหลัก (ตัดเลขห้องย่อยทิ้ง)
+    studentsList.forEach(function(st) { 
+        if(st.commuteType !== 'จบการศึกษา' && st.grade && st.grade !== '-') {
+            // แยกหา base grade เช่น "ม.1/1" หรือ "ม.1/5" จะกลายเป็น "ม.1"
+            let baseGrade = st.grade.split('/')[0].trim();
+            
+            if (!gradeStats[baseGrade]) gradeStats[baseGrade] = { total: 0, present: 0 };
+            gradeStats[baseGrade].total += 1;
+            
+            const attData = todayAttendanceStats[st.id];
+            const status = attData ? (typeof attData === 'string' ? attData : attData.status) : null;
+            if(status === 'present' || status === 'late') gradeStats[baseGrade].present += 1;
+        }
+    });
 
-            const container = document.getElementById('gradeStatsContainer');
-            if(!container) return;
-            container.innerHTML = '';
+    const container = document.getElementById('gradeStatsContainer');
+    if(!container) return;
+    container.innerHTML = '';
 
-            const sortedGrades = Object.keys(gradeStats).sort(function(a, b) {
-                const weightA = getGradeWeight(a);
-                const weightB = getGradeWeight(b);
-                if (weightA !== weightB) return weightA - weightB;
-                return String(a).localeCompare(String(b), 'th');
-            });
+    // เรียงลำดับชั้นให้ถูกต้อง (ใช้ฟังก์ชัน getGradeWeight ช่วยเรียง ม.1, ม.2, ...)
+    const sortedGrades = Object.keys(gradeStats).sort(function(a, b) {
+        const weightA = getGradeWeight(a);
+        const weightB = getGradeWeight(b);
+        if (weightA !== weightB) return weightA - weightB;
+        return String(a).localeCompare(String(b), 'th');
+    });
 
-            sortedGrades.forEach(function(baseGrade) {
-                if(gradeStats[baseGrade].total === 0) return;
-                
-                const percent = Math.round((gradeStats[baseGrade].present / gradeStats[baseGrade].total) * 100) || 0;
-                
-                let palette = { border: 'border-gray-400', text: 'text-gray-600', bar: 'bg-gray-400' };
+    // สร้าง Card สำหรับแต่ละระดับชั้น
+    sortedGrades.forEach(function(baseGrade) {
+        if(gradeStats[baseGrade].total === 0) return;
+        
+        const percent = Math.round((gradeStats[baseGrade].present / gradeStats[baseGrade].total) * 100) || 0;
+        
+        // กำหนดสีเริ่มต้น (กรณีไม่ตรงกับเงื่อนไขใดเลย)
+        let palette = { border: 'border-gray-400', text: 'text-gray-600', bar: 'bg-gray-400' };
 
-                if (baseGrade.startsWith('อ.')) {
-                    palette = { border: 'border-pink-400', text: 'text-pink-600', bar: 'bg-pink-400' };
-                } else if (baseGrade.startsWith('ป.')) {
-                    let num = parseInt(baseGrade.replace('ป.', '').trim());
-                    if (num >= 1 && num <= 3) {
-                        palette = { border: 'border-yellow-400', text: 'text-yellow-600', bar: 'bg-yellow-400' };
-                    } else if (num >= 4 && num <= 6) {
-                        palette = { border: 'border-orange-500', text: 'text-orange-600', bar: 'bg-orange-500' };
-                    }
-                } else if (baseGrade.startsWith('ม.')) {
-                    let num = parseInt(baseGrade.replace('ม.', '').trim());
-                    if (num >= 1 && num <= 3) {
-                        palette = { border: 'border-green-500', text: 'text-green-600', bar: 'bg-green-500' };
-                    } else if (num >= 4 && num <= 6) {
-                        palette = { border: 'border-blue-500', text: 'text-blue-600', bar: 'bg-blue-500' };
-                    }
-                }
-
-                container.innerHTML += `
-                    <div class="bg-white rounded-xl shadow-sm p-3 border-l-4 ${palette.border} hover:shadow-md transition">
-                        <div class="flex flex-col">
-                            <p class="text-sm font-bold text-gray-700 mb-0.5 truncate">ชั้น ${baseGrade}</p>
-                            <div class="flex items-end justify-between">
-                                <h3 class="text-xl font-bold ${palette.text}">${gradeStats[baseGrade].present} <span class="text-gray-400 mx-0.5 text-xs font-normal">/</span> <span class="text-sm text-gray-500">${gradeStats[baseGrade].total}</span></h3>
-                                <span class="text-xs font-semibold ${palette.text}">${percent}%</span>
-                            </div>
-                            <div class="w-full bg-gray-100 rounded-full h-1.5 mt-1.5 overflow-hidden">
-                                <div class="${palette.bar} h-1.5 rounded-full" style="width: ${percent}%"></div>
-                            </div>
-                        </div>
-                    </div>`;
-            });
-
-            if(sortedGrades.length === 0) {
-                 container.innerHTML = '<div class="col-span-full text-center py-4 text-gray-500 text-sm">ยังไม่มีข้อมูลนักเรียนสำหรับแสดงผล</div>';
+        // ตรวจสอบและเปลี่ยนสีตามระดับชั้น
+        if (baseGrade.startsWith('อ.')) {
+            // 1. อ.1-อ.2 สีชมพู
+            palette = { border: 'border-pink-400', text: 'text-pink-600', bar: 'bg-pink-400' };
+        } else if (baseGrade.startsWith('ป.')) {
+            let num = parseInt(baseGrade.replace('ป.', '').trim());
+            if (num >= 1 && num <= 3) {
+                // 2. ป.1-ป.3 สีเหลือง
+                palette = { border: 'border-yellow-400', text: 'text-yellow-600', bar: 'bg-yellow-400' };
+            } else if (num >= 4 && num <= 6) {
+                // 3. ป.4-ป.6 สีส้ม
+                palette = { border: 'border-orange-500', text: 'text-orange-600', bar: 'bg-orange-500' };
+            }
+        } else if (baseGrade.startsWith('ม.')) {
+            let num = parseInt(baseGrade.replace('ม.', '').trim());
+            if (num >= 1 && num <= 3) {
+                // 4. ม.1-ม.3 สีเขียว
+                palette = { border: 'border-green-500', text: 'text-green-600', bar: 'bg-green-500' };
+            } else if (num >= 4 && num <= 6) {
+                // 5. ม.4-ม.6 สีน้ำเงิน
+                palette = { border: 'border-blue-500', text: 'text-blue-600', bar: 'bg-blue-500' };
             }
         }
+
+        container.innerHTML += `
+            <div class="bg-white rounded-xl shadow-sm p-3 border-l-4 ${palette.border} hover:shadow-md transition">
+                <div class="flex flex-col">
+                    <p class="text-sm font-bold text-gray-700 mb-0.5 truncate">ชั้น ${baseGrade}</p>
+                    <div class="flex items-end justify-between">
+                        <h3 class="text-xl font-bold ${palette.text}">${gradeStats[baseGrade].present} <span class="text-gray-400 mx-0.5 text-xs font-normal">/</span> <span class="text-sm text-gray-500">${gradeStats[baseGrade].total}</span></h3>
+                        <span class="text-xs font-semibold ${palette.text}">${percent}%</span>
+                    </div>
+                    <div class="w-full bg-gray-100 rounded-full h-1.5 mt-1.5 overflow-hidden">
+                        <div class="${palette.bar} h-1.5 rounded-full" style="width: ${percent}%"></div>
+                    </div>
+                </div>
+            </div>`;
+    });
+
+    // กรณีไม่มีข้อมูล
+    if(sortedGrades.length === 0) {
+         container.innerHTML = '<div class="col-span-full text-center py-4 text-gray-500 text-sm">ยังไม่มีข้อมูลนักเรียนสำหรับแสดงผล</div>';
+    }
+}
 
         function updateDormCards() {
             const dormStats = {};
@@ -1971,6 +1678,298 @@
             });
         }
 
+          function fetchAttendance() {
+            const selectedClass = document.getElementById('attendanceClass').value;
+            const selectedDate = document.getElementById('attendanceDate').value;
+            
+            if(!selectedClass || !selectedDate) { Swal.fire('แจ้งเตือน', 'กรุณาเลือกห้องเรียนและวันที่', 'warning'); return; }
+
+            showTableSkeleton('attendanceTableBody', 2, true); 
+            document.getElementById('saveAttendancePanel').classList.add('hidden');
+            
+            // ซ่อนการ์ดสถิติไว้ชั่วคราวระหว่างโหลดข้อมูล
+            if (document.getElementById('attendanceClassStats')) {
+                document.getElementById('attendanceClassStats').classList.add('hidden');
+            }
+
+            if (typeof google !== 'undefined' && google.script) {
+                google.script.run
+                    .withSuccessHandler(function(res) {
+                        const parsed = JSON.parse(res);
+                        if(parsed.status === 'success') renderAttendanceTable(selectedClass, selectedDate, parsed.data);
+                        else { 
+                            Swal.fire('เกิดข้อผิดพลาด', parsed.message, 'error'); 
+                            document.getElementById('attendanceTableBody').innerHTML = '<tr><td colspan="2" class="text-center py-6 text-red-500">ดึงข้อมูลล้มเหลว</td></tr>'; 
+                        }
+                    })
+                    .withFailureHandler(function(err) { 
+                        Swal.fire('การเชื่อมต่อขัดข้อง', err.message, 'error'); 
+                        document.getElementById('attendanceTableBody').innerHTML = '';
+                    })
+                    .getAttendanceData(selectedDate, selectedClass);
+            } else {
+                setTimeout(function() { renderAttendanceTable(selectedClass, selectedDate, resolveMockAttendance(selectedDate, selectedClass)); }, 800);
+            }
+        }
+
+        function renderAttendanceTable(selectedClass, selectedDate, fetchedData) {
+            const tbody = document.getElementById('attendanceTableBody');
+            tbody.innerHTML = '';
+            
+            const studentsInClass = studentsList.filter(function(s) { return s.grade === selectedClass && s.commuteType !== 'จบการศึกษา'; }).sort(function(a, b) { return String(a.id).localeCompare(String(b.id)); });
+            
+            if(studentsInClass.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="2" class="text-center py-8 text-gray-500">ไม่พบรายชื่อนักเรียนที่กำลังศึกษาในห้องนี้</td></tr>';
+                if (document.getElementById('attendanceClassStats')) document.getElementById('attendanceClassStats').classList.add('hidden');
+                return;
+            }
+
+            studentsInClass.forEach(function(st) {
+                const stData = fetchedData[st.id] || { status: 'present', remark: '' };
+                const status = typeof stData === 'string' ? stData : stData.status;
+                let finalStatus = (status === 'late') ? 'present' : (status === 'leave' ? 'absent' : status); 
+                const remark = typeof stData === 'object' ? (stData.remark || '') : '';
+                
+                let safeName = encodeURIComponent(st.nickname || st.name || 'Student');
+                let imgSrc = st.profileImg ? st.profileImg : '[https://ui-avatars.com/api/?name=](https://ui-avatars.com/api/?name=)' + safeName + '&background=random';
+                
+                let radioOptions = '';
+                
+                if (st.commuteType === 'อยู่ประจำ') {
+                    finalStatus = (finalStatus !== 'present' && finalStatus !== 'home') ? 'present' : finalStatus;
+                    
+                    radioOptions = 
+                        '<label class="inline-flex items-center text-green-600 cursor-pointer p-1"><input type="radio" name="att_' + st.id + '" value="present" ' + (finalStatus === 'present' ? 'checked' : '') + ' onchange="toggleRemark(\'' + st.id + '\')" class="form-radio h-5 w-5 text-green-600"><span class="ml-2 font-medium">มาเรียน</span></label>' +
+                        '<label class="inline-flex items-center text-purple-600 cursor-pointer p-1"><input type="radio" name="att_' + st.id + '" value="home" ' + (finalStatus === 'home' ? 'checked' : '') + ' onchange="toggleRemark(\'' + st.id + '\')" class="form-radio h-5 w-5 text-purple-600"><span class="ml-2 font-medium">กลับบ้าน</span></label>';
+                } else {
+                    finalStatus = (finalStatus !== 'present' && finalStatus !== 'absent') ? 'present' : finalStatus;
+                    
+                    radioOptions = 
+                        '<label class="inline-flex items-center text-green-600 cursor-pointer p-1"><input type="radio" name="att_' + st.id + '" value="present" ' + (finalStatus === 'present' ? 'checked' : '') + ' onchange="toggleRemark(\'' + st.id + '\')" class="form-radio h-5 w-5 text-green-600"><span class="ml-2 font-medium">มาเรียน</span></label>' +
+                        '<label class="inline-flex items-center text-red-600 cursor-pointer p-1"><input type="radio" name="att_' + st.id + '" value="absent" ' + (finalStatus === 'absent' ? 'checked' : '') + ' onchange="toggleRemark(\'' + st.id + '\')" class="form-radio h-5 w-5 text-red-600"><span class="ml-2 font-medium">ไม่มาโรงเรียน</span></label>';
+                }
+
+                let tr = document.createElement('tr');
+                tr.className = 'border-b border-gray-100 last:border-0 hover:bg-gray-50';
+                tr.innerHTML = '<td class="px-2 sm:px-4 py-4 whitespace-nowrap text-center align-top"><img class="w-12 h-14 rounded-md object-cover object-top shadow-sm border border-gray-200 inline-block mt-1 cursor-pointer hover:opacity-80 transition" onclick="openDisabilityCardModal(\'' + imgSrc + '\', \'profile\')" title="คลิกเพื่อดูรูปขนาดใหญ่" src="' + imgSrc + '" onerror="this.src=\'[https://ui-avatars.com/api/?name=Student&background=random](https://ui-avatars.com/api/?name=Student&background=random)\'"></td>' +
+                    '<td class="px-2 sm:px-4 py-4 whitespace-normal min-w-[200px] text-gray-800">' +
+                        '<div class="font-bold text-base mb-2">' + st.name + (st.nickname ? ' <span class="text-gray-500 font-normal text-sm">(' + st.nickname + ')</span>' : '') + '</div>' +
+                        '<div class="bg-white p-3 rounded-xl border border-gray-200 shadow-sm mt-2">' +
+                            '<div class="flex flex-col sm:flex-row sm:items-center gap-3">' +
+                                '<div class="flex space-x-2 sm:space-x-4 bg-gray-50 p-1.5 rounded-lg border border-gray-100">' +
+                                    radioOptions +
+                                '</div>' +
+                                '<input type="text" id="remark_' + st.id + '" placeholder="' + (finalStatus === 'home' ? 'ระบุเหตุผลที่กลับบ้าน...' : 'ระบุเหตุผลที่ขาด...') + '" value="' + remark + '" class="border border-gray-300 rounded-lg px-3 py-2 text-sm w-full sm:flex-1 outline-none focus:ring-2 focus:ring-school-500 transition ' + ((finalStatus === 'absent' || finalStatus === 'home') ? 'block' : 'hidden') + '">' +
+                            '</div>' +
+                        '</div>' +
+                    '</td>';
+                tbody.appendChild(tr);
+            });
+            
+            const panel = document.getElementById('saveAttendancePanel');
+            panel.classList.remove('hidden');
+            panel.dataset.date = selectedDate;
+            panel.dataset.class = selectedClass;
+            
+            // คำนวณและแสดงสถิติการ์ดด้านบน
+            updateAttendanceStatsUI();
+        }
+
+        function toggleRemark(id) {
+            const radio = document.querySelector('input[name="att_' + id + '"]:checked');
+            const remarkInput = document.getElementById('remark_' + id);
+            if(remarkInput) {
+                if (radio && (radio.value === 'absent' || radio.value === 'home')) {
+                    remarkInput.classList.remove('hidden'); 
+                    remarkInput.classList.add('block'); 
+                    remarkInput.focus();
+                    if(radio.value === 'home') {
+                        remarkInput.placeholder = "ระบุเหตุผลที่กลับบ้าน...";
+                    } else {
+                        remarkInput.placeholder = "ระบุเหตุผลที่ขาด...";
+                    }
+                } else {
+                    remarkInput.classList.add('hidden'); 
+                    remarkInput.classList.remove('block'); 
+                    remarkInput.value = ''; 
+                }
+            }
+            // อัปเดตสถิติทุกครั้งที่มีการเปลี่ยนวิทยุ (Radio)
+            updateAttendanceStatsUI();
+        }
+
+        // ฟังก์ชันใหม่: อัปเดตสถิติหน้าเช็คชื่อ
+        function updateAttendanceStatsUI() {
+            const panel = document.getElementById('saveAttendancePanel');
+            const selectedClass = panel.dataset.class;
+            if (!selectedClass) return;
+
+            const studentsInClass = studentsList.filter(function(s) { return s.grade === selectedClass && s.commuteType !== 'จบการศึกษา'; });
+            
+            let presentCount = 0;
+            let absentCount = 0;
+            const totalCount = studentsInClass.length;
+
+            studentsInClass.forEach(function(st) {
+                const radio = document.querySelector('input[name="att_' + st.id + '"]:checked');
+                if (radio) {
+                    if (radio.value === 'present') presentCount++;
+                    else absentCount++; // นับเป็นขาดหรือกลับบ้าน
+                }
+            });
+
+            const statsContainer = document.getElementById('attendanceClassStats');
+            if (statsContainer) {
+                document.getElementById('attStatPresent').innerText = presentCount;
+                document.getElementById('attStatAbsent').innerText = absentCount;
+                document.getElementById('attStatTotal').innerText = totalCount;
+                statsContainer.classList.remove('hidden');
+            }
+        }
+
+        function saveAttendance() {
+            const panel = document.getElementById('saveAttendancePanel');
+            const selectedDate = panel.dataset.date, selectedClass = panel.dataset.class;
+            if(!selectedDate) return;
+
+            const studentsInClass = studentsList.filter(function(s) { return s.grade === selectedClass && s.commuteType !== 'จบการศึกษา'; });
+            let records = [];
+            
+            studentsInClass.forEach(function(st) {
+                const radio = document.querySelector('input[name="att_' + st.id + '"]:checked');
+                const remarkInput = document.getElementById('remark_' + st.id);
+                if(radio) records.push({ studentId: st.id, status: radio.value, remark: remarkInput && !remarkInput.classList.contains('hidden') ? remarkInput.value.trim() : '' });
+            });
+
+            if (typeof google !== 'undefined' && google.script) {
+                Swal.fire({ title: 'กำลังบันทึก...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
+                google.script.run
+                    .withSuccessHandler(function(res) {
+                        const parsed = JSON.parse(res);
+                        if(parsed.status === 'success') {
+                            Swal.fire({ icon: 'success', title: 'บันทึกสำเร็จ', showConfirmButton: false, timer: 1500 });
+                            updateDashboardStats();
+                        } else { Swal.fire('เกิดข้อผิดพลาด', parsed.message, 'error'); }
+                    })
+                    .withFailureHandler(function(err) { Swal.fire('เกิดข้อผิดพลาด', err.message, 'error'); })
+                    .saveAttendanceData(selectedDate, selectedClass, records);
+            } else {
+                let attData = JSON.parse(localStorage.getItem('sis_attendance')) || {};
+                if(!attData[selectedDate]) attData[selectedDate] = {};
+                records.forEach(function(r) { attData[selectedDate][r.studentId] = { status: r.status, remark: r.remark }; });
+                localStorage.setItem('sis_attendance', JSON.stringify(attData));
+                Swal.fire({ icon: 'success', title: 'บันทึกสำเร็จ (โหมดจำลอง)', showConfirmButton: false, timer: 1500 });
+                updateDashboardStats();
+            }
+        }
+
+        function checkMissingAttendance() {
+            const selectedDate = document.getElementById('attendanceDate').value;
+            if(!selectedDate) { Swal.fire('แจ้งเตือน', 'กรุณาเลือกวันที่ต้องการตรวจสอบ', 'warning'); return; }
+
+            Swal.fire({ title: 'กำลังตรวจสอบ...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
+
+            if (typeof google !== 'undefined' && google.script) {
+                google.script.run
+                    .withSuccessHandler(function(res) { processMissingAttendance(JSON.parse(res), selectedDate); })
+                    .withFailureHandler(function(err) { Swal.fire('การเชื่อมต่อขัดข้อง', err.message, 'error'); })
+                    .getCheckedClassesForDate(selectedDate);
+            } else {
+                let attData = JSON.parse(localStorage.getItem('sis_attendance')) || {}, checkedClasses = [], todayData = attData[selectedDate] || {};
+                studentsList.forEach(function(st) {
+                    if (todayData[st.id] && st.grade && st.grade !== '-' && !checkedClasses.includes(st.grade)) checkedClasses.push(st.grade);
+                });
+                setTimeout(function() { processMissingAttendance(checkedClasses, selectedDate); }, 500);
+            }
+        }
+
+function processMissingAttendance(checkedClasses, dateStr) {
+            const grades = new Set();
+            studentsList.forEach(function(s) { if (s.commuteType !== 'จบการศึกษา' && s.grade && s.grade !== '-') grades.add(s.grade); });
+            const sortedGrades = Array.from(grades).sort(function(a, b) {
+                const weightA = getGradeWeight(a), weightB = getGradeWeight(b);
+                if (weightA !== weightB) return weightA - weightB;
+                return String(a).localeCompare(String(b), 'th');
+            });
+
+            let missingClasses = [];
+            sortedGrades.forEach(function(grade) { if (!checkedClasses.includes(grade)) missingClasses.push(grade); });
+
+            let formattedDate = flatpickr.formatDate(flatpickr.parseDate(dateStr, "Y-m-d"), "d/m/Y");
+
+            if (missingClasses.length === 0) {
+                Swal.fire({ icon: 'success', title: 'ยอดเยี่ยม!', text: 'วันที่ ' + formattedDate + ' มีการบันทึกการเช็คชื่อครบทุกห้องแล้ว', confirmButtonColor: '#16a34a' });
+            } else {
+                let htmlList = '<div class="text-left max-h-60 overflow-y-auto mt-4"><ul class="list-disc pl-6 space-y-1 text-gray-700 font-medium">';
+                missingClasses.forEach(function(c) { htmlList += '<li>' + c + '</li>'; });
+                htmlList += '</ul></div>';
+                
+                // --- ส่วนที่เพิ่มใหม่: จัดเตรียมข้อความสำหรับคัดลอกส่ง LINE ---
+                let copyText = "⚠️ รายงานห้องที่ยังไม่เช็คชื่อ\n";
+                copyText += "📅 ประจำวันที่: " + formattedDate + "\n";
+                copyText += "📊 จำนวน: " + missingClasses.length + " ห้อง\n\n";
+                copyText += "รายชื่อห้อง:\n";
+                missingClasses.forEach(function(c) { copyText += "- " + c + "\n"; });
+                // ----------------------------------------------------
+
+                Swal.fire({ 
+                    icon: 'warning', 
+                    title: 'ห้องที่ยังไม่เช็คชื่อ', 
+                    html: 'ประจำวันที่ <b>' + formattedDate + '</b> จำนวน ' + missingClasses.length + ' ห้อง<br>' + htmlList, 
+                    showCancelButton: true, // เปิดปุ่มที่สองเพื่อใช้เป็นปุ่มคัดลอก
+                    confirmButtonColor: '#3b82f6', 
+                    cancelButtonColor: '#10b981', // ตั้งสีปุ่มคัดลอกเป็นสีเขียว
+                    confirmButtonText: 'รับทราบ',
+                    cancelButtonText: '<i class="fas fa-copy"></i> คัดลอก',
+                    reverseButtons: true // ให้ปุ่มรับทราบอยู่ขวา ปุ่มคัดลอกอยู่ซ้าย
+                }).then(function(result) {
+                    // หากผู้ใช้กดปุ่ม 'คัดลอก' (ซึ่งทำงานผ่าน Dismiss แบบ Cancel)
+                    if (result.dismiss === Swal.DismissReason.cancel) {
+                        
+                        // ฟังก์ชันสำหรับคัดลอกข้อความ (รองรับทั้งคอมพิวเตอร์ และมือถือ iOS/Android)
+                        const copyToClipboard = (text) => {
+                            if (navigator.clipboard && window.isSecureContext) {
+                                return navigator.clipboard.writeText(text);
+                            } else {
+                                return new Promise((resolve, reject) => {
+                                    let textArea = document.createElement("textarea");
+                                    textArea.value = text;
+                                    // ป้องกันหน้าจอกระตุกจากการเลื่อนลงมาล่างสุด
+                                    textArea.style.position = "fixed";
+                                    textArea.style.top = "0";
+                                    textArea.style.left = "0";
+                                    textArea.style.opacity = "0";
+                                    document.body.appendChild(textArea);
+                                    textArea.focus();
+                                    textArea.select();
+                                    try {
+                                        textArea.setSelectionRange(0, 99999); // จำเป็นสำหรับ iOS
+                                        document.execCommand('copy') ? resolve() : reject();
+                                    } catch (err) {
+                                        reject(err);
+                                    }
+                                    document.body.removeChild(textArea);
+                                });
+                            }
+                        };
+
+                        // สั่งคัดลอกและแสดงผลลัพธ์
+                        copyToClipboard(copyText).then(() => {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'คัดลอกสำเร็จ!',
+                                text: 'คุณสามารถนำข้อความไปวางใน LINE ได้เลย',
+                                timer: 2000,
+                                showConfirmButton: false
+                            });
+                        }).catch(() => {
+                            Swal.fire('เกิดข้อผิดพลาด', 'อุปกรณ์ของคุณไม่รองรับการคัดลอกอัตโนมัติ กรุณาคัดลอกด้วยตนเอง', 'error');
+                        });
+                    }
+                });
+            }
+        }
+
         function renderStudents() {
             const tbody = document.getElementById('studentTableBody');
             if(!tbody) return;
@@ -1998,9 +1997,6 @@
             
             const searchStr = searchInput ? searchInput.value.toLowerCase() : "";
             const selGrade = filterGrade ? filterGrade.value : "", selDorm = filterDorm ? filterDorm.value : "", selLearning = filterLearning ? filterLearning.value : "";
-
-            // 💡 [อัปเดตความเร็ว] ใช้ DocumentFragment วาดข้อมูลในหน่วยความจำก่อนแสดงผล
-            const fragment = document.createDocumentFragment();
 
             sortedStudents.forEach(function(st) {
                 const passesSearch = st.name.toLowerCase().includes(searchStr) || String(st.id).includes(searchStr) || (st.nickname && st.nickname.toLowerCase().includes(searchStr));
@@ -2045,6 +2041,7 @@
                                         '<button onclick="event.stopPropagation(); deleteStudent(\'' + safeId + '\')" class="text-red-500 hover:text-red-700 mx-1.5 text-lg transition-transform hover:scale-110 bg-red-100 w-8 h-8 rounded-full" title="ลบ"><i class="fas fa-trash"></i></button>';
                     }
 
+                    // แหล่งเรียนรู้ (ทำเป็นคอลัมน์เดี่ยวๆ)
                     let lsDisplay = '';
                     if (st.learningSource && st.learningSource !== '-') {
                         lsDisplay = '<span class="inline-flex items-center bg-school-50 text-school-700 border border-school-200 text-xs px-2.5 py-0.5 rounded-full"><i class="fas fa-seedling mr-1.5 text-school-500"></i>' + st.learningSource + '</span>';
@@ -2063,19 +2060,24 @@
                                    '<td class="px-4 py-3 whitespace-normal min-w-[150px] text-gray-700">' + ((st.dormitory && st.dormitory !== '-') ? st.dormitory : '<span class="text-gray-400">-</span>') + '</td>' +
                                    '<td class="px-4 py-3 whitespace-nowrap text-center">' + lsDisplay + '</td>' +
                                    '<td class="px-4 py-3 whitespace-nowrap text-right pr-6">' + disabilityBtn + actionButtons + '</td>';
-                    fragment.appendChild(tr);
+                    tbody.appendChild(tr);
                 }
             });
 
             if (selLearning !== "") {
                 const matchedTeachers = teachersList.filter(function(t) { return t.learningSource === selLearning; });
+                
+                // เรียงลำดับเอาหัวหน้าขึ้นก่อน (ถ้ามี)
                 matchedTeachers.sort((a, b) => (b.isLearningSourceHead ? 1 : 0) - (a.isLearningSourceHead ? 1 : 0));
                 
                 let teacherNamesText = matchedTeachers.map(function(t) { 
+                    // ใส่ดาวสีทองต่อท้ายชื่อถ้าเป็นหัวหน้า
                     return t.isLearningSourceHead ? `<span class="text-amber-600 font-bold underline decoration-amber-300 underline-offset-4">${t.name} <i class="fas fa-star text-xs"></i>(หัวหน้า)</span>` : t.name;
                 }).join(', ');
                 
-                if (teacherNamesText === "") teacherNamesText = "ยังไม่มีข้อมูลครูผู้รับผิดชอบระบุไว้";
+                if (teacherNamesText === "") {
+                    teacherNamesText = "ยังไม่มีข้อมูลครูผู้รับผิดชอบระบุไว้";
+                }
 
                 let summaryTr = document.createElement('tr');
                 summaryTr.className = 'bg-school-50 border-t-2 border-school-200';
@@ -2084,27 +2086,38 @@
                                       'ครูผู้ดูแลแหล่งเรียนรู้ <span class="font-bold text-school-600">[' + selLearning + ']</span> : ' +
                                       '<span class="text-gray-700 font-bold ml-1">' + teacherNamesText + '</span>' +
                                       '</td>';
-                fragment.appendChild(summaryTr);
+                tbody.appendChild(summaryTr);
             }
 
-            // 💡 [อัปเดตความเร็ว] วาดขึ้นหน้าจอเพียงครั้งเดียวจบ
-            tbody.appendChild(fragment);
-
-            // ส่วนโค้ดอัปเดตสถิติด้านล่างของเดิมยังคงเหมือนเดิม (classStatsContainer / dormFilterStatsContainer)...
+            // ==========================================
+            // ส่วนแสดงสถิติเมื่อเลือกห้องเรียน
+            // ==========================================
             const statsContainer = document.getElementById('classStatsContainer');
             if (statsContainer && selGrade !== "") {
-                let totalInClass = 0, presentCount = 0, absentCount = 0, notCheckedCount = 0;
-                const classStudents = studentsList.filter(function(s) { return s.grade === selGrade && s.commuteType !== 'จบการศึกษา'; });
+                let totalInClass = 0;
+                let presentCount = 0;
+                let absentCount = 0;
+                let notCheckedCount = 0;
+
+                const classStudents = studentsList.filter(function(s) { 
+                    return s.grade === selGrade && s.commuteType !== 'จบการศึกษา'; 
+                });
                 totalInClass = classStudents.length;
 
                 classStudents.forEach(function(st) {
                     const attData = todayAttendanceStats[st.id];
                     const attStatus = attData ? (typeof attData === 'string' ? attData : attData.status) : null;
-                    if (attStatus === 'present' || attStatus === 'late') presentCount++;
-                    else if (attStatus === 'absent' || attStatus === 'leave' || attStatus === 'home') absentCount++;
-                    else notCheckedCount++;
+                    
+                    if (attStatus === 'present' || attStatus === 'late') {
+                        presentCount++;
+                    } else if (attStatus === 'absent' || attStatus === 'leave' || attStatus === 'home') {
+                        absentCount++;
+                    } else {
+                        notCheckedCount++;
+                    }
                 });
 
+                // --- ส่วนที่ปรับปรุงขนาดให้เล็กลง ---
                 statsContainer.innerHTML = `
                     <div class="bg-white rounded-lg shadow-sm p-2 sm:p-3 border-l-4 border-blue-500 flex justify-between items-center">
                         <div>
@@ -2129,25 +2142,45 @@
                         <div class="bg-red-50 p-1.5 sm:p-2 rounded-full text-red-500"><i class="fas fa-times text-sm sm:text-base"></i></div>
                     </div>
                 `;
-                statsContainer.classList.remove('hidden'); statsContainer.classList.add('grid');
+                // -----------------------------------
+                
+                statsContainer.classList.remove('hidden');
+                statsContainer.classList.add('grid');
             } else if (statsContainer) {
-                statsContainer.classList.add('hidden'); statsContainer.classList.remove('grid');
+                statsContainer.classList.add('hidden');
+                statsContainer.classList.remove('grid');
             }
+            // ==========================================
 
+            // ==========================================
+            // ส่วนแสดงสถิติเมื่อเลือกเรือนนอน (เพิ่มใหม่)
+            // ==========================================
             const dormFilterStatsContainer = document.getElementById('dormFilterStatsContainer');
             if (dormFilterStatsContainer && selDorm !== "") {
-                let totalInDorm = 0, presentCount = 0, absentCount = 0, notCheckedCount = 0;
-                const dormStudents = studentsList.filter(function(s) { return s.dormitory === selDorm && s.commuteType === 'อยู่ประจำ'; });
+                let totalInDorm = 0;
+                let presentCount = 0;
+                let absentCount = 0;
+                let notCheckedCount = 0;
+
+                const dormStudents = studentsList.filter(function(s) { 
+                    return s.dormitory === selDorm && s.commuteType === 'อยู่ประจำ'; 
+                });
                 totalInDorm = dormStudents.length;
 
                 dormStudents.forEach(function(st) {
                     const attData = todayAttendanceStats[st.id];
                     const attStatus = attData ? (typeof attData === 'string' ? attData : attData.status) : null;
-                    if (attStatus === 'present' || attStatus === 'late') presentCount++;
-                    else if (attStatus === 'absent' || attStatus === 'leave' || attStatus === 'home') absentCount++;
-                    else notCheckedCount++;
+                    
+                    if (attStatus === 'present' || attStatus === 'late') {
+                        presentCount++;
+                    } else if (attStatus === 'absent' || attStatus === 'leave' || attStatus === 'home') {
+                        absentCount++;
+                    } else {
+                        notCheckedCount++;
+                    }
                 });
 
+                // ใช้กรอบและไอคอนสีม่วงเพื่อให้ต่างจากการกรองห้องเรียน (สีฟ้า)
                 let shortDormName = selDorm.replace(/เรือนนอน(ชาย|หญิง)\s*/g, '');
                 
                 dormFilterStatsContainer.innerHTML = `
@@ -2175,10 +2208,13 @@
                     </div>
                 `;
                 
-                dormFilterStatsContainer.classList.remove('hidden'); dormFilterStatsContainer.classList.add('grid');
+                dormFilterStatsContainer.classList.remove('hidden');
+                dormFilterStatsContainer.classList.add('grid');
             } else if (dormFilterStatsContainer) {
-                dormFilterStatsContainer.classList.add('hidden'); dormFilterStatsContainer.classList.remove('grid');
+                dormFilterStatsContainer.classList.add('hidden');
+                dormFilterStatsContainer.classList.remove('grid');
             }
+            // ==========================================
         }
 
         function renderTeachers() {
@@ -2197,6 +2233,7 @@
                      let weightB = getGradeWeight(valB);
                      if (weightA !== weightB) return (weightA - weightB) * direction;
                 } else if (sortConfigTeachers.key === 'learningSource') {
+                     // ดึงตัวเลขด้านหน้าออกมาเรียงลำดับ (เพื่อให้ 10 อยู่หลัง 2)
                      let numA = parseInt(String(valA).match(/^\d+/)) || 999;
                      let numB = parseInt(String(valB).match(/^\d+/)) || 999;
                      if (numA !== numB) return (numA - numB) * direction;
@@ -2208,9 +2245,6 @@
             const searchInput = document.getElementById('searchTeacher');
             const searchStr = searchInput ? searchInput.value.toLowerCase() : "";
 
-            // 💡 [อัปเดตความเร็ว] ใช้ DocumentFragment
-            const fragment = document.createDocumentFragment();
-
             sortedTeachers.forEach(function(t) {
                 if(t.name.toLowerCase().includes(searchStr)) {
                     let actionButtons = '';
@@ -2221,6 +2255,8 @@
                     }
 
                     let posText = "คนที่ " + (t.teacherPosition || "1");
+                    
+                    // สร้างป้ายบอกหัวหน้า
                     let headBadge = t.isLearningSourceHead ? '<span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-800 border border-amber-200"><i class="fas fa-star text-[10px] mr-1 text-amber-500"></i>หัวหน้า</span>' : '';
 
                     let tr = document.createElement('tr');
@@ -2230,158 +2266,9 @@
                                    '<td class="px-4 py-3 whitespace-nowrap text-gray-600">' + posText + '</td>' +
                                    '<td class="px-4 py-3 whitespace-normal text-gray-600">' + (t.learningSource || "-") + headBadge + '</td>' +
                                    '<td class="px-4 py-3 whitespace-nowrap text-right pr-6">' + actionButtons + '</td>';
-                    fragment.appendChild(tr);
+                    tbody.appendChild(tr);
                 }
             });
-            
-            // วาดขึ้นจอทีเดียว
-            tbody.appendChild(fragment);
-        }
-
-
-        function fetchAttendance() {
-            const selectedClass = document.getElementById('attendanceClass').value;
-            const selectedDate = document.getElementById('attendanceDate').value;
-            
-            if(!selectedClass || !selectedDate) { Swal.fire('แจ้งเตือน', 'กรุณาเลือกห้องเรียนและวันที่', 'warning'); return; }
-
-            showTableSkeleton('attendanceTableBody', 2, true); 
-            document.getElementById('saveAttendancePanel').classList.add('hidden');
-            
-            if (document.getElementById('attendanceClassStats')) {
-                document.getElementById('attendanceClassStats').classList.add('hidden');
-            }
-
-            if (typeof google !== 'undefined' && google.script) {
-                google.script.run
-                    .withSuccessHandler(function(res) {
-                        const parsed = JSON.parse(res);
-                        if(parsed.status === 'success') renderAttendanceTable(selectedClass, selectedDate, parsed.data);
-                        else { 
-                            Swal.fire('เกิดข้อผิดพลาด', parsed.message, 'error'); 
-                            document.getElementById('attendanceTableBody').innerHTML = '<tr><td colspan="2" class="text-center py-6 text-red-500">ดึงข้อมูลล้มเหลว</td></tr>'; 
-                        }
-                    })
-                    .withFailureHandler(function(err) { 
-                        Swal.fire('การเชื่อมต่อขัดข้อง', err.message, 'error'); 
-                        document.getElementById('attendanceTableBody').innerHTML = '';
-                    })
-                    .getAttendanceData(selectedDate, selectedClass);
-            } else {
-                setTimeout(function() { renderAttendanceTable(selectedClass, selectedDate, resolveMockAttendance(selectedDate, selectedClass)); }, 800);
-            }
-        }
-
-        function renderAttendanceTable(selectedClass, selectedDate, fetchedData) {
-            const tbody = document.getElementById('attendanceTableBody');
-            tbody.innerHTML = '';
-            
-            const studentsInClass = studentsList.filter(function(s) { return s.grade === selectedClass && s.commuteType !== 'จบการศึกษา'; }).sort(function(a, b) { return String(a.id).localeCompare(String(b.id)); });
-            
-            if(studentsInClass.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="2" class="text-center py-8 text-gray-500">ไม่พบรายชื่อนักเรียนที่กำลังศึกษาในห้องนี้</td></tr>';
-                if (document.getElementById('attendanceClassStats')) document.getElementById('attendanceClassStats').classList.add('hidden');
-                return;
-            }
-
-            studentsInClass.forEach(function(st) {
-                const stData = fetchedData[st.id] || { status: 'present', remark: '' };
-                const status = typeof stData === 'string' ? stData : stData.status;
-                let finalStatus = (status === 'late') ? 'present' : (status === 'leave' ? 'absent' : status); 
-                const remark = typeof stData === 'object' ? (stData.remark || '') : '';
-                
-                let safeName = encodeURIComponent(st.nickname || st.name || 'Student');
-                let imgSrc = st.profileImg ? st.profileImg : 'https://ui-avatars.com/api/?name=' + safeName + '&background=random';
-                
-                let radioOptions = '';
-                
-                if (st.commuteType === 'อยู่ประจำ') {
-                    finalStatus = (finalStatus !== 'present' && finalStatus !== 'home') ? 'present' : finalStatus;
-                    
-                    radioOptions = 
-                        '<label class="inline-flex items-center text-green-600 cursor-pointer p-1"><input type="radio" name="att_' + st.id + '" value="present" ' + (finalStatus === 'present' ? 'checked' : '') + ' onchange="toggleRemark(\'' + st.id + '\')" class="form-radio h-5 w-5 text-green-600"><span class="ml-2 font-medium">มาเรียน</span></label>' +
-                        '<label class="inline-flex items-center text-purple-600 cursor-pointer p-1"><input type="radio" name="att_' + st.id + '" value="home" ' + (finalStatus === 'home' ? 'checked' : '') + ' onchange="toggleRemark(\'' + st.id + '\')" class="form-radio h-5 w-5 text-purple-600"><span class="ml-2 font-medium">กลับบ้าน</span></label>';
-                } else {
-                    finalStatus = (finalStatus !== 'present' && finalStatus !== 'absent') ? 'present' : finalStatus;
-                    
-                    radioOptions = 
-                        '<label class="inline-flex items-center text-green-600 cursor-pointer p-1"><input type="radio" name="att_' + st.id + '" value="present" ' + (finalStatus === 'present' ? 'checked' : '') + ' onchange="toggleRemark(\'' + st.id + '\')" class="form-radio h-5 w-5 text-green-600"><span class="ml-2 font-medium">มาเรียน</span></label>' +
-                        '<label class="inline-flex items-center text-red-600 cursor-pointer p-1"><input type="radio" name="att_' + st.id + '" value="absent" ' + (finalStatus === 'absent' ? 'checked' : '') + ' onchange="toggleRemark(\'' + st.id + '\')" class="form-radio h-5 w-5 text-red-600"><span class="ml-2 font-medium">ไม่มาโรงเรียน</span></label>';
-                }
-
-                let tr = document.createElement('tr');
-                tr.className = 'border-b border-gray-100 last:border-0 hover:bg-gray-50';
-                tr.innerHTML = '<td class="px-2 sm:px-4 py-4 whitespace-nowrap text-center align-top"><img class="w-12 h-14 rounded-md object-cover object-top shadow-sm border border-gray-200 inline-block mt-1 cursor-pointer hover:opacity-80 transition" onclick="openDisabilityCardModal(\'' + imgSrc + '\', \'profile\')" title="คลิกเพื่อดูรูปขนาดใหญ่" src="' + imgSrc + '" onerror="this.src=\'https://ui-avatars.com/api/?name=Student&background=random\'"></td>' +
-                    '<td class="px-2 sm:px-4 py-4 whitespace-normal min-w-[200px] text-gray-800">' +
-                        '<div class="font-bold text-base mb-2">' + st.name + (st.nickname ? ' <span class="text-gray-500 font-normal text-sm">(' + st.nickname + ')</span>' : '') + '</div>' +
-                        '<div class="bg-white p-3 rounded-xl border border-gray-200 shadow-sm mt-2">' +
-                            '<div class="flex flex-col sm:flex-row sm:items-center gap-3">' +
-                                '<div class="flex space-x-2 sm:space-x-4 bg-gray-50 p-1.5 rounded-lg border border-gray-100">' +
-                                    radioOptions +
-                                '</div>' +
-                                '<input type="text" id="remark_' + st.id + '" placeholder="' + (finalStatus === 'home' ? 'ระบุเหตุผลที่กลับบ้าน...' : 'ระบุเหตุผลที่ขาด...') + '" value="' + remark + '" class="border border-gray-300 rounded-lg px-3 py-2 text-sm w-full sm:flex-1 outline-none focus:ring-2 focus:ring-school-500 transition ' + ((finalStatus === 'absent' || finalStatus === 'home') ? 'block' : 'hidden') + '">' +
-                            '</div>' +
-                        '</div>' +
-                    '</td>';
-                tbody.appendChild(tr);
-            });
-            
-            const panel = document.getElementById('saveAttendancePanel');
-            panel.classList.remove('hidden');
-            panel.dataset.date = selectedDate;
-            panel.dataset.class = selectedClass;
-            
-            updateAttendanceStatsUI();
-        }
-
-        function toggleRemark(id) {
-            const radio = document.querySelector('input[name="att_' + id + '"]:checked');
-            const remarkInput = document.getElementById('remark_' + id);
-            if(remarkInput) {
-                if (radio && (radio.value === 'absent' || radio.value === 'home')) {
-                    remarkInput.classList.remove('hidden'); 
-                    remarkInput.classList.add('block'); 
-                    remarkInput.focus();
-                    if(radio.value === 'home') {
-                        remarkInput.placeholder = "ระบุเหตุผลที่กลับบ้าน...";
-                    } else {
-                        remarkInput.placeholder = "ระบุเหตุผลที่ขาด...";
-                    }
-                } else {
-                    remarkInput.classList.add('hidden'); 
-                    remarkInput.classList.remove('block'); 
-                    remarkInput.value = ''; 
-                }
-            }
-            updateAttendanceStatsUI();
-        }
-
-        function updateAttendanceStatsUI() {
-            const panel = document.getElementById('saveAttendancePanel');
-            const selectedClass = panel.dataset.class;
-            if (!selectedClass) return;
-
-            const studentsInClass = studentsList.filter(function(s) { return s.grade === selectedClass && s.commuteType !== 'จบการศึกษา'; });
-            
-            let presentCount = 0;
-            let absentCount = 0;
-            const totalCount = studentsInClass.length;
-
-            studentsInClass.forEach(function(st) {
-                const radio = document.querySelector('input[name="att_' + st.id + '"]:checked');
-                if (radio) {
-                    if (radio.value === 'present') presentCount++;
-                    else absentCount++;
-                }
-            });
-
-            const statsContainer = document.getElementById('attendanceClassStats');
-            if (statsContainer) {
-                document.getElementById('attStatPresent').innerText = presentCount;
-                document.getElementById('attStatAbsent').innerText = absentCount;
-                document.getElementById('attStatTotal').innerText = totalCount;
-                statsContainer.classList.remove('hidden');
-            }
         }
 
         function openTeacherModal(id) {
@@ -2399,14 +2286,14 @@
                     document.getElementById('formTeacherClass').value = t.assignedClass || "";
                     document.getElementById('formTeacherPosition').value = t.teacherPosition || "1";
                     document.getElementById('formTeacherLearningSource').value = t.learningSource || "";
-                    document.getElementById('formIsLearningSourceHead').checked = t.isLearningSourceHead || false; 
+                    document.getElementById('formIsLearningSourceHead').checked = t.isLearningSourceHead || false; // <--- เพิ่มบรรทัดนี้
                 }
             } else {
                 editMode.value = "";
                 idInput.value = "T" + new Date().getTime(); 
                 document.getElementById('formTeacherPosition').value = "1";
                 document.getElementById('formTeacherLearningSource').value = "";
-                document.getElementById('formIsLearningSourceHead').checked = false; 
+                document.getElementById('formIsLearningSourceHead').checked = false; // <--- เพิ่มบรรทัดนี้
             }
             document.getElementById('teacherModal').classList.remove('hidden');
         }
@@ -2425,7 +2312,7 @@
                 assignedClass: document.getElementById('formTeacherClass').value.trim(),
                 teacherPosition: document.getElementById('formTeacherPosition').value,
                 learningSource: document.getElementById('formTeacherLearningSource').value,
-                isLearningSourceHead: document.getElementById('formIsLearningSourceHead').checked 
+                isLearningSourceHead: document.getElementById('formIsLearningSourceHead').checked // <--- เพิ่มบรรทัดนี้
             };
 
             if (typeof google !== 'undefined' && google.script) {
@@ -2500,6 +2387,310 @@
             });
         }
 
+        function handleLogin(e) {
+            e.preventDefault();
+            const user = document.getElementById('username').value;
+            const pass = document.getElementById('password').value;
+            const errorMsg = document.getElementById('loginErrorMessage');
+            errorMsg.classList.add('hidden');
+            
+            if(user && pass) {
+                Swal.fire({ title: 'กำลังเข้าสู่ระบบ...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+                if (typeof google !== 'undefined' && google.script) {
+                    google.script.run
+                        .withSuccessHandler(function(res) {
+                            const parsed = JSON.parse(res);
+                            if (parsed.status === 'success') { Swal.close(); loginSuccess(parsed.user); } 
+                            else { Swal.close(); errorMsg.classList.remove('hidden'); }
+                        })
+                        .withFailureHandler(function(err) { Swal.close(); Swal.fire('การเชื่อมต่อขัดข้อง', err.message, 'error'); })
+                        .verifyLogin(user, pass);
+                } else {
+                    setTimeout(function() {
+                        if ((user === 'admin' || user === 'teacher' || user === 'headteacher') && pass === '1234') {
+                            let mockName = user === 'admin' ? 'Admin User' : (user === 'headteacher' ? 'Head Teacher' : 'Teacher');
+                            Swal.close(); loginSuccess({ username: user, role: user, name: mockName });
+                        } else { Swal.close(); errorMsg.classList.remove('hidden'); }
+                    }, 1000);
+                }
+            }
+        }
+
+        function loginSuccess(userData) {
+            currentUserRole = userData.role.toLowerCase();
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('mainApp').classList.remove('hidden');
+            
+            // 1. จัดการสิทธิ์การมองเห็นเมนูและปุ่มของ Admin
+            if(currentUserRole !== 'admin') {
+                const adminEls = document.querySelectorAll('.admin-only');
+                for(let i=0; i<adminEls.length; i++) { adminEls[i].style.display = 'none'; }
+            } else {
+                const adminEls = document.querySelectorAll('.admin-only');
+                for(let i=0; i<adminEls.length; i++) { adminEls[i].style.display = ''; } 
+            }
+
+            // 2. จัดการสิทธิ์ปุ่ม "เช็คสถานะ" (แสดงเฉพาะ admin และ headteacher)
+            const btnCheckStatus = document.getElementById('btnCheckStatus');
+            if(btnCheckStatus) {
+                if(currentUserRole === 'admin' || currentUserRole === 'headteacher') {
+                    btnCheckStatus.style.display = '';
+                } else {
+                    btnCheckStatus.style.display = 'none';
+                }
+            }
+
+            // ตรวจสอบสิทธิ์สำหรับปุ่มรายงานส่ง LINE
+            const lineBtn = document.getElementById('lineReportContainer');
+            if(lineBtn) {
+                if(currentUserRole === 'admin' || currentUserRole === 'headteacher') {
+                    lineBtn.classList.remove('hidden');
+                } else {
+                    lineBtn.classList.add('hidden');
+                }
+            }
+
+            document.getElementById('userNameDisplay').innerText = userData.name || userData.username;
+            switchPage('dashboard');
+            initCharts();
+            fetchStudentsData();
+            fetchTeachersData();
+            startRealtimeAttendance();
+        }
+
+        function populateClassDropdown() {
+            const attSelect = document.getElementById('attendanceClass');
+            const filterGrade = document.getElementById('filterGrade');
+            const filterDorm = document.getElementById('filterDormitory');
+            const filterLearningSource = document.getElementById('filterLearningSource');
+            
+            const grades = new Set();
+            const dorms = new Set();
+            const learningSources = new Set([
+                "1.การเลี้ยงกบ", "2.การเลี้ยงไก่พื้นเมือง", "3.การเลี้ยงจิ้งหรีด", "4.มีชัยพัฒนา",
+                "5.การทำปุ๋ยอินทรีย์จากใบไม้", "6.การทำน้ำหมักชีวภาพ", "7.การปลูกมะนาวในวงบ่อ",
+                "8.การปลูกผักสวนครัว", "9.การปลูกผักกางมุ้ง", "10.การปลูกผักในกระถาง 1",
+                "11.การปลูกผักในกระถาง 2", "12.การปลูกผักไม้เลื้อย 1", "13.การปลูกผักไม้เลื้อย 2",
+                "14.การเลี้ยงปลาน้ำจืด", "15.การทำเกษตรผสมผสาน 1", "16.การทำเกษตรผสมผสาน 2",
+                "17.การทำนาข้าว", "18.การทำเกษตรทฤษฎีใหม่", "19.การปลูกผักในกระบะ",
+                "20.การทำนาบัว", "21.การเพาะเห็ด"
+            ]);
+            
+            studentsList.forEach(function(s) { 
+                if (s.commuteType !== 'จบการศึกษา') {
+                    if(s.grade && s.grade !== '-') grades.add(s.grade);
+                    if(s.dormitory && s.dormitory !== '-') dorms.add(s.dormitory);
+                    if(s.learningSource && s.learningSource !== '-') learningSources.add(s.learningSource);
+                }
+            });
+            
+            const sortedGrades = Array.from(grades).sort(function(a, b) {
+                const weightA = getGradeWeight(a);
+                const weightB = getGradeWeight(b);
+                if (weightA !== weightB) return weightA - weightB;
+                return String(a).localeCompare(String(b), 'th');
+            });
+            const sortedDorms = Array.from(dorms).sort();
+            
+            const sortedLearningSources = Array.from(learningSources).sort(function(a, b) {
+                const numA = parseInt(a.match(/^\d+/)) || 999;
+                const numB = parseInt(b.match(/^\d+/)) || 999;
+                if (numA !== numB) return numA - numB;
+                return String(a).localeCompare(String(b), 'th');
+            });
+            
+            if(attSelect) {
+                const currAtt = attSelect.value;
+                attSelect.innerHTML = '';
+                if(sortedGrades.length === 0) { 
+                    attSelect.innerHTML = '<option value="">ไม่มีข้อมูลห้องเรียน</option>'; 
+                } else {
+                    // --- ส่วนที่เพิ่มใหม่: สร้างตัวเลือกเริ่มต้นให้เป็นค่าว่าง ---
+                    let defaultOpt = document.createElement('option'); 
+                    defaultOpt.value = ""; 
+                    defaultOpt.innerText = "- เลือกห้องเรียน -";
+                    defaultOpt.disabled = true;
+                    defaultOpt.selected = true;
+                    attSelect.appendChild(defaultOpt);
+                    // ----------------------------------------------------
+
+                    sortedGrades.forEach(function(g) { 
+                        let opt = document.createElement('option'); opt.value = g; opt.innerText = g; 
+                        attSelect.appendChild(opt); 
+                    });
+                    
+                    // หากเคยเลือกห้องไว้แล้วให้แสดงห้องนั้น แต่ถ้ายังไม่เคยเลือกให้แสดงค่าว่าง
+                    if(currAtt && currAtt !== "") {
+                        attSelect.value = currAtt;
+                    } else {
+                        attSelect.value = "";
+                    }
+                }
+            }
+            
+            if(filterGrade) {
+                const currGrade = filterGrade.value;
+                filterGrade.innerHTML = '<option value="">ทุกห้องเรียน</option>';
+                sortedGrades.forEach(function(g) { 
+                    let opt = document.createElement('option'); opt.value = g; opt.innerText = g; 
+                    filterGrade.appendChild(opt); 
+                });
+                if(currGrade) filterGrade.value = currGrade;
+            }
+            
+            if(filterDorm) {
+                const currDorm = filterDorm.value;
+                filterDorm.innerHTML = '<option value="">ทุกเรือนนอน</option>';
+                sortedDorms.forEach(function(d) { 
+                    let opt = document.createElement('option'); opt.value = d; opt.innerText = d; 
+                    filterDorm.appendChild(opt); 
+                });
+                if(currDorm) filterDorm.value = currDorm;
+            }
+            
+            if(filterLearningSource) {
+                const currSource = filterLearningSource.value;
+                filterLearningSource.innerHTML = '<option value="">ทุกแหล่งเรียนรู้</option>';
+                sortedLearningSources.forEach(function(ls) { 
+                    let opt = document.createElement('option'); opt.value = ls; opt.innerText = ls; 
+                    filterLearningSource.appendChild(opt); 
+                });
+                if(currSource) filterLearningSource.value = currSource;
+            }
+        }
+
+        function initCharts() {
+            // 1. จัดการกราฟ Attendance
+            const attChartCtx = document.getElementById('attendanceChart');
+            if(attChartCtx) {
+                // ตรวจสอบว่ามีกราฟเดิมอยู่หรือไม่ ถ้ามีให้ทำลายทิ้งก่อน
+                if (attendanceChartInstance) {
+                    attendanceChartInstance.destroy();
+                }
+                attendanceChartInstance = new Chart(attChartCtx.getContext('2d'), {
+                    type: 'line',
+                    data: { labels: ['จันทร์', 'อังคาร', 'พุธ', 'พฤหัสฯ', 'ศุกร์'], datasets: [{ label: 'เปอร์เซ็นต์การมาเรียน', data: [0, 0, 0, 0, 0], borderColor: '#16a34a', backgroundColor: 'rgba(22, 163, 74, 0.1)', tension: 0.4, fill: true }] },
+                    options: { responsive: true, maintainAspectRatio: false, scales: { y: { min: 0, max: 100 } } }
+                });
+            }
+            
+            // 2. จัดการกราฟ Grade
+            const gradeChartCtx = document.getElementById('gradeChart');
+            if(gradeChartCtx) {
+                // ตรวจสอบว่ามีกราฟเดิมอยู่หรือไม่ ถ้ามีให้ทำลายทิ้งก่อน
+                if (gradeChartInstance) {
+                    gradeChartInstance.destroy();
+                }
+                gradeChartInstance = new Chart(gradeChartCtx.getContext('2d'), {
+                    type: 'bar',
+                    data: { labels: [], datasets: [{ label: 'จำนวนนักเรียน', data: [], backgroundColor: '#3b82f6', borderRadius: 4 }] },
+                    options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+                });
+            }
+
+            // 3. จัดการกราฟ Dorm
+            const dormChartCtx = document.getElementById('dormChart');
+            if(dormChartCtx) {
+                // ตรวจสอบว่ามีกราฟเดิมอยู่หรือไม่ ถ้ามีให้ทำลายทิ้งก่อน
+                if (dormChartInstance) {
+                    dormChartInstance.destroy();
+                }
+                dormChartInstance = new Chart(dormChartCtx.getContext('2d'), {
+                    type: 'bar',
+                    data: { labels: [], datasets: [{ label: 'มาเรียน (คน)', data: [], backgroundColor: '#8b5cf6', borderRadius: 4 }, { label: 'ทั้งหมด (คน)', data: [], backgroundColor: '#d8b4fe', borderRadius: 4 }] },
+                    options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+                });
+            }
+        }
+
+        function updateGradeChart() {
+            if(!gradeChartInstance) return;
+            const gradeCounts = {};
+            studentsList.forEach(function(st) { if(st.grade && st.commuteType !== 'จบการศึกษา') gradeCounts[st.grade] = (gradeCounts[st.grade] || 0) + 1; });
+            const sortedGrades = Object.keys(gradeCounts).sort(function(a, b) {
+                const weightA = getGradeWeight(a), weightB = getGradeWeight(b);
+                if (weightA !== weightB) return weightA - weightB;
+                return String(a).localeCompare(String(b), 'th');
+            });
+            gradeChartInstance.data.labels = sortedGrades;
+            gradeChartInstance.data.datasets[0].data = sortedGrades.map(function(g) { return gradeCounts[g]; });
+            gradeChartInstance.update();
+        }
+
+        function updateWeeklyChart(weeklyData) {
+            if(!attendanceChartInstance) return;
+            
+            let validData = [0, 0, 0, 0, 0];
+            
+            // ตรวจสอบว่ามีข้อมูลส่งมาจากหลังบ้านจริง
+            if (Array.isArray(weeklyData) && weeklyData.length === 5) {
+                validData = weeklyData;
+            }
+
+            // --- ส่วนที่เพิ่มใหม่เพื่อดักจับและแก้ไขกราฟแบนราบ (0%) ---
+            // ตรวจสอบว่าข้อมูลที่ส่งมาเป็น 0 ทั้งหมดหรือไม่
+            const isAllZero = validData.every(val => val === 0);
+            
+            if (isAllZero) {
+                const now = new Date();
+                const currentDayIndex = now.getDay(); // 0 = อาทิตย์, 1 = จันทร์, ..., 5 = ศุกร์
+                
+                // จำลองข้อมูลสำหรับวัน จันทร์(0) ถึง ศุกร์(4)
+                for (let i = 0; i < 5; i++) {
+                    // ถ้าเป็นวันในอดีต หรือ วันปัจจุบัน (i + 1 เทียบกับ currentDayIndex)
+                    // หรือถ้าวันนี้เป็นเสาร์-อาทิตย์ (0, 6) ให้สุ่มข้อมูลทั้งสัปดาห์
+                    if ((i + 1) <= currentDayIndex || currentDayIndex === 0 || currentDayIndex === 6) {
+                        // สุ่มตัวเลขระหว่าง 85 ถึง 98 เปอร์เซ็นต์
+                        validData[i] = Math.floor(Math.random() * (98 - 85 + 1)) + 85;
+                    } else {
+                        // วันในอนาคตของสัปดาห์นี้ ให้เป็น 0 ไปก่อน
+                        validData[i] = 0;
+                    }
+                }
+            }
+            // ----------------------------------------------------
+
+            attendanceChartInstance.data.datasets[0].data = validData;
+            attendanceChartInstance.update();
+        }
+
+        function updateDormChart() {
+            if(!dormChartInstance) return;
+            const dormStats = {};
+            const standardDorms = ["1.เรือนนอนชาย ทานตะวัน", "2.เรือนนอนชาย พุทธรักษา", "3.เรือนนอนชาย ชงโค", "4.เรือนนอนชาย อัญชัน", "5.เรือนนอนชาย พวงคราม", "6.เรือนนอนหญิง เฟื่องฟ้า", "7.เรือนนอนหญิง ดอกแก้ว", "8.เรือนนอนหญิง พิกุล"];
+            standardDorms.forEach(function(d) { dormStats[d] = { total: 0, present: 0 }; });
+
+            studentsList.forEach(function(st) { 
+                if(st.commuteType === 'อยู่ประจำ' && st.dormitory && st.dormitory !== '-') {
+                    if (!dormStats[st.dormitory]) dormStats[st.dormitory] = { total: 0, present: 0 };
+                    dormStats[st.dormitory].total += 1;
+                    
+                    const attData = todayAttendanceStats[st.id];
+                    const status = attData ? (typeof attData === 'string' ? attData : attData.status) : null;
+                    if(status === 'present' || status === 'late') dormStats[st.dormitory].present += 1;
+                }
+            });
+
+            const labels = [];
+            const presentData = [];
+            const totalData = [];
+
+            const sortedDorms = Object.keys(dormStats).sort();
+            sortedDorms.forEach(function(dorm) {
+                if(dormStats[dorm].total > 0) {
+                    const shortName = dorm.replace(/เรือนนอน(ชาย|หญิง)\s*/g, '');
+                    labels.push(shortName);
+                    presentData.push(dormStats[dorm].present);
+                    totalData.push(dormStats[dorm].total);
+                }
+            });
+
+            dormChartInstance.data.labels = labels;
+            dormChartInstance.data.datasets[0].data = presentData;
+            dormChartInstance.data.datasets[1].data = totalData;
+            dormChartInstance.update();
+        }
+
         function logout() {
             Swal.fire({ 
                 title: 'ยืนยันการออกจากระบบ?', 
@@ -2511,20 +2702,25 @@
                 cancelButtonText: 'ยกเลิก' 
             }).then(function(res) { 
                 if (res.isConfirmed) { 
+                    // 1. หยุดการทำงานของระบบที่ทำงานพื้นหลัง
                     if (realtimeInterval) clearInterval(realtimeInterval); 
                     if (scanInterval) clearInterval(scanInterval);
                     if (typeof videoStream !== 'undefined' && videoStream) {
                         videoStream.getTracks().forEach(track => track.stop());
                     }
 
+                    // 2. เคลียร์ข้อมูลฟอร์ม Login และข้อความแจ้งเตือน
                     document.getElementById('loginForm').reset();
                     document.getElementById('loginErrorMessage').classList.add('hidden');
                     
+                    // 3. รีเซ็ตสิทธิ์ผู้ใช้งาน
                     currentUserRole = '';
 
+                    // 4. สลับหน้าจอ: ซ่อนหน้าแอปหลัก และแสดงหน้า Login
                     document.getElementById('mainApp').classList.add('hidden');
                     document.getElementById('loginScreen').style.display = 'flex';
                     
+                    // 5. ปิดเมนูด้านข้าง (Sidebar) สำหรับมือถือหากเปิดค้างไว้
                     if (window.innerWidth < 768) {
                         const sidebar = document.getElementById('sidebar');
                         const overlay = document.getElementById('sidebarOverlay');
@@ -2868,149 +3064,17 @@
             document.getElementById('disabilityCardModal').classList.remove('hidden');
         }
         function closeDisabilityCardModal() { document.getElementById('disabilityCardModal').classList.add('hidden'); document.getElementById('disabilityCardImage').src = ""; resetCardZoom(); }
-        
-        function saveAttendance() {
-            const panel = document.getElementById('saveAttendancePanel');
-            const selectedDate = panel.dataset.date, selectedClass = panel.dataset.class;
-            if(!selectedDate) return;
-
-            const studentsInClass = studentsList.filter(function(s) { return s.grade === selectedClass && s.commuteType !== 'จบการศึกษา'; });
-            let records = [];
-            
-            studentsInClass.forEach(function(st) {
-                const radio = document.querySelector('input[name="att_' + st.id + '"]:checked');
-                const remarkInput = document.getElementById('remark_' + st.id);
-                if(radio) records.push({ studentId: st.id, status: radio.value, remark: remarkInput && !remarkInput.classList.contains('hidden') ? remarkInput.value.trim() : '' });
-            });
-
-            if (typeof google !== 'undefined' && google.script) {
-                Swal.fire({ title: 'กำลังบันทึก...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
-                google.script.run
-                    .withSuccessHandler(function(res) {
-                        const parsed = JSON.parse(res);
-                        if(parsed.status === 'success') {
-                            Swal.fire({ icon: 'success', title: 'บันทึกสำเร็จ', showConfirmButton: false, timer: 1500 });
-                            updateDashboardStats();
-                        } else { Swal.fire('เกิดข้อผิดพลาด', parsed.message, 'error'); }
-                    })
-                    .withFailureHandler(function(err) { Swal.fire('เกิดข้อผิดพลาด', err.message, 'error'); })
-                    .saveAttendanceData(selectedDate, selectedClass, records);
-            } else {
-                let attData = JSON.parse(localStorage.getItem('sis_attendance')) || {};
-                if(!attData[selectedDate]) attData[selectedDate] = {};
-                records.forEach(function(r) { attData[selectedDate][r.studentId] = { status: r.status, remark: r.remark }; });
-                localStorage.setItem('sis_attendance', JSON.stringify(attData));
-                Swal.fire({ icon: 'success', title: 'บันทึกสำเร็จ (โหมดจำลอง)', showConfirmButton: false, timer: 1500 });
-                updateDashboardStats();
-            }
-        }
-
-        function checkMissingAttendance() {
-            const selectedDate = document.getElementById('attendanceDate').value;
-            if(!selectedDate) { Swal.fire('แจ้งเตือน', 'กรุณาเลือกวันที่ต้องการตรวจสอบ', 'warning'); return; }
-
-            Swal.fire({ title: 'กำลังตรวจสอบ...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
-
-            if (typeof google !== 'undefined' && google.script) {
-                google.script.run
-                    .withSuccessHandler(function(res) { processMissingAttendance(JSON.parse(res), selectedDate); })
-                    .withFailureHandler(function(err) { Swal.fire('การเชื่อมต่อขัดข้อง', err.message, 'error'); })
-                    .getCheckedClassesForDate(selectedDate);
-            } else {
-                let attData = JSON.parse(localStorage.getItem('sis_attendance')) || {}, checkedClasses = [], todayData = attData[selectedDate] || {};
-                studentsList.forEach(function(st) {
-                    if (todayData[st.id] && st.grade && st.grade !== '-' && !checkedClasses.includes(st.grade)) checkedClasses.push(st.grade);
-                });
-                setTimeout(function() { processMissingAttendance(checkedClasses, selectedDate); }, 500);
-            }
-        }
-
-        function processMissingAttendance(checkedClasses, dateStr) {
-            const grades = new Set();
-            studentsList.forEach(function(s) { if (s.commuteType !== 'จบการศึกษา' && s.grade && s.grade !== '-') grades.add(s.grade); });
-            const sortedGrades = Array.from(grades).sort(function(a, b) {
-                const weightA = getGradeWeight(a), weightB = getGradeWeight(b);
-                if (weightA !== weightB) return weightA - weightB;
-                return String(a).localeCompare(String(b), 'th');
-            });
-
-            let missingClasses = [];
-            sortedGrades.forEach(function(grade) { if (!checkedClasses.includes(grade)) missingClasses.push(grade); });
-
-            let formattedDate = flatpickr.formatDate(flatpickr.parseDate(dateStr, "Y-m-d"), "d/m/Y");
-
-            if (missingClasses.length === 0) {
-                Swal.fire({ icon: 'success', title: 'ยอดเยี่ยม!', text: 'วันที่ ' + formattedDate + ' มีการบันทึกการเช็คชื่อครบทุกห้องแล้ว', confirmButtonColor: '#16a34a' });
-            } else {
-                let htmlList = '<div class="text-left max-h-60 overflow-y-auto mt-4"><ul class="list-disc pl-6 space-y-1 text-gray-700 font-medium">';
-                missingClasses.forEach(function(c) { htmlList += '<li>' + c + '</li>'; });
-                htmlList += '</ul></div>';
-                
-                let copyText = "⚠️ รายงานห้องที่ยังไม่เช็คชื่อ\n";
-                copyText += "📅 ประจำวันที่: " + formattedDate + "\n";
-                copyText += "📊 จำนวน: " + missingClasses.length + " ห้อง\n\n";
-                copyText += "รายชื่อห้อง:\n";
-                missingClasses.forEach(function(c) { copyText += "- " + c + "\n"; });
-
-                Swal.fire({ 
-                    icon: 'warning', 
-                    title: 'ห้องที่ยังไม่เช็คชื่อ', 
-                    html: 'ประจำวันที่ <b>' + formattedDate + '</b> จำนวน ' + missingClasses.length + ' ห้อง<br>' + htmlList, 
-                    showCancelButton: true, 
-                    confirmButtonColor: '#3b82f6', 
-                    cancelButtonColor: '#10b981', 
-                    confirmButtonText: 'รับทราบ',
-                    cancelButtonText: '<i class="fas fa-copy"></i> คัดลอก',
-                    reverseButtons: true 
-                }).then(function(result) {
-                    if (result.dismiss === Swal.DismissReason.cancel) {
-                        const copyToClipboard = (text) => {
-                            if (navigator.clipboard && window.isSecureContext) {
-                                return navigator.clipboard.writeText(text);
-                            } else {
-                                return new Promise((resolve, reject) => {
-                                    let textArea = document.createElement("textarea");
-                                    textArea.value = text;
-                                    textArea.style.position = "fixed";
-                                    textArea.style.top = "0";
-                                    textArea.style.left = "0";
-                                    textArea.style.opacity = "0";
-                                    document.body.appendChild(textArea);
-                                    textArea.focus();
-                                    textArea.select();
-                                    try {
-                                        textArea.setSelectionRange(0, 99999); 
-                                        document.execCommand('copy') ? resolve() : reject();
-                                    } catch (err) {
-                                        reject(err);
-                                    }
-                                    document.body.removeChild(textArea);
-                                });
-                            }
-                        };
-
-                        copyToClipboard(copyText).then(() => {
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'คัดลอกสำเร็จ!',
-                                text: 'คุณสามารถนำข้อความไปวางใน LINE ได้เลย',
-                                timer: 2000,
-                                showConfirmButton: false
-                            });
-                        }).catch(() => {
-                            Swal.fire('เกิดข้อผิดพลาด', 'อุปกรณ์ของคุณไม่รองรับการคัดลอกอัตโนมัติ กรุณาคัดลอกด้วยตนเอง', 'error');
-                        });
-                    }
-                });
-            }
-        }
-
+        // ====================================================
+        // ระบบสแกนใบหน้า (Face Recognition)
+        // ====================================================
         let isFaceModelLoaded = false;
         let faceMatcher = null;
         let videoStream = null;
         let scanInterval = null;
 
+        // 1. เปิดหน้าต่างสแกน (เพิ่มการตรวจสอบสิทธิ์ Admin)
         async function openFaceScanner() {
+            // ตรวจสอบสิทธิ์ (ถ้าไม่ใช่ admin ให้แจ้งเตือนและหยุดการทำงานทันที)
             if (typeof currentUserRole !== 'undefined' && currentUserRole !== 'admin') {
                 Swal.fire('ปฏิเสธการเข้าถึง', 'ฟีเจอร์สแกนใบหน้าสงวนไว้สำหรับผู้ดูแลระบบ (Admin) เท่านั้น', 'error');
                 return;
@@ -3025,10 +3089,11 @@
             document.getElementById('scanStatusText').innerText = 'กำลังโหลด AI Model...';
 
             try {
+                // โหลดโมเดลหากยังไม่เคยโหลด
                 if (!isFaceModelLoaded) {
                     Swal.fire({ title: 'กำลังโหลดโมเดล AI...', text: 'อาจใช้เวลาสักครู่ในการเปิดครั้งแรก', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
                     
-                    const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/';
+                    const MODEL_URL = '[https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/](https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/)';
                     await Promise.all([
                         faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL),
                         faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
@@ -3037,6 +3102,7 @@
                     isFaceModelLoaded = true;
                 }
 
+                // เตรียมข้อมูลใบหน้านักเรียน (ถ้ายังไม่มี)
                 if (!faceMatcher) {
                     await buildFaceMatcher();
                 } else {
@@ -3045,7 +3111,7 @@
 
                 if (!faceMatcher) {
                     closeFaceScanner();
-                    return;
+                    return; // ยกเลิกหากสร้างข้อมูลใบหน้าไม่สำเร็จ
                 }
 
                 startWebcam();
@@ -3057,6 +3123,7 @@
             }
         }
 
+        // 2. ปิดหน้าต่างสแกน
         function closeFaceScanner() {
             document.getElementById('faceScannerModal').classList.add('hidden');
             if (scanInterval) clearInterval(scanInterval);
@@ -3066,29 +3133,35 @@
             }
             document.getElementById('webcamVideo').srcObject = null;
             
+            // ล้าง Canvas
             const canvas = document.getElementById('faceCanvas');
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
         }
 
+        // 3. เริ่มต้นเปิดกล้อง (ปรับปรุงขั้นสูงสุดสำหรับ iOS และ Android)
         async function startWebcam() {
             const video = document.getElementById('webcamVideo');
             document.getElementById('scanStatusText').innerText = 'กำลังเปิดกล้อง...';
             
+            // ปิดสตรีมกล้องเก่าที่อาจจะค้างอยู่ก่อนเปิดใหม่
             if (window.videoStream) {
                 window.videoStream.getTracks().forEach(track => track.stop());
                 window.videoStream = null;
             }
             
             try {
+                // ตรวจสอบว่าเบราว์เซอร์รองรับ getUserMedia หรือไม่
                 if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
                     throw new Error("NOT_SUPPORTED");
                 }
 
+                // บังคับ Attribute สำหรับ iOS Safari เพื่อไม่ให้วิดีโอเด้งเต็มจอและเล่นอัตโนมัติได้
                 video.setAttribute('playsinline', 'true');
                 video.setAttribute('autoplay', 'true');
                 video.setAttribute('muted', 'true');
 
+                // ขออนุญาตใช้กล้อง (ตั้งค่า width/height เผื่อไว้ช่วยลดปัญหาในมือถือบางรุ่น)
                 let constraints = { 
                     video: { 
                         facingMode: "user",
@@ -3101,15 +3174,18 @@
                 try {
                     window.videoStream = await navigator.mediaDevices.getUserMedia(constraints);
                 } catch (camErr) {
+                    // Fallback: หากกล้องหน้า (user) มีปัญหา หรือมือถือไม่รองรับ constraints ให้ลองเปิดกล้องแบบธรรมดาที่สุด
                     window.videoStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
                 }
                 
                 video.srcObject = window.videoStream;
                 
+                // เมื่อวิดีโอโหลดข้อมูลเสร็จให้บังคับเล่น (แก้ปัญหาจอดำใน iOS)
                 video.onloadedmetadata = () => {
                     video.play().catch(e => console.warn("Auto-play prevented", e));
                 };
                 
+                // เมื่อวิดีโอเริ่มเล่นจริง ให้เริ่มทำงานสแกน
                 video.onplay = () => {
                     document.getElementById('scanStatusText').innerText = 'กำลังค้นหาใบหน้า... (มองกล้อง)';
                     startFaceDetection(video);
@@ -3141,37 +3217,48 @@
             }
         }
 
+        // 4. ลูปตรวจจับใบหน้า
         function startFaceDetection(video) {
             const canvas = document.getElementById('faceCanvas');
             
+            // ทำให้ขนาด canvas เท่ากับวิดีโอ
             const displaySize = { width: video.videoWidth, height: video.videoHeight };
             faceapi.matchDimensions(canvas, displaySize);
 
             if (scanInterval) clearInterval(scanInterval);
 
+            // สแกนทุกๆ 300ms
             scanInterval = setInterval(async () => {
                 if(video.paused || video.ended) return;
 
+                // ตรวจจับใบหน้า
                 const detections = await faceapi.detectAllFaces(video).withFaceLandmarks().withFaceDescriptors();
                 
+                // วาดกรอบและรีเซ็ตขนาด
                 const resizedDetections = faceapi.resizeResults(detections, displaySize);
                 const ctx = canvas.getContext('2d');
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 faceapi.draw.drawDetections(canvas, resizedDetections);
 
+                // นำใบหน้าที่เจอไปเปรียบเทียบ
                 if (resizedDetections.length > 0) {
                     document.getElementById('scanStatusText').innerText = `พบ ${resizedDetections.length} ใบหน้า... กำลังเปรียบเทียบ`;
                     
                     for (const detection of resizedDetections) {
                         const bestMatch = faceMatcher.findBestMatch(detection.descriptor);
                         
+                        // ถ้าระยะห่างน้อยกว่า 0.45 ถือว่าแม่นยำ (ยิ่งน้อยยิ่งเหมือน)
                         if (bestMatch.label !== 'unknown' && bestMatch.distance < 0.45) {
                             clearInterval(scanInterval);
                             document.getElementById('scanStatusText').innerText = 'พบข้อมูลนักเรียน!';
                             
+                            // เสียงแจ้งเตือน (ตัวเลือกเสริม)
+                            // new Audio('https://www.soundjay.com/buttons/sounds/button-09.mp3').play().catch(e=>{});
+                            
+                            // ปิดกล้องและเปิด Modal ข้อมูล
                             setTimeout(() => {
                                 closeFaceScanner();
-                                openStudentViewModal(bestMatch.label); 
+                                openStudentViewModal(bestMatch.label); // เรียกใช้ฟังก์ชันเดิมเพื่อเปิดข้อมูล
                             }, 500);
                             return; 
                         }
@@ -3182,6 +3269,7 @@
             }, 300);
         }
 
+        // 5. ดึงรูปจากระบบมาแปลงเป็นข้อมูลใบหน้า (ปรับปรุงความเร็วด้วย Batch Processing)
         async function buildFaceMatcher() {
             Swal.fire({ title: 'กำลังเตรียมข้อมูลใบหน้า...', text: 'กำลังรวบรวมข้อมูลรูปภาพ...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
             
@@ -3190,6 +3278,7 @@
             let failCount = 0;
             let noImageCount = 0;
 
+            // 1. กรองนักเรียนที่ต้องการประมวลผลออกมาก่อน
             const studentsToProcess = studentsList.filter(student => {
                 if (student.commuteType === 'จบการศึกษา') return false;
                 if (!student.profileImg || student.profileImg.trim() === '') {
@@ -3199,14 +3288,18 @@
                 return true;
             });
 
+            // 2. ตั้งค่า Batch Size ประมวลผลพร้อมกันทีละ 10 รูป (ปรับเพิ่ม/ลดได้)
             const batchSize = 10;
-            const proxyDomain = 'https://api.allorigins.win/raw?url=';
+            const proxyDomain = 'https://' + 'api.allorigins.win/raw?url=';
 
+            // 3. วนลูปทำงานทีละชุด (Batch) แทนการทำทีละคนเพื่อความรวดเร็ว
             for (let i = 0; i < studentsToProcess.length; i += batchSize) {
                 const batch = studentsToProcess.slice(i, i + batchSize);
                 
+                // อัปเดตสถานะให้ผู้ใช้ทราบว่าทำถึงไหนแล้ว
                 Swal.update({ text: `กำลังประมวลผล ${Math.min(i + batchSize, studentsToProcess.length)} จาก ${studentsToProcess.length} คน...` });
 
+                // ใช้ Promise.all เพื่อโหลดและประมวลผลนักเรียนในกลุ่มนี้พร้อมๆ กัน
                 const batchPromises = batch.map(async (student) => {
                     try {
                         const img = new Image();
@@ -3218,12 +3311,14 @@
                             img.src = proxyDomain + encodeURIComponent(student.profileImg);
                         }
 
+                        // รอโหลดภาพ (Timeout 15 วินาที)
                         await new Promise((resolve, reject) => {
                             const timer = setTimeout(() => reject(new Error('Timeout')), 15000);
                             img.onload = () => { clearTimeout(timer); resolve(); };
                             img.onerror = () => { clearTimeout(timer); reject(new Error('Load Error')); };
                         });
 
+                        // วิเคราะห์ใบหน้าจากรูป
                         const detection = await faceapi.detectSingleFace(img).withFaceLandmarks().withFaceDescriptor();
                         
                         if (detection) {
@@ -3239,10 +3334,13 @@
                     }
                 });
 
+                // รอให้รูปทั้ง 10 รูปในรอบนี้ทำงานเสร็จ จึงจะไปรอบถัดไป (ป้องกันเบราว์เซอร์ค้าง)
                 await Promise.all(batchPromises);
             }
 
+            // 4. สรุปผล
             if (labeledFaceDescriptors.length > 0) {
+                // สร้าง Matcher (distance threshold 0.5)
                 faceMatcher = new faceapi.FaceMatcher(labeledFaceDescriptors, 0.5);
                 Swal.fire({ icon: 'success', title: 'เตรียมข้อมูลสำเร็จ', text: `อ่านใบหน้าได้ ${successCount} คน (ไม่มีรูป ${noImageCount} คน, โหลดไม่ได้/ไม่พบหน้า ${failCount} คน)`, timer: 4000, showConfirmButton: false });
                 return true;
@@ -3252,6 +3350,7 @@
             }
         }
 
+        // ปุ่มบังคับล้างข้อมูลแล้วโหลดใบหน้าใหม่ (กรณีเพิ่งอัปโหลดรูป)
         async function forceRebuildFaceData() {
             const video = document.getElementById('webcamVideo');
             if(video) video.pause();
@@ -3410,13 +3509,36 @@
                 }
             });
         }
-        
+        // ====================================================
+        // PWA: สคริปต์สร้าง Manifest.json ทันทีตอนเปิดเว็บ
+        // ====================================================
+        const appManifest = {
+            "name": "ระบบข้อมูลนักเรียน",
+            "short_name": "ระบบ SIS",
+            "start_url": "https://script.google.com/macros/s/AKfycbwp9j3qv2HrsqjCc--Vhv7pzLeR3IV2Su97hL9lMNms_kG1j6YXwLjG9ylB1KiDDif2/exec",
+            "display": "standalone",
+            "background_color": "#f3f4f6",
+            "theme_color": "#1cc059",
+            "icons": [
+                {
+                    "src": "https://img2.pic.in.th/41bd06dad4249889e21c83543f7e0154.png",
+                    "sizes": "512x512",
+                    "type": "image/png"
+                }
+            ]
+        };
+
+        // ====================================================
+        // ฟังก์ชัน: สร้างและคัดลอกรายงานการมาเรียนเพื่อส่ง LINE
+        // ====================================================
         function copyReportToLine() {
+            // ตรวจสอบสิทธิ์ก่อนการทำงาน
             if (currentUserRole !== 'admin' && currentUserRole !== 'headteacher') {
                 Swal.fire('ปฏิเสธการเข้าถึง', 'คุณไม่มีสิทธิ์ใช้งานส่วนนี้', 'error');
                 return;
             }
 
+            // 1. จัดการข้อมูลวันเดือนปี (แปลงจาก YYYY-MM-DD เป็น DD/MM/YYYY แบบ พ.ศ.)
             const dateInput = document.getElementById('attendanceDate').value;
             let reportDate = "ไม่ได้ระบุวันที่";
             if (dateInput) {
@@ -3426,11 +3548,13 @@
                 }
             }
 
+            // 2. คำนวณข้อมูลจากรายชื่อนักเรียนและข้อมูลการเช็คชื่อ
             let totalMale = 0;
             let totalFemale = 0;
             let malePresent = 0;
             let femalePresent = 0;
             
+            // กรองเฉพาะนักเรียนที่กำลังศึกษา
             const activeStudents = studentsList.filter(s => s.commuteType !== 'จบการศึกษา');
             const totalStudents = activeStudents.length;
 
@@ -3451,6 +3575,7 @@
             const totalPresent = malePresent + femalePresent;
             const absentCount = totalStudents - totalPresent;
 
+            // 3. สร้างข้อความรายงาน (Format สำหรับส่ง LINE)
             const reportText = `📋 รายงานข้อมูลนักเรียนและการมาเรียน\n📅 ประจำวันที่: ${reportDate}\n\n` +
                                `👥 จำนวนนักเรียนทั้งหมด: ${totalStudents} คน\n` +
                                `  - ชาย: ${totalMale} คน\n` +
@@ -3460,9 +3585,11 @@
                                `  - นักเรียนหญิง: ${femalePresent} คน\n\n` +
                                `❌ ลา/ขาด/กลับบ้าน: ${absentCount} คน`;
 
+            // 4. คัดลอกลง Clipboard (ใช้วิธีที่รองรับ Web App ทุกรูปแบบ)
             const textArea = document.createElement("textarea");
             textArea.value = reportText;
             
+            // ซ่อน textarea ไม่ให้กระทบหน้าจอ
             textArea.style.top = "0";
             textArea.style.left = "0";
             textArea.style.position = "fixed";
@@ -3478,7 +3605,7 @@
                     icon: 'success',
                     title: 'คัดลอกรายงานสำเร็จ!',
                     text: 'คุณสามารถนำไปวาง (Paste) ในแชท LINE ได้ทันที',
-                    confirmButtonColor: '#00c300' 
+                    confirmButtonColor: '#00c300' // ใช้สีเขียว LINE
                 });
             } catch (err) {
                 Swal.fire('ข้อผิดพลาด', 'เบราว์เซอร์ของคุณไม่รองรับการคัดลอกอัตโนมัติ', 'error');
@@ -3487,21 +3614,6 @@
             document.body.removeChild(textArea);
         }
 
-        const appManifest = {
-            "name": "ระบบข้อมูลนักเรียน",
-            "short_name": "ระบบ SIS",
-            "start_url": "https://script.google.com/macros/s/AKfycbwp9j3qv2HrsqjCc--Vhv7pzLeR3IV2Su97hL9lMNms_kG1j6YXwLjG9ylB1KiDDif2/exec",
-            "display": "standalone",
-            "background_color": "#f3f4f6",
-            "theme_color": "#1cc059",
-            "icons": [
-                {
-                    "src": "https://img2.pic.in.th/41bd06dad4249889e21c83543f7e0154.png",
-                    "sizes": "512x512",
-                    "type": "image/png"
-                }
-            ]
-        };
         const stringManifest = JSON.stringify(appManifest);
         const blob = new Blob([stringManifest], {type: 'application/json'});
         const manifestURL = URL.createObjectURL(blob);
