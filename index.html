@@ -1522,43 +1522,57 @@
             return { id: String(t.teacherId || ""), name: String(t.name || ""), assignedClass: String(t.assignedClass || ""), teacherPosition: String(t.teacherPosition || "1"), learningSource: String(t.learningSource || ""), isLearningSourceHead: (String(t.isLearningSourceHead).toLowerCase() === 'true' || t.isLearningSourceHead === true) };
         }
 
-        function fetchStudentsData() {
-            if (typeof google !== 'undefined' && google.script && !google.script.run.getInitialAppData) {
+        function fetchStudentsData(callback) {
+            if (typeof google !== 'undefined' && google.script) {
                 google.script.run.withSuccessHandler(function(res) {
                     try {
                         const parsed = JSON.parse(res);
-                        if (!parsed.status || parsed.status !== 'error') {
+                        if (Array.isArray(parsed)) {
                             studentsList = parsed.map(formatStudentData);
-                            localStorage.setItem('sis_students_cache', JSON.stringify(studentsList)); 
-                            populateClassDropdown();
-                            updateDashboardStats(true);
+                        } else if (parsed && parsed.status === 'success' && parsed.students) {
+                            studentsList = parsed.students.map(formatStudentData);
                         }
-                    } catch (e) {}
+                        localStorage.setItem('sis_students_cache', JSON.stringify(studentsList)); 
+                        populateClassDropdown();
+                        updateDashboardStats(true);
+                        renderStudents();
+                        if (typeof callback === 'function') callback();
+                    } catch (e) { console.error("Parse students error:", e); }
+                }).withFailureHandler(function(err) {
+                    console.error("Fetch students error:", err);
                 }).getStudents();
-            } else if (typeof google === 'undefined') {
-                studentsList = JSON.parse(localStorage.getItem('sis_students')) || initialMockStudents;
+            } else {
+                studentsList = JSON.parse(localStorage.getItem('sis_students_cache')) || JSON.parse(localStorage.getItem('sis_students')) || initialMockStudents;
                 populateClassDropdown();
                 updateDashboardStats(false);
+                renderStudents();
+                if (typeof callback === 'function') callback();
             }
         }
 
-        function fetchTeachersData() {
-            if (typeof google !== 'undefined' && google.script && !google.script.run.getInitialAppData) {
+        function fetchTeachersData(callback) {
+            if (typeof google !== 'undefined' && google.script) {
                 google.script.run.withSuccessHandler(function(res) {
                     try {
                         const parsed = JSON.parse(res);
-                        if (!parsed.status || parsed.status !== 'error') {
+                        if (Array.isArray(parsed)) {
                             teachersList = parsed.map(formatTeacherData);
-                            localStorage.setItem('sis_teachers_cache', JSON.stringify(teachersList)); 
-                            renderTeachers();
-                            populateTeacherDatalist();
+                        } else if (parsed && parsed.status === 'success' && parsed.teachers) {
+                            teachersList = parsed.teachers.map(formatTeacherData);
                         }
-                    } catch(e) {}
+                        localStorage.setItem('sis_teachers_cache', JSON.stringify(teachersList)); 
+                        renderTeachers();
+                        populateTeacherDatalist();
+                        if (typeof callback === 'function') callback();
+                    } catch(e) { console.error("Parse teachers error:", e); }
+                }).withFailureHandler(function(err) {
+                    console.error("Fetch teachers error:", err);
                 }).getTeachers();
-            } else if (typeof google === 'undefined') {
-                 teachersList = JSON.parse(localStorage.getItem('sis_teachers')) || [];
+            } else {
+                 teachersList = JSON.parse(localStorage.getItem('sis_teachers_cache')) || JSON.parse(localStorage.getItem('sis_teachers')) || [];
                  renderTeachers();
                  populateTeacherDatalist();
+                 if (typeof callback === 'function') callback();
             }
         }
 

@@ -368,6 +368,8 @@ function updateStudentTeachers(teacherObj) {
 
 function getAttendanceData(dateStr, grade) {
   try {
+    const targetDate = fastFormatDate(dateStr);
+    const targetGrade = String(grade || "").trim();
     const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
     const studentSheet = ss.getSheetByName('Students');
     const studentData = studentSheet.getDataRange().getValues();
@@ -378,8 +380,8 @@ function getAttendanceData(dateStr, grade) {
     
     const studentsInGrade = {};
     for (let i = 1; i < studentData.length; i++) {
-      if (studentData[i][gradeIdx] === grade) {
-        studentsInGrade[String(studentData[i][idIdx])] = studentData[i][commuteIdx];
+      if (String(studentData[i][gradeIdx] || "").trim() === targetGrade) {
+        studentsInGrade[String(studentData[i][idIdx])] = String(studentData[i][commuteIdx] || "").trim();
       }
     }
 
@@ -388,12 +390,12 @@ function getAttendanceData(dateStr, grade) {
     const latestRecords = {};
     
     for (let i = 1; i < data.length; i++) {
-      if (data[i][1] === grade) { 
+      if (String(data[i][1] || "").trim() === targetGrade) { 
         let rowDate = fastFormatDate(data[i][0]);
-        if (rowDate <= dateStr) {
+        if (rowDate <= targetDate) {
           let sId = String(data[i][2]);
           if (!latestRecords[sId] || latestRecords[sId].date <= rowDate) {
-            latestRecords[sId] = { date: rowDate, status: data[i][3], remark: data[i][4] || "" };
+            latestRecords[sId] = { date: rowDate, status: String(data[i][3]), remark: data[i][4] || "" };
           }
         }
       }
@@ -409,7 +411,7 @@ function getAttendanceData(dateStr, grade) {
           result[sId] = { status: 'present', remark: '' }; 
         }
       } else {
-        if (latestRecords[sId] && latestRecords[sId].date === dateStr) {
+        if (latestRecords[sId] && latestRecords[sId].date === targetDate) {
           result[sId] = { status: latestRecords[sId].status, remark: latestRecords[sId].remark };
         }
       }
@@ -424,6 +426,8 @@ function saveAttendanceData(dateStr, grade, records) {
   const lock = LockService.getScriptLock();
   try {
     lock.waitLock(10000);
+    const targetDate = fastFormatDate(dateStr);
+    const targetGrade = String(grade || "").trim();
     const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('Attendance');
     const data = sheet.getDataRange().getValues();
     const oldLength = data.length;
@@ -433,7 +437,7 @@ function saveAttendanceData(dateStr, grade, records) {
     
     for (let i = 1; i < data.length; i++) {
       let rowDate = fastFormatDate(data[i][0]);
-      if (!(rowDate === dateStr && String(data[i][1]) === String(grade))) {
+      if (!(rowDate === targetDate && String(data[i][1] || "").trim() === targetGrade)) {
         newDataToKeep.push(data[i]);
       }
     }
@@ -441,7 +445,7 @@ function saveAttendanceData(dateStr, grade, records) {
     if (records && records.length > 0) {
       const timestamp = new Date();
       records.forEach(rec => {
-        newDataToKeep.push([dateStr, grade, rec.studentId, rec.status, rec.remark || '', timestamp]);
+        newDataToKeep.push([targetDate, targetGrade, String(rec.studentId), String(rec.status), String(rec.remark || ''), timestamp]);
       });
     }
     
@@ -637,14 +641,23 @@ function sendLog(action, details) {
 }
 
 // =========================================================================
+// =========================================================================
 // ตัวช่วยประมวลผลวันที่ความเร็วสูง
 // =========================================================================
 function fastFormatDate(dateObj) {
+  if (!dateObj) return "";
   if (dateObj instanceof Date) {
-    const y = dateObj.getFullYear();
-    const m = String(dateObj.getMonth() + 1).padStart(2, '0');
-    const d = String(dateObj.getDate()).padStart(2, '0');
-    return `${y}-${m}-${d}`;
+    return Utilities.formatDate(dateObj, "Asia/Bangkok", "yyyy-MM-dd");
   }
-  return String(dateObj).substring(0, 10);
+  let str = String(dateObj).trim();
+  if (str.length >= 10 && str.match(/^\d{4}-\d{2}-\d{2}/)) {
+    return str.substring(0, 10);
+  }
+  try {
+    let d = new Date(str);
+    if (!isNaN(d.getTime())) {
+      return Utilities.formatDate(d, "Asia/Bangkok", "yyyy-MM-dd");
+    }
+  } catch(e) {}
+  return str.substring(0, 10);
 }
