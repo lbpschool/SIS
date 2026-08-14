@@ -5,22 +5,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>School Information System</title>
     <!-- ========================================== -->
-    <!-- PWA Meta Tags สำหรับทำแอปหน้าจอมือถือ -->
+    <!-- Icons & Favicons สำหรับ PC, iOS (iPhone/iPad), Android -->
     <!-- ========================================== -->
+    <!-- Favicon สำหรับ PC / Desktop Browsers -->
+    <link rel="icon" type="image/png" sizes="512x512" href="https://img2.pic.in.th/41bd06dad4249889e21c83543f7e0154.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="https://img2.pic.in.th/41bd06dad4249889e21c83543f7e0154.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="https://img2.pic.in.th/41bd06dad4249889e21c83543f7e0154.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="https://img2.pic.in.th/41bd06dad4249889e21c83543f7e0154.png">
+    <link rel="shortcut icon" href="https://img2.pic.in.th/41bd06dad4249889e21c83543f7e0154.png">
+    
+    <!-- iOS / iPadOS Safari Touch Icons -->
+    <link rel="apple-touch-icon" href="https://img2.pic.in.th/41bd06dad4249889e21c83543f7e0154.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="https://img2.pic.in.th/41bd06dad4249889e21c83543f7e0154.png">
+    <link rel="apple-touch-icon" sizes="167x167" href="https://img2.pic.in.th/41bd06dad4249889e21c83543f7e0154.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="https://img2.pic.in.th/41bd06dad4249889e21c83543f7e0154.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="https://img2.pic.in.th/41bd06dad4249889e21c83543f7e0154.png">
+    
+    <!-- iOS Web App Meta Tags -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="ระบบ SIS">
     
-    <!-- เพิ่ม rel="icon" และ shortcut icon -->
-    <link rel="icon" type="image/png" href="https://img2.pic.in.th/41bd06dad4249889e21c83543f7e0154.png">
-    <link rel="shortcut icon" href="https://img2.pic.in.th/41bd06dad4249889e21c83543f7e0154.png">
-    
-    <!-- iOS Safari Icons (บังคับล้างแคชด้วย ?v=2 และเพิ่ม sizes มาตรฐานของ Apple) -->
-    <link rel="apple-touch-icon" href="https://img2.pic.in.th/41bd06dad4249889e21c83543f7e0154.png">
-    <link rel="apple-touch-icon" sizes="152x152" href="https://img2.pic.in.th/41bd06dad4249889e21c83543f7e0154.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="https://img2.pic.in.th/41bd06dad4249889e21c83543f7e0154.png">
-    <link rel="apple-touch-icon" sizes="192x192" href="https://img2.pic.in.th/41bd06dad4249889e21c83543f7e0154.png">
-    
+    <!-- Windows / MS Tile Meta Tags -->
+    <meta name="msapplication-TileImage" content="https://img2.pic.in.th/41bd06dad4249889e21c83543f7e0154.png">
+    <meta name="msapplication-TileColor" content="#1cc059">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#1cc059">
     <link rel="manifest" id="dynamic-manifest">
@@ -952,7 +960,12 @@
         <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden relative flex flex-col">
             <div class="flex justify-between items-center px-4 py-3 border-b bg-gray-50 shrink-0">
                 <h2 class="text-lg font-bold text-gray-800"><i class="fas fa-camera text-blue-600 mr-2"></i>สแกนใบหน้าเพื่อค้นหา</h2>
-                <button onclick="closeFaceScanner()" class="text-gray-400 hover:text-red-500 transition text-2xl"><i class="fas fa-times"></i></button>
+                <div class="flex items-center space-x-2">
+                    <button onclick="toggleCameraFacingMode()" id="btnToggleCamera" class="text-xs bg-blue-100 hover:bg-blue-200 text-blue-700 px-3 py-1.5 rounded-lg transition font-medium flex items-center shadow-sm" title="สลับกล้องหน้า / กล้องหลัง">
+                        <i class="fas fa-sync-alt mr-1.5"></i> สลับกล้อง
+                    </button>
+                    <button onclick="closeFaceScanner()" class="text-gray-400 hover:text-red-500 transition text-2xl p-1"><i class="fas fa-times"></i></button>
+                </div>
             </div>
             
             <div class="relative bg-black flex-1 flex justify-center items-center min-h-[300px] sm:min-h-[450px]">
@@ -968,9 +981,9 @@
             </div>
             
             <div class="p-4 bg-gray-50 border-t text-center text-sm text-gray-600 flex justify-between items-center shrink-0">
-                <span>กรุณามองกล้องให้เห็นใบหน้าชัดเจน</span>
-                <button onclick="forceRebuildFaceData()" class="text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 px-2 py-1 rounded transition" title="คลิกหากเพิ่งเปลี่ยนรูปโปรไฟล์นักเรียน">
-                    <i class="fas fa-sync-alt mr-1"></i> อัปเดตข้อมูลหน้า
+                <span class="text-xs text-gray-500">มองกล้องให้เห็นใบหน้าชัดเจน</span>
+                <button onclick="forceRebuildFaceData()" class="text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 px-2.5 py-1.5 rounded-lg transition font-medium flex items-center" title="คลิกหากเพิ่งเปลี่ยนรูปโปรไฟล์นักเรียน">
+                    <i class="fas fa-redo-alt mr-1"></i> ล้างแคช & อัปเดตข้อมูลหน้า
                 </button>
             </div>
         </div>
@@ -1064,6 +1077,15 @@
         let sortConfigStudents = { key: 'grade', direction: 'asc' };
         let sortConfigTeachers = { key: 'name', direction: 'asc' };
 
+        // Helper สำหรับ Debounce ป้องกันหน้าเว็บกระตุกขณะพิมพ์ค้นหา
+        function debounce(func, wait = 250) {
+            let timeout;
+            return function(...args) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(this, args), wait);
+            };
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             const now = new Date();
             const year = now.getFullYear();
@@ -1100,7 +1122,7 @@
             });
             
             const searchInput = document.getElementById('searchStudent');
-            if(searchInput) searchInput.addEventListener('input', renderStudents);
+            if(searchInput) searchInput.addEventListener('input', debounce(renderStudents, 250));
             
             const filterGradeEl = document.getElementById('filterGrade');
             if(filterGradeEl) filterGradeEl.addEventListener('change', renderStudents);
@@ -1112,7 +1134,7 @@
             if(filterLearningSourceEl) filterLearningSourceEl.addEventListener('change', renderStudents);
 
             const searchTeacherInput = document.getElementById('searchTeacher');
-            if(searchTeacherInput) searchTeacherInput.addEventListener('input', renderTeachers);
+            if(searchTeacherInput) searchTeacherInput.addEventListener('input', debounce(renderTeachers, 250));
             
             updateSortIcons('students');
             updateSortIcons('teachers');
@@ -2416,6 +2438,9 @@
 
         function saveTeacher(e) {
             e.preventDefault();
+            const btnSave = document.getElementById('btnSaveTeacher');
+            if(btnSave && btnSave.disabled) return;
+
             const editId = document.getElementById('editTeacherMode').value;
             const newId = document.getElementById('formTeacherId').value;
             
@@ -2429,10 +2454,13 @@
                 isLearningSourceHead: document.getElementById('formIsLearningSourceHead').checked 
             };
 
+            if(btnSave) { btnSave.disabled = true; btnSave.classList.add('opacity-50', 'cursor-not-allowed'); }
+
             if (typeof google !== 'undefined' && google.script) {
                 Swal.fire({ title: 'กำลังบันทึก...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
                 google.script.run
                     .withSuccessHandler(function(res) {
+                        if(btnSave) { btnSave.disabled = false; btnSave.classList.remove('opacity-50', 'cursor-not-allowed'); }
                         let parsed = JSON.parse(res);
                         if(parsed.status === 'success') {
                             Swal.fire({ icon: 'success', title: 'บันทึกสำเร็จ', showConfirmButton: false, timer: 1500 });
@@ -2441,9 +2469,13 @@
                             closeTeacherModal();
                         } else { Swal.fire('เกิดข้อผิดพลาด', parsed.message, 'error'); }
                     })
-                    .withFailureHandler(function(err) { Swal.fire('เกิดข้อผิดพลาด', err.message, 'error'); })
+                    .withFailureHandler(function(err) {
+                        if(btnSave) { btnSave.disabled = false; btnSave.classList.remove('opacity-50', 'cursor-not-allowed'); }
+                        Swal.fire('เกิดข้อผิดพลาด', err.message, 'error');
+                    })
                     .saveTeacherData(teacherObj);
             } else {
+                if(btnSave) { btnSave.disabled = false; btnSave.classList.remove('opacity-50', 'cursor-not-allowed'); }
                 if (editId) {
                     const idx = teachersList.findIndex(function(t) { return t.id === editId; });
                     if(idx !== -1) teachersList[idx] = teacherObj;
@@ -3010,6 +3042,138 @@
         let faceMatcher = null;
         let videoStream = null;
         let scanInterval = null;
+        let currentFacingMode = 'user'; // 'user' (กล้องหน้า) หรือ 'environment' (กล้องหลัง)
+
+        // =====================================================================
+        // ระบบจัดเก็บข้อมูลเวกเตอร์ใบหน้าใน IndexedDB (Descriptor Cache)
+        // =====================================================================
+        function openFaceDescriptorDB() {
+            return new Promise((resolve, reject) => {
+                const req = indexedDB.open('SIS_FaceDescriptors_Store', 1);
+                req.onupgradeneeded = (e) => {
+                    const db = e.target.result;
+                    if (!db.objectStoreNames.contains('descriptors')) {
+                        db.createObjectStore('descriptors', { keyPath: 'studentId' });
+                    }
+                };
+                req.onsuccess = () => resolve(req.result);
+                req.onerror = () => reject(req.error);
+            });
+        }
+
+        async function getStoredDescriptor(studentId, profileImgUrl) {
+            try {
+                const db = await openFaceDescriptorDB();
+                return new Promise((resolve) => {
+                    const tx = db.transaction('descriptors', 'readonly');
+                    const store = tx.objectStore('descriptors');
+                    const req = store.get(studentId);
+                    req.onsuccess = () => {
+                        const data = req.result;
+                        if (data && data.profileImgUrl === profileImgUrl && data.descriptor) {
+                            resolve(new Float32Array(data.descriptor));
+                        } else {
+                            resolve(null);
+                        }
+                    };
+                    req.onerror = () => resolve(null);
+                });
+            } catch (e) {
+                return null;
+            }
+        }
+
+        async function saveStoredDescriptor(studentId, profileImgUrl, descriptorFloat32) {
+            try {
+                const db = await openFaceDescriptorDB();
+                return new Promise((resolve) => {
+                    const tx = db.transaction('descriptors', 'readwrite');
+                    const store = tx.objectStore('descriptors');
+                    store.put({
+                        studentId: studentId,
+                        profileImgUrl: profileImgUrl,
+                        descriptor: Array.from(descriptorFloat32)
+                    });
+                    tx.oncomplete = () => resolve(true);
+                    tx.onerror = () => resolve(false);
+                });
+            } catch (e) {
+                return false;
+            }
+        }
+
+        async function clearFaceDescriptorDB() {
+            try {
+                const db = await openFaceDescriptorDB();
+                const tx = db.transaction('descriptors', 'readwrite');
+                tx.objectStore('descriptors').clear();
+            } catch (e) {}
+        }
+
+        // =====================================================================
+        // ระบบโหลดรูปภาพพร้อม Proxy สำรองหลายเส้นทาง (CORS Fallback)
+        // =====================================================================
+        async function loadImageWithProxyFallback(studentId, profileImgUrl) {
+            if (profileImgUrl.startsWith('data:image')) {
+                const img = new Image();
+                img.src = profileImgUrl;
+                await new Promise((res, rej) => { img.onload = res; img.onerror = rej; });
+                return img;
+            }
+
+            const proxies = [
+                url => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url),
+                url => 'https://corsproxy.io/?' + encodeURIComponent(url),
+                url => 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(url)
+            ];
+
+            for (let proxyFn of proxies) {
+                try {
+                    const img = new Image();
+                    img.crossOrigin = "Anonymous";
+                    img.src = proxyFn(profileImgUrl);
+                    await new Promise((resolve, reject) => {
+                        const timer = setTimeout(() => reject(new Error('Timeout')), 8000);
+                        img.onload = () => { clearTimeout(timer); resolve(); };
+                        img.onerror = () => { clearTimeout(timer); reject(new Error('Proxy error')); };
+                    });
+                    return img;
+                } catch (err) {
+                    console.warn(`Proxy failed for student ${studentId}, trying next proxy...`);
+                }
+            }
+            throw new Error('All image proxies failed');
+        }
+
+        // =====================================================================
+        // ระบบเสียงแจ้งเตือนสแกนพบ (Audio & Vibration Feedback)
+        // =====================================================================
+        function playSuccessBeep() {
+            try {
+                if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.25);
+            } catch(e) {}
+        }
+
+        // =====================================================================
+        // สลับกล้องหน้า / กล้องหลัง
+        // =====================================================================
+        async function toggleCameraFacingMode() {
+            currentFacingMode = (currentFacingMode === 'user') ? 'environment' : 'user';
+            const statusText = document.getElementById('scanStatusText');
+            if (statusText) statusText.innerText = `กำลังสลับเป็นกล้อง${currentFacingMode === 'user' ? 'หน้า' : 'หลัง'}...`;
+            await startWebcam();
+        }
 
         async function openFaceScanner() {
             if (typeof currentUserRole !== 'undefined' && currentUserRole !== 'admin') {
@@ -3065,16 +3229,22 @@
                 videoStream.getTracks().forEach(track => track.stop());
                 videoStream = null;
             }
+            if (window.videoStream) {
+                window.videoStream.getTracks().forEach(track => track.stop());
+                window.videoStream = null;
+            }
             document.getElementById('webcamVideo').srcObject = null;
             
             const canvas = document.getElementById('faceCanvas');
-            const ctx = canvas.getContext('2d');
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if (canvas) {
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
         }
 
         async function startWebcam() {
             const video = document.getElementById('webcamVideo');
-            document.getElementById('scanStatusText').innerText = 'กำลังเปิดกล้อง...';
+            document.getElementById('scanStatusText').innerText = `กำลังเปิดกล้อง (${currentFacingMode === 'user' ? 'กล้องหน้า' : 'กล้องหลัง'})...`;
             
             if (window.videoStream) {
                 window.videoStream.getTracks().forEach(track => track.stop());
@@ -3092,7 +3262,7 @@
 
                 let constraints = { 
                     video: { 
-                        facingMode: "user",
+                        facingMode: { ideal: currentFacingMode },
                         width: { ideal: 640 },
                         height: { ideal: 480 }
                     }, 
@@ -3112,7 +3282,7 @@
                 };
                 
                 video.onplay = () => {
-                    document.getElementById('scanStatusText').innerText = 'กำลังค้นหาใบหน้า... (มองกล้อง)';
+                    document.getElementById('scanStatusText').innerText = `กำลังค้นหาใบหน้า... (${currentFacingMode === 'user' ? 'กล้องหน้า' : 'กล้องหลัง'})`;
                     startFaceDetection(video);
                 };
                 
@@ -3144,8 +3314,9 @@
 
         function startFaceDetection(video) {
             const canvas = document.getElementById('faceCanvas');
+            if (!canvas || !video) return;
             
-            const displaySize = { width: video.videoWidth, height: video.videoHeight };
+            const displaySize = { width: video.videoWidth || 640, height: video.videoHeight || 480 };
             faceapi.matchDimensions(canvas, displaySize);
 
             if (scanInterval) clearInterval(scanInterval);
@@ -3154,40 +3325,71 @@
                 if(video.paused || video.ended) return;
 
                 const detections = await faceapi.detectAllFaces(video).withFaceLandmarks().withFaceDescriptors();
-                
                 const resizedDetections = faceapi.resizeResults(detections, displaySize);
+                
                 const ctx = canvas.getContext('2d');
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
-                faceapi.draw.drawDetections(canvas, resizedDetections);
 
                 if (resizedDetections.length > 0) {
                     document.getElementById('scanStatusText').innerText = `พบ ${resizedDetections.length} ใบหน้า... กำลังเปรียบเทียบ`;
                     
                     for (const detection of resizedDetections) {
                         const bestMatch = faceMatcher.findBestMatch(detection.descriptor);
-                        
-                        if (bestMatch.label !== 'unknown' && bestMatch.distance < 0.45) {
+                        const box = detection.detection.box;
+
+                        if (bestMatch.label !== 'unknown' && bestMatch.distance < 0.48) {
+                            const matchedStudent = studentsList.find(s => String(s.id) === String(bestMatch.label));
+                            const displayName = matchedStudent ? `${matchedStudent.name}${matchedStudent.nickname ? ' (' + matchedStudent.nickname + ')' : ''}` : bestMatch.label;
+                            const confidencePercent = Math.round((1 - bestMatch.distance) * 100);
+                            
+                            // วาดกรอบสีเขียวพร้อมแสดงชื่อและเปอร์เซ็นต์ความมั่นใจ
+                            const drawBox = new faceapi.draw.DrawBox(box, { 
+                                label: `${displayName} [${confidencePercent}%]`,
+                                boxColor: '#16a34a',
+                                drawLabelOptions: { fontSize: 15, fontColor: '#ffffff', backgroundColor: '#16a34a' }
+                            });
+                            drawBox.draw(canvas);
+
+                            playSuccessBeep();
                             clearInterval(scanInterval);
-                            document.getElementById('scanStatusText').innerText = 'พบข้อมูลนักเรียน!';
+                            document.getElementById('scanStatusText').innerText = `พบแล้ว: ${displayName}!`;
                             
                             setTimeout(() => {
                                 closeFaceScanner();
                                 openStudentViewModal(bestMatch.label); 
-                            }, 500);
+                            }, 600);
                             return; 
+                        } else {
+                            // วาดกรอบสีน้ำเงินกรณีตรวจจับพบแต่ความมั่นใจยังไม่ถึงเกณฑ์
+                            const drawBox = new faceapi.draw.DrawBox(box, { 
+                                label: 'กำลังตรวจสอบ...', 
+                                boxColor: '#3b82f6',
+                                drawLabelOptions: { fontSize: 13, fontColor: '#ffffff', backgroundColor: '#3b82f6' }
+                            });
+                            drawBox.draw(canvas);
                         }
                     }
                 } else {
                     document.getElementById('scanStatusText').innerText = 'ไม่พบใบหน้า กรุณามองกล้อง';
                 }
-            }, 300);
+            }, 250);
         }
 
-        async function buildFaceMatcher() {
-            Swal.fire({ title: 'กำลังเตรียมข้อมูลใบหน้า...', text: 'กำลังรวบรวมข้อมูลรูปภาพ...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
+        async function buildFaceMatcher(forceRefresh = false) {
+            if (forceRefresh) {
+                await clearFaceDescriptorDB();
+            }
+
+            Swal.fire({ 
+                title: 'กำลังเตรียมข้อมูลใบหน้า...', 
+                text: 'กำลังตรวจสอบหน่วยความจำแคช...', 
+                allowOutsideClick: false, 
+                didOpen: () => { Swal.showLoading(); }
+            });
             
             const labeledFaceDescriptors = [];
             let successCount = 0;
+            let cachedCount = 0;
             let failCount = 0;
             let noImageCount = 0;
 
@@ -3200,55 +3402,65 @@
                 return true;
             });
 
-            const batchSize = 10;
-            const proxyDomain = 'https://api.allorigins.win/raw?url=';
+            const needsProcessing = [];
 
-            for (let i = 0; i < studentsToProcess.length; i += batchSize) {
-                const batch = studentsToProcess.slice(i, i + batchSize);
-                
-                Swal.update({ text: `กำลังประมวลผล ${Math.min(i + batchSize, studentsToProcess.length)} จาก ${studentsToProcess.length} คน...` });
+            // 1. ตรวจสอบข้อมูลจาก IndexedDB ก่อน
+            for (let student of studentsToProcess) {
+                const cachedDesc = await getStoredDescriptor(student.id, student.profileImg);
+                if (cachedDesc && cachedDesc.length === 128) {
+                    labeledFaceDescriptors.push(new faceapi.LabeledFaceDescriptors(student.id, [cachedDesc]));
+                    cachedCount++;
+                    successCount++;
+                } else {
+                    needsProcessing.push(student);
+                }
+            }
 
-                const batchPromises = batch.map(async (student) => {
-                    try {
-                        const img = new Image();
-                        img.crossOrigin = "Anonymous"; 
-                        
-                        if (student.profileImg.startsWith('data:image')) {
-                            img.src = student.profileImg;
-                        } else {
-                            img.src = proxyDomain + encodeURIComponent(student.profileImg);
-                        }
+            // 2. หากมีรูปภาพใหม่ที่ยังไม่ได้แคช ให้ประมวลผลผ่าน Proxy Fallback
+            if (needsProcessing.length > 0) {
+                const batchSize = 6;
+                for (let i = 0; i < needsProcessing.length; i += batchSize) {
+                    const batch = needsProcessing.slice(i, i + batchSize);
+                    
+                    Swal.update({ 
+                        text: `กำลังคำนวณรูปใหม่ ${Math.min(i + batchSize, needsProcessing.length)} จาก ${needsProcessing.length} คน (แคชเดิม ${cachedCount} คน)...` 
+                    });
 
-                        await new Promise((resolve, reject) => {
-                            const timer = setTimeout(() => reject(new Error('Timeout')), 15000);
-                            img.onload = () => { clearTimeout(timer); resolve(); };
-                            img.onerror = () => { clearTimeout(timer); reject(new Error('Load Error')); };
-                        });
-
-                        const detection = await faceapi.detectSingleFace(img).withFaceLandmarks().withFaceDescriptor();
-                        
-                        if (detection) {
-                            labeledFaceDescriptors.push(new faceapi.LabeledFaceDescriptors(student.id, [detection.descriptor]));
-                            successCount++;
-                        } else {
-                            console.warn(`ไม่พบใบหน้าในรูปของนักเรียนรหัส: ${student.id}`);
+                    const batchPromises = batch.map(async (student) => {
+                        try {
+                            const img = await loadImageWithProxyFallback(student.id, student.profileImg);
+                            const detection = await faceapi.detectSingleFace(img).withFaceLandmarks().withFaceDescriptor();
+                            
+                            if (detection) {
+                                labeledFaceDescriptors.push(new faceapi.LabeledFaceDescriptors(student.id, [detection.descriptor]));
+                                await saveStoredDescriptor(student.id, student.profileImg, detection.descriptor);
+                                successCount++;
+                            } else {
+                                console.warn(`ไม่พบใบหน้าในรูปของนักเรียนรหัส: ${student.id}`);
+                                failCount++;
+                            }
+                        } catch (e) {
+                            console.warn(`ไม่สามารถโหลดรูปของนักเรียนรหัส ${student.id} ได้`, e);
                             failCount++;
                         }
-                    } catch (e) {
-                        console.warn(`ไม่สามารถโหลดรูปของนักเรียนรหัส ${student.id} ได้`, e);
-                        failCount++;
-                    }
-                });
+                    });
 
-                await Promise.all(batchPromises);
+                    await Promise.all(batchPromises);
+                }
             }
 
             if (labeledFaceDescriptors.length > 0) {
                 faceMatcher = new faceapi.FaceMatcher(labeledFaceDescriptors, 0.5);
-                Swal.fire({ icon: 'success', title: 'เตรียมข้อมูลสำเร็จ', text: `อ่านใบหน้าได้ ${successCount} คน (ไม่มีรูป ${noImageCount} คน, โหลดไม่ได้/ไม่พบหน้า ${failCount} คน)`, timer: 4000, showConfirmButton: false });
+                Swal.fire({ 
+                    icon: 'success', 
+                    title: 'เตรียมข้อมูลสำเร็จ', 
+                    text: `พร้อมใช้งาน ${successCount} คน (ดึงจากแคช ${cachedCount} คน, ไม่มีรูป ${noImageCount} คน, โหลดล้มเหลว ${failCount} คน)`, 
+                    timer: 3000, 
+                    showConfirmButton: false 
+                });
                 return true;
             } else {
-                Swal.fire('ข้อผิดพลาด', `ไม่สามารถดึงข้อมูลใบหน้าได้เลย\n(สำเร็จ 0, ไม่มีรูป ${noImageCount} คน, โหลดล้มเหลว/ไม่เจอหน้า ${failCount} คน)\n\nโปรดตรวจสอบว่านักเรียนมีรูปภาพที่ชัดเจนในระบบ`, 'error');
+                Swal.fire('ข้อผิดพลาด', `ไม่สามารถดึงข้อมูลใบหน้าได้เลย\nโปรดตรวจสอบว่านักเรียนมีรูปภาพที่ชัดเจนในระบบ`, 'error');
                 return false;
             }
         }
@@ -3259,7 +3471,7 @@
             if(scanInterval) clearInterval(scanInterval);
             
             faceMatcher = null;
-            await buildFaceMatcher();
+            await buildFaceMatcher(true);
             
             if(faceMatcher) {
                 if(video) video.play();
@@ -3489,17 +3701,24 @@
         }
 
         const appManifest = {
-            "name": "ระบบข้อมูลนักเรียน",
+            "name": "ระบบข้อมูลนักเรียน โรงเรียนลพบุรีปัญญานุกูล",
             "short_name": "ระบบ SIS",
-            "start_url": "https://script.google.com/macros/s/AKfycbwp9j3qv2HrsqjCc--Vhv7pzLeR3IV2Su97hL9lMNms_kG1j6YXwLjG9ylB1KiDDif2/exec",
+            "start_url": window.location.href || "./",
             "display": "standalone",
             "background_color": "#f3f4f6",
             "theme_color": "#1cc059",
             "icons": [
                 {
                     "src": "https://img2.pic.in.th/41bd06dad4249889e21c83543f7e0154.png",
+                    "sizes": "192x192",
+                    "type": "image/png",
+                    "purpose": "any maskable"
+                },
+                {
+                    "src": "https://img2.pic.in.th/41bd06dad4249889e21c83543f7e0154.png",
                     "sizes": "512x512",
-                    "type": "image/png"
+                    "type": "image/png",
+                    "purpose": "any maskable"
                 }
             ]
         };
