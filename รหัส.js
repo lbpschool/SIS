@@ -9,12 +9,12 @@ const SPREADSHEET_ID = '12vLCiBnEsYex9ATHjcMcbdtfC88OqMVA08avY6S_ohc'; // <--- �
 // วิธีหา ID: สร้างโฟลเดอร์ใน Google Drive ดับเบิ้ลคลิกเข้าไป แล้วก๊อปปี้รหัสยาวๆ จาก URL มาใส่
 const IMAGE_FOLDER_ID = '1Es7lkQN6QsUxs8J0a23Tcn59U-DTW-sx'; // <--- นำ ID โฟลเดอร์ใน Google Drive มาใส่ตรงนี้
 
-// กำหนดหัวคอลัมน์ที่ต้องการทั้งหมดสำหรับนักเรียน
+// กำหนดหัวคอลัมน์ที่ต้องการทั้งหมดสำหรับนักเรียน (เพิ่ม faceDescriptor)
 const EXPECTED_HEADERS = [
   'studentId', 'idCard', 'name', 'nickname', 'dob', 'grade', 
   'teacher', 'coTeacher', 'disease', 'medicine', 'hasDisability', 'disabilityType', 
   'disabilityImg', 'profileImg', 'fatherName', 'fatherPhone', 'motherName', 'motherPhone',
-  'dormitory', 'address', 'commuteType', 'coTeacher2', 'learningSource'
+  'dormitory', 'address', 'commuteType', 'coTeacher2', 'learningSource', 'faceDescriptor'
 ];
 
 // กำหนดหัวคอลัมน์ที่ต้องการทั้งหมดสำหรับครู (เพิ่ม learningSource แล้ว)
@@ -57,6 +57,7 @@ function doPost(e) {
       case 'deleteTeacherData': result = JSON.parse(deleteTeacherData(params.id)); break;
       case 'saveStudentData': result = JSON.parse(saveStudentData(params.studentObj)); break;
       case 'deleteStudentData': result = JSON.parse(deleteStudentData(params.id)); break;
+      case 'batchSaveFaceDescriptors': result = JSON.parse(batchSaveFaceDescriptors(params.descriptorMap)); break;
       case 'uploadImageToDrive': result = JSON.parse(uploadImageToDrive(params.base64Data, params.fileName)); break;
       default: result = { status: 'error', message: 'Action not found: ' + action };
     }
@@ -251,6 +252,37 @@ function deleteStudentData(id) {
       }
     }
     return JSON.stringify({status: 'error', message: 'ไม่พบข้อมูลนักเรียนรหัสนี้'});
+  } catch(e) {
+    return JSON.stringify({status: 'error', message: e.message});
+  } finally {
+    try { lock.releaseLock(); } catch(err) {}
+  }
+}
+
+function batchSaveFaceDescriptors(descriptorMap) {
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(20000);
+    const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('Students');
+    const data = sheet.getDataRange().getValues();
+    const headers = data[0];
+    let descIdx = headers.indexOf('faceDescriptor');
+    
+    if (descIdx === -1) {
+      sheet.getRange(1, headers.length + 1).setValue('faceDescriptor');
+      descIdx = headers.length;
+    }
+    
+    let updatedCount = 0;
+    for (let i = 1; i < data.length; i++) {
+      let studentId = String(data[i][0]);
+      if (descriptorMap[studentId]) {
+        sheet.getRange(i + 1, descIdx + 1).setValue(descriptorMap[studentId]);
+        updatedCount++;
+      }
+    }
+    sendLog('Batch Save Face Descriptors', `Updated ${updatedCount} face descriptors`);
+    return JSON.stringify({status: 'success', updatedCount: updatedCount});
   } catch(e) {
     return JSON.stringify({status: 'error', message: e.message});
   } finally {

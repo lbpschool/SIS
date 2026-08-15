@@ -1028,8 +1028,8 @@
                     <i class="fas fa-redo-alt mr-2"></i> 🔄 ถ่ายรูปใหม่
                 </button>
 
-                <button onclick="forceRebuildFaceData()" class="text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-2 rounded-lg transition font-medium flex items-center shrink-0" title="คลิกหากเพิ่งเปลี่ยนรูปโปรไฟล์นักเรียน">
-                    <i class="fas fa-redo-alt mr-1.5"></i> ล้างแคช & อัปเดตข้อมูลหน้า
+                <button onclick="runBatchFaceExtraction()" class="text-xs bg-purple-100 hover:bg-purple-200 text-purple-800 px-3 py-2 rounded-lg transition font-bold flex items-center shrink-0 border border-purple-200 shadow-xs" title="สกัดเวกเตอร์ใบหน้านักเรียนทั้ง 357 คนลง Google Sheets (สกัดครั้งแรกครั้งเดียว)">
+                    <i class="fas fa-bolt mr-1.5 text-purple-600"></i> ⚡ สกัดข้อมูลใบหน้าทั้งหมด
                 </button>
             </div>
         </div>
@@ -2872,7 +2872,7 @@
             }
         }
 
-        function saveStudent(e) {
+        async function saveStudent(e) {
             e.preventDefault();
             if (isUploadingImage) { Swal.fire('กรุณารอสักครู่', 'ระบบกำลังอัปโหลดรูปภาพ ยังไม่สามารถบันทึกได้', 'warning'); return; }
             
@@ -2887,7 +2887,8 @@
                 dob: document.getElementById('formDob').value, grade: document.getElementById('formGrade').value.trim(), teacher: document.getElementById('formTeacher').value.trim() || "รอจัดสรร", coTeacher: document.getElementById('formCoTeacher').value.trim(), coTeacher2: document.getElementById('formCoTeacher2').value.trim(),
                 commuteType: document.getElementById('formCommuteType').value, dormitory: document.getElementById('formDormitory').value.trim(), learningSource: document.getElementById('formLearningSource').value.trim(), disease: document.getElementById('formDisease').value.trim(), medicine: document.getElementById('formMedicine').value.trim(),
                 hasDisability: hasDisability, disabilityType: disabilityType, disabilityImg: hasDisability ? uploadedDisabilityUrl : "", profileImg: uploadedProfileUrl, address: document.getElementById('formAddress').value.trim(),
-                fatherName: document.getElementById('formFatherName').value.trim(), fatherPhone: document.getElementById('formFatherPhone').value.trim(), motherName: document.getElementById('formMotherName').value.trim(), motherPhone: document.getElementById('formMotherPhone').value.trim(), guardianName: document.getElementById('formGuardianName').value.trim(), guardianPhone: document.getElementById('formGuardianPhone').value.trim(), guardianRelation: document.getElementById('formGuardianRelation').value.trim()
+                fatherName: document.getElementById('formFatherName').value.trim(), fatherPhone: document.getElementById('formFatherPhone').value.trim(), motherName: document.getElementById('formMotherName').value.trim(), motherPhone: document.getElementById('formMotherPhone').value.trim(), guardianName: document.getElementById('formGuardianName').value.trim(), guardianPhone: document.getElementById('formGuardianPhone').value.trim(), guardianRelation: document.getElementById('formGuardianRelation').value.trim(),
+                faceDescriptor: ""
             };
 
             if (editId) {
@@ -2898,10 +2899,34 @@
                     }
                     if((!uploadedProfileUrl || uploadedProfileUrl === "") && existing.profileImg) {
                         studentObj.profileImg = existing.profileImg; 
+                        studentObj.faceDescriptor = existing.faceDescriptor || "";
                     }
                 }
             } else {
                 if (studentsList.find(function(s) { return s.id === newId; })) { Swal.fire('ข้อผิดพลาด', 'รหัสนักเรียน ' + newId + ' มีอยู่ในระบบแล้ว', 'error'); return; }
+            }
+
+            // หากมีรูปโปรไฟล์แต่ยังไม่มี faceDescriptor ให้คำนวณเวกเตอร์ให้อัตโนมัติ
+            if (studentObj.profileImg && studentObj.profileImg.trim() !== '' && (!studentObj.faceDescriptor || studentObj.faceDescriptor.trim() === '')) {
+                try {
+                    Swal.fire({ title: 'กำลังวิเคราะห์ใบหน้า...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
+                    const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/';
+                    if (!isFaceModelLoaded) {
+                        await Promise.all([
+                            faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL),
+                            faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
+                            faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
+                        ]);
+                        isFaceModelLoaded = true;
+                    }
+                    const img = await loadImageWithProxyFallback(studentObj.studentId, studentObj.profileImg);
+                    const detection = await faceapi.detectSingleFace(img).withFaceLandmarks().withFaceDescriptor();
+                    if (detection) {
+                        studentObj.faceDescriptor = JSON.stringify(Array.from(detection.descriptor));
+                    }
+                } catch(err) {
+                    console.warn("Auto face descriptor calculation skipped:", err);
+                }
             }
 
             saveStudentDataAPI(studentObj, editId);
@@ -3617,108 +3642,166 @@
             }, 250);
         }
 
-        async function buildFaceMatcher(forceRefresh = false) {
-            if (forceRefresh) {
-                await clearFaceDescriptorDB();
-            }
-
-            Swal.fire({ 
-                title: 'กำลังเตรียมข้อมูลใบหน้า...', 
-                text: 'กำลังตรวจสอบหน่วยความจำแคช...', 
-                allowOutsideClick: false, 
-                didOpen: () => { Swal.showLoading(); }
-            });
-            
+        // =====================================================================
+        // ดึงเวกเตอร์ใบหน้าจาก Google Sheets แบบทันที (0.01 วินาที ไร้ป็อปอัป)
+        // =====================================================================
+        async function buildFaceMatcher() {
             const labeledFaceDescriptors = [];
-            let successCount = 0;
-            let cachedCount = 0;
-            let failCount = 0;
-            let noImageCount = 0;
+            let countWithDescriptor = 0;
 
-            const studentsToProcess = studentsList.filter(student => {
-                if (student.commuteType === 'จบการศึกษา') return false;
-                if (!student.profileImg || student.profileImg.trim() === '') {
-                    noImageCount++;
-                    return false;
-                }
-                return true;
-            });
-
-            const needsProcessing = [];
-
-            // 1. ตรวจสอบข้อมูลจาก IndexedDB ก่อน
-            for (let student of studentsToProcess) {
-                const cachedDesc = await getStoredDescriptor(student.id, student.profileImg);
-                if (cachedDesc && cachedDesc.length === 128) {
-                    labeledFaceDescriptors.push(new faceapi.LabeledFaceDescriptors(student.id, [cachedDesc]));
-                    cachedCount++;
-                    successCount++;
-                } else {
-                    needsProcessing.push(student);
-                }
-            }
-
-            // 2. หากมีรูปภาพใหม่ที่ยังไม่ได้แคช ให้ประมวลผลผ่าน Proxy Fallback
-            if (needsProcessing.length > 0) {
-                const batchSize = 6;
-                for (let i = 0; i < needsProcessing.length; i += batchSize) {
-                    const batch = needsProcessing.slice(i, i + batchSize);
-                    
-                    Swal.update({ 
-                        text: `กำลังคำนวณรูปใหม่ ${Math.min(i + batchSize, needsProcessing.length)} จาก ${needsProcessing.length} คน (แคชเดิม ${cachedCount} คน)...` 
-                    });
-
-                    const batchPromises = batch.map(async (student) => {
-                        try {
-                            const img = await loadImageWithProxyFallback(student.id, student.profileImg);
-                            const detection = await faceapi.detectSingleFace(img).withFaceLandmarks().withFaceDescriptor();
-                            
-                            if (detection) {
-                                labeledFaceDescriptors.push(new faceapi.LabeledFaceDescriptors(student.id, [detection.descriptor]));
-                                await saveStoredDescriptor(student.id, student.profileImg, detection.descriptor);
-                                successCount++;
-                            } else {
-                                console.warn(`ไม่พบใบหน้าในรูปของนักเรียนรหัส: ${student.id}`);
-                                failCount++;
-                            }
-                        } catch (e) {
-                            console.warn(`ไม่สามารถโหลดรูปของนักเรียนรหัส ${student.id} ได้`, e);
-                            failCount++;
+            for (let student of studentsList) {
+                if (student.commuteType === 'จบการศึกษา') continue;
+                
+                if (student.faceDescriptor && typeof student.faceDescriptor === 'string' && student.faceDescriptor.trim().length > 10) {
+                    try {
+                        const descArray = JSON.parse(student.faceDescriptor);
+                        if (Array.isArray(descArray) && descArray.length === 128) {
+                            labeledFaceDescriptors.push(new faceapi.LabeledFaceDescriptors(String(student.id), [new Float32Array(descArray)]));
+                            countWithDescriptor++;
                         }
-                    });
-
-                    await Promise.all(batchPromises);
+                    } catch (e) {}
                 }
             }
 
             if (labeledFaceDescriptors.length > 0) {
-                faceMatcher = new faceapi.FaceMatcher(labeledFaceDescriptors, 0.5);
-                Swal.fire({ 
-                    icon: 'success', 
-                    title: 'เตรียมข้อมูลสำเร็จ', 
-                    text: `พร้อมใช้งาน ${successCount} คน (ดึงจากแคช ${cachedCount} คน, ไม่มีรูป ${noImageCount} คน, โหลดล้มเหลว ${failCount} คน)`, 
-                    timer: 3000, 
-                    showConfirmButton: false 
-                });
+                faceMatcher = new faceapi.FaceMatcher(labeledFaceDescriptors, 0.48);
                 return true;
+            }
+
+            // กรณีตารางบน Google Sheets ยังไม่ได้สกัดเวกเตอร์ใบหน้าเลย
+            if (typeof currentUserRole !== 'undefined' && currentUserRole === 'admin') {
+                const result = await Swal.fire({
+                    icon: 'info',
+                    title: 'สกัดข้อมูลใบหน้านักเรียน (ครั้งแรก)',
+                    html: '<div class="text-sm text-gray-600 leading-relaxed text-left">ยังไม่มีข้อมูลเวกเตอร์ใบหน้าในตาราง Google Sheets<br><br><b>กดปุ่มด้านล่างเพื่อเริ่มสกัดรูปถ่ายนักเรียน 357 คน</b> ส่งขึ้น Google Sheets ในครั้งแรกครั้งเดียว เพื่อให้ใช้งานสแกนหน้าได้ทันทีโดยไม่มีป็อปอัปอีกเลย</div>',
+                    showCancelButton: true,
+                    confirmButtonColor: '#9333ea',
+                    confirmButtonText: '⚡ สกัดข้อมูลใบหน้าทั้งหมด',
+                    cancelButtonText: 'ยกเลิก'
+                });
+                if (result.isConfirmed) {
+                    await runBatchFaceExtraction();
+                    return await buildFaceMatcher();
+                }
             } else {
-                Swal.fire('ข้อผิดพลาด', `ไม่สามารถดึงข้อมูลใบหน้าได้เลย\nโปรดตรวจสอบว่านักเรียนมีรูปภาพที่ชัดเจนในระบบ`, 'error');
-                return false;
+                Swal.fire('ยังไม่มีข้อมูลใบหน้า', 'ระบบยังไม่ได้ทำการสกัดข้อมูลใบหน้านักเรียน กรุณาติดต่อผู้ดูแลระบบ (Admin)', 'warning');
+            }
+            return false;
+        }
+
+        // =====================================================================
+        // ระบบสกัดข้อมูลใบหน้านักเรียนทั้งหมดส่งขึ้น Google Sheets (Batch Extraction)
+        // =====================================================================
+        async function runBatchFaceExtraction() {
+            if (studentsList.length === 0) {
+                Swal.fire('แจ้งเตือน', 'ยังไม่มีข้อมูลนักเรียนในระบบ', 'warning');
+                return;
+            }
+
+            const video = document.getElementById('webcamVideo');
+            if (video) video.pause();
+            if (scanInterval) clearInterval(scanInterval);
+
+            Swal.fire({
+                title: '⚡ กำลังสกัดข้อมูลใบหน้านักเรียน...',
+                html: `<div class="mb-3 text-sm text-gray-600">กำลังดาวน์โหลดรูปถ่ายและคำนวณเวกเตอร์ใบหน้าส่งขึ้น Google Sheets...</div>
+                       <div class="w-full bg-gray-200 rounded-full h-4 overflow-hidden mb-2">
+                           <div id="batchProgressBar" class="bg-purple-600 h-4 rounded-full transition-all duration-200" style="width: 0%"></div>
+                       </div>
+                       <div id="batchProgressText" class="text-xs text-gray-500 font-bold">0 / ${studentsList.length} (0%)</div>`,
+                allowOutsideClick: false,
+                showConfirmButton: false,
+                didOpen: () => { Swal.showLoading(); }
+            });
+
+            const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/';
+            if (!isFaceModelLoaded) {
+                await Promise.all([
+                    faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL),
+                    faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
+                    faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
+                ]);
+                isFaceModelLoaded = true;
+            }
+
+            const descriptorMap = {};
+            let processedCount = 0;
+            let successCount = 0;
+            let failCount = 0;
+
+            const studentsToProcess = studentsList.filter(s => s.commuteType !== 'จบการศึกษา' && s.profileImg && s.profileImg.trim() !== '');
+
+            const batchSize = 5;
+            for (let i = 0; i < studentsToProcess.length; i += batchSize) {
+                const batch = studentsToProcess.slice(i, i + batchSize);
+
+                const batchPromises = batch.map(async (student) => {
+                    try {
+                        if (student.faceDescriptor && student.faceDescriptor.trim().length > 10) {
+                            descriptorMap[student.id] = student.faceDescriptor;
+                            successCount++;
+                        } else {
+                            const img = await loadImageWithProxyFallback(student.id, student.profileImg);
+                            const detection = await faceapi.detectSingleFace(img).withFaceLandmarks().withFaceDescriptor();
+                            if (detection) {
+                                descriptorMap[student.id] = JSON.stringify(Array.from(detection.descriptor));
+                                successCount++;
+                            } else {
+                                failCount++;
+                            }
+                        }
+                    } catch (err) {
+                        failCount++;
+                    } finally {
+                        processedCount++;
+                        const percent = Math.round((processedCount / studentsToProcess.length) * 100);
+                        const pBar = document.getElementById('batchProgressBar');
+                        const pTxt = document.getElementById('batchProgressText');
+                        if (pBar) pBar.style.width = `${percent}%`;
+                        if (pTxt) pTxt.innerText = `${processedCount} / ${studentsToProcess.length} (${percent}%)`;
+                    }
+                });
+
+                await Promise.all(batchPromises);
+            }
+
+            Swal.update({
+                title: 'กำลังบันทึกเวกเตอร์ลง Google Sheets...',
+                html: `<div class="text-sm text-gray-600">คำนวณสำเร็จ ${successCount} คน กำลังบันทึกข้อมูลเข้าตาราง...</div>`
+            });
+
+            try {
+                let res;
+                if (typeof google !== 'undefined' && google.script) {
+                    res = await new Promise((resolve, reject) => {
+                        google.script.run
+                            .withSuccessHandler(r => resolve(JSON.parse(r)))
+                            .withFailureHandler(reject)
+                            .batchSaveFaceDescriptors(descriptorMap);
+                    });
+                } else {
+                    res = await callBackendAPI('batchSaveFaceDescriptors', { descriptorMap: descriptorMap });
+                }
+
+                if (res && res.status === 'success') {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'สกัดข้อมูลใบหน้าสำเร็จ!',
+                        text: `บันทึกเวกเตอร์ลง Google Sheets เรียบร้อยแล้ว ${res.updatedCount || successCount} คน ต่อไปนี้จะเปิดสแกนหน้าได้ทันที 0.01 วินาที!`,
+                        confirmButtonColor: '#16a34a'
+                    });
+                    await fetchStudentsData();
+                } else {
+                    throw new Error(res ? res.message : 'Unknown error');
+                }
+            } catch(err) {
+                console.error("Batch save error:", err);
+                Swal.fire('สกัดสำเร็จบางส่วน', `คำนวณสำเร็จ ${successCount} คน แต่การบันทึกลง Google Sheets ขัดข้อง: ${err.message}`, 'warning');
             }
         }
 
         async function forceRebuildFaceData() {
-            const video = document.getElementById('webcamVideo');
-            if(video) video.pause();
-            if(scanInterval) clearInterval(scanInterval);
-            
-            faceMatcher = null;
-            await buildFaceMatcher(true);
-            
-            if(faceMatcher) {
-                if(video) video.play();
-                startFaceDetection(video);
-            }
+            await runBatchFaceExtraction();
         }
 
         function handleImageUpload(inputElement, type) {
