@@ -956,34 +956,80 @@
     </div>
 
     <!-- Face Scanner Modal -->
-    <div id="faceScannerModal" class="fixed inset-0 bg-black bg-opacity-90 z-[70] hidden flex flex-col justify-center items-center p-4">
-        <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden relative flex flex-col">
-            <div class="flex justify-between items-center px-4 py-3 border-b bg-gray-50 shrink-0">
-                <h2 class="text-lg font-bold text-gray-800"><i class="fas fa-camera text-blue-600 mr-2"></i>สแกนใบหน้าเพื่อค้นหา</h2>
-                <div class="flex items-center space-x-2">
-                    <button onclick="toggleCameraFacingMode()" id="btnToggleCamera" class="text-xs bg-blue-100 hover:bg-blue-200 text-blue-700 px-3 py-1.5 rounded-lg transition font-medium flex items-center shadow-sm" title="สลับกล้องหน้า / กล้องหลัง">
-                        <i class="fas fa-sync-alt mr-1.5"></i> สลับกล้อง
+    <div id="faceScannerModal" class="fixed inset-0 bg-black bg-opacity-90 z-[70] hidden flex flex-col justify-center items-center p-3 sm:p-4">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden relative flex flex-col max-h-[92vh]">
+            <!-- Header & Mode Tabs -->
+            <div class="flex flex-col sm:flex-row justify-between items-center px-4 py-3 border-b bg-gray-50 shrink-0 gap-2">
+                <div class="flex items-center space-x-2 w-full sm:w-auto justify-between sm:justify-start">
+                    <h2 class="text-base sm:text-lg font-bold text-gray-800 flex items-center">
+                        <i class="fas fa-camera text-blue-600 mr-2"></i>สแกนใบหน้าค้นหา
+                    </h2>
+                    <button onclick="closeFaceScanner()" class="text-gray-400 hover:text-red-500 transition text-2xl p-1 sm:hidden"><i class="fas fa-times"></i></button>
+                </div>
+
+                <div class="flex items-center space-x-2 w-full sm:w-auto justify-between sm:justify-end">
+                    <!-- Mode Switch Tabs -->
+                    <div class="bg-gray-200 p-1 rounded-lg flex space-x-1">
+                        <button id="tabSnapshotMode" onclick="switchScanMode('snapshot')" class="px-3 py-1.5 text-xs font-bold rounded-lg bg-school-600 text-white shadow-sm transition">
+                            📸 ถ่ายภาพสแกน
+                        </button>
+                        <button id="tabLiveMode" onclick="switchScanMode('live')" class="px-3 py-1.5 text-xs font-bold rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 transition">
+                            🎥 สแกนสด
+                        </button>
+                    </div>
+
+                    <button onclick="toggleCameraFacingMode()" id="btnToggleCamera" class="text-xs bg-blue-100 hover:bg-blue-200 text-blue-700 px-2.5 py-1.5 rounded-lg transition font-medium flex items-center shadow-sm whitespace-nowrap" title="สลับกล้องหน้า / กล้องหลัง">
+                        <i class="fas fa-sync-alt mr-1"></i> <span id="cameraFacingLabel">กล้องหลัง</span>
                     </button>
-                    <button onclick="closeFaceScanner()" class="text-gray-400 hover:text-red-500 transition text-2xl p-1"><i class="fas fa-times"></i></button>
+                    <button onclick="closeFaceScanner()" class="text-gray-400 hover:text-red-500 transition text-2xl p-1 hidden sm:block"><i class="fas fa-times"></i></button>
                 </div>
             </div>
             
-            <div class="relative bg-black flex-1 flex justify-center items-center min-h-[300px] sm:min-h-[450px]">
+            <!-- Camera Viewport Area -->
+            <div class="relative bg-black flex-1 flex justify-center items-center min-h-[280px] sm:min-h-[420px] overflow-hidden">
                 <!-- Video Element สำหรับแสดงภาพจากกล้อง -->
-                <video id="webcamVideo" autoplay muted playsinline class="w-full h-auto max-h-[60vh] object-contain"></video>
+                <video id="webcamVideo" autoplay muted playsinline class="w-full h-auto max-h-[55vh] object-contain"></video>
                 
                 <!-- Canvas สำหรับวาดกรอบใบหน้า -->
                 <canvas id="faceCanvas" class="absolute inset-0 w-full h-full object-contain pointer-events-none"></canvas>
                 
-                <div id="scanStatusOverlay" class="absolute bottom-4 left-0 right-0 text-center">
-                    <span id="scanStatusText" class="bg-black bg-opacity-70 text-white px-4 py-2 rounded-full text-sm font-medium border border-gray-600 shadow-lg">กำลังเตรียมกล้อง...</span>
+                <!-- Target Oval Guide (สำหรับโหมด Snapshot) -->
+                <div id="snapshotGuideOverlay" class="absolute inset-0 pointer-events-none flex justify-center items-center">
+                    <div class="w-48 h-64 sm:w-56 sm:h-72 border-2 border-dashed border-white/70 rounded-[50%] shadow-[0_0_0_9999px_rgba(0,0,0,0.35)] flex flex-col justify-between items-center py-4">
+                        <span class="bg-black/60 text-white text-[11px] px-2.5 py-0.5 rounded-full backdrop-blur-sm">จัดใบหน้าให้อยู่ในกรอบ</span>
+                    </div>
+                </div>
+
+                <!-- Countdown Overlay -->
+                <div id="countdownOverlay" class="absolute inset-0 flex justify-center items-center bg-black/50 text-white text-6xl sm:text-8xl font-black hidden z-10 backdrop-blur-xs">
+                    3
+                </div>
+                
+                <!-- Status Overlay -->
+                <div id="scanStatusOverlay" class="absolute bottom-3 left-2 right-2 text-center pointer-events-none z-10">
+                    <span id="scanStatusText" class="bg-black/80 text-white px-4 py-2 rounded-full text-xs sm:text-sm font-medium border border-gray-600 shadow-xl inline-block max-w-[95%] truncate">
+                        กำลังเตรียมกล้อง...
+                    </span>
                 </div>
             </div>
             
-            <div class="p-4 bg-gray-50 border-t text-center text-sm text-gray-600 flex justify-between items-center shrink-0">
-                <span class="text-xs text-gray-500">มองกล้องให้เห็นใบหน้าชัดเจน</span>
-                <button onclick="forceRebuildFaceData()" class="text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 px-2.5 py-1.5 rounded-lg transition font-medium flex items-center" title="คลิกหากเพิ่งเปลี่ยนรูปโปรไฟล์นักเรียน">
-                    <i class="fas fa-redo-alt mr-1"></i> ล้างแคช & อัปเดตข้อมูลหน้า
+            <!-- Controls Footer Area -->
+            <div class="p-3 sm:p-4 bg-gray-50 border-t flex flex-col sm:flex-row justify-between items-center shrink-0 gap-3">
+                <div id="snapshotControlGroup" class="flex items-center space-x-2 w-full sm:w-auto justify-center">
+                    <button id="btnTakeSnapshot" onclick="captureAndMatchFace()" class="bg-school-600 hover:bg-school-700 active:scale-95 text-white font-bold px-5 py-2.5 rounded-xl shadow-md text-sm flex items-center transition flex-1 sm:flex-initial justify-center">
+                        <i class="fas fa-camera text-base mr-2"></i> 📸 ถ่ายภาพค้นหา
+                    </button>
+                    <button id="btnCountdownSnapshot" onclick="startCountdownCapture()" class="bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold px-3.5 py-2.5 rounded-xl shadow-md text-xs sm:text-sm flex items-center transition whitespace-nowrap">
+                        <i class="fas fa-stopwatch mr-1.5"></i> นับถอยหลัง 3วิ
+                    </button>
+                </div>
+
+                <button id="btnRetakeSnapshot" onclick="resetSnapshotView()" class="bg-amber-500 hover:bg-amber-600 active:scale-95 text-white font-bold px-5 py-2.5 rounded-xl shadow-md text-sm hidden flex items-center transition w-full sm:w-auto justify-center">
+                    <i class="fas fa-redo-alt mr-2"></i> 🔄 ถ่ายรูปใหม่
+                </button>
+
+                <button onclick="forceRebuildFaceData()" class="text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-2 rounded-lg transition font-medium flex items-center shrink-0" title="คลิกหากเพิ่งเปลี่ยนรูปโปรไฟล์นักเรียน">
+                    <i class="fas fa-redo-alt mr-1.5"></i> ล้างแคช & อัปเดตข้อมูลหน้า
                 </button>
             </div>
         </div>
@@ -3056,7 +3102,177 @@
         let faceMatcher = null;
         let videoStream = null;
         let scanInterval = null;
-        let currentFacingMode = 'user'; // 'user' (กล้องหน้า) หรือ 'environment' (กล้องหลัง)
+        let currentFacingMode = 'environment'; // 'environment' (กล้องหลัง) หรือ 'user' (กล้องหน้า)
+        let currentScanMode = 'snapshot'; // 'snapshot' (ถ่ายภาพสแกน) หรือ 'live' (สแกนสด)
+        let countdownTimer = null;
+
+        // =====================================================================
+        // สลับโหมดการสแกนใบหน้า (Snapshot Mode & Live Mode)
+        // =====================================================================
+        function switchScanMode(mode) {
+            currentScanMode = mode;
+            const tabSnap = document.getElementById('tabSnapshotMode');
+            const tabLive = document.getElementById('tabLiveMode');
+            const guideOverlay = document.getElementById('snapshotGuideOverlay');
+            const btnSnapGroup = document.getElementById('snapshotControlGroup');
+            const btnRetake = document.getElementById('btnRetakeSnapshot');
+
+            if (mode === 'snapshot') {
+                if(tabSnap) tabSnap.className = 'px-3 py-1.5 text-xs font-bold rounded-lg bg-school-600 text-white shadow-sm transition';
+                if(tabLive) tabLive.className = 'px-3 py-1.5 text-xs font-bold rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 transition';
+                if(guideOverlay) guideOverlay.classList.remove('hidden');
+                if(btnSnapGroup) btnSnapGroup.classList.remove('hidden');
+                if(btnRetake) btnRetake.classList.add('hidden');
+                
+                if (scanInterval) clearInterval(scanInterval);
+                
+                const canvas = document.getElementById('faceCanvas');
+                if (canvas) {
+                    const ctx = canvas.getContext('2d');
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                }
+                const video = document.getElementById('webcamVideo');
+                if (video && video.paused) video.play();
+
+                const statusText = document.getElementById('scanStatusText');
+                if (statusText) statusText.innerText = `วางใบหน้าให้ตรงกรอบ แล้วกด '📸 ถ่ายภาพค้นหา'`;
+            } else {
+                if(tabSnap) tabSnap.className = 'px-3 py-1.5 text-xs font-bold rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 transition';
+                if(tabLive) tabLive.className = 'px-3 py-1.5 text-xs font-bold rounded-lg bg-blue-600 text-white shadow-sm transition';
+                if(guideOverlay) guideOverlay.classList.add('hidden');
+                if(btnSnapGroup) btnSnapGroup.classList.add('hidden');
+                if(btnRetake) btnRetake.classList.add('hidden');
+
+                const video = document.getElementById('webcamVideo');
+                if (video) {
+                    if (video.paused) video.play();
+                    startFaceDetection(video);
+                }
+            }
+        }
+
+        // =====================================================================
+        // ถ่ายภาพและประมวลผลเปรียบเทียบใบหน้า (Snap & Match Engine)
+        // =====================================================================
+        async function captureAndMatchFace() {
+            const video = document.getElementById('webcamVideo');
+            const canvas = document.getElementById('faceCanvas');
+            if (!video || !canvas || video.paused || video.ended) return;
+
+            if (scanInterval) clearInterval(scanInterval);
+
+            const displaySize = { width: video.videoWidth || 640, height: video.videoHeight || 480 };
+            faceapi.matchDimensions(canvas, displaySize);
+
+            const statusText = document.getElementById('scanStatusText');
+            if (statusText) statusText.innerText = 'กำลังประมวลผลรูปถ่าย...';
+
+            // สร้าง Canvas ชั่วคราวสกัดภาพนิ่งความละเอียดสูงจากวิดีโอ
+            const snapCanvas = document.createElement('canvas');
+            snapCanvas.width = displaySize.width;
+            snapCanvas.height = displaySize.height;
+            const snapCtx = snapCanvas.getContext('2d');
+            snapCtx.drawImage(video, 0, 0, snapCanvas.width, snapCanvas.height);
+
+            // หยุดเล่นวิดีโอเพื่อ Freeze ภาพนิ่งบนหน้าจอ
+            video.pause();
+
+            try {
+                const detection = await faceapi.detectSingleFace(snapCanvas).withFaceLandmarks().withFaceDescriptor();
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                if (detection) {
+                    const resizedDetection = faceapi.resizeResults(detection, displaySize);
+                    const bestMatch = faceMatcher.findBestMatch(resizedDetection.descriptor);
+                    const box = resizedDetection.detection.box;
+
+                    if (bestMatch.label !== 'unknown' && bestMatch.distance < 0.48) {
+                        const matchedStudent = studentsList.find(s => String(s.id) === String(bestMatch.label));
+                        const displayName = matchedStudent ? `${matchedStudent.name}${matchedStudent.nickname ? ' (' + matchedStudent.nickname + ')' : ''}` : bestMatch.label;
+                        const confidencePercent = Math.round((1 - bestMatch.distance) * 100);
+
+                        const drawBox = new faceapi.draw.DrawBox(box, { 
+                            label: `${displayName} [${confidencePercent}%]`,
+                            boxColor: '#16a34a',
+                            drawLabelOptions: { fontSize: 16, fontColor: '#ffffff', backgroundColor: '#16a34a' }
+                        });
+                        drawBox.draw(canvas);
+
+                        playSuccessBeep();
+                        if (statusText) statusText.innerText = `พบแล้ว: ${displayName}!`;
+
+                        setTimeout(() => {
+                            closeFaceScanner();
+                            openStudentViewModal(bestMatch.label);
+                        }, 600);
+                    } else {
+                        const drawBox = new faceapi.draw.DrawBox(box, { 
+                            label: 'ไม่พบในระบบ', 
+                            boxColor: '#ef4444',
+                            drawLabelOptions: { fontSize: 14, fontColor: '#ffffff', backgroundColor: '#ef4444' }
+                        });
+                        drawBox.draw(canvas);
+
+                        if (statusText) statusText.innerText = 'ไม่พบบันทึกใบหน้านักเรียนคนนี้ในระบบ';
+                        document.getElementById('snapshotControlGroup').classList.add('hidden');
+                        document.getElementById('btnRetakeSnapshot').classList.remove('hidden');
+                    }
+                } else {
+                    if (statusText) statusText.innerText = 'ไม่พบใบหน้าในรูปถ่าย กรุณาวางใบหน้าให้ชัดเจนแล้วถ่ายใหม่';
+                    document.getElementById('snapshotControlGroup').classList.add('hidden');
+                    document.getElementById('btnRetakeSnapshot').classList.remove('hidden');
+                }
+            } catch(err) {
+                console.error("Snapshot error:", err);
+                if (statusText) statusText.innerText = 'เกิดข้อผิดพลาดในการประมวลผล';
+                document.getElementById('snapshotControlGroup').classList.add('hidden');
+                document.getElementById('btnRetakeSnapshot').classList.remove('hidden');
+            }
+        }
+
+        // =====================================================================
+        // ระบบนับถอยหลัง 3..2..1 ถ่ายภาพอัตโนมัติ
+        // =====================================================================
+        function startCountdownCapture() {
+            let seconds = 3;
+            const overlay = document.getElementById('countdownOverlay');
+            if (!overlay) return;
+
+            overlay.innerText = seconds;
+            overlay.classList.remove('hidden');
+
+            if (countdownTimer) clearInterval(countdownTimer);
+
+            countdownTimer = setInterval(() => {
+                seconds--;
+                if (seconds > 0) {
+                    overlay.innerText = seconds;
+                } else {
+                    clearInterval(countdownTimer);
+                    overlay.classList.add('hidden');
+                    captureAndMatchFace();
+                }
+            }, 1000);
+        }
+
+        // =====================================================================
+        // ถ่ายรูปใหม่ (Reset Snapshot View)
+        // =====================================================================
+        function resetSnapshotView() {
+            const video = document.getElementById('webcamVideo');
+            const canvas = document.getElementById('faceCanvas');
+            if (canvas) {
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+            if (video) video.play();
+
+            document.getElementById('btnRetakeSnapshot').classList.add('hidden');
+            document.getElementById('snapshotControlGroup').classList.remove('hidden');
+            const statusText = document.getElementById('scanStatusText');
+            if (statusText) statusText.innerText = `วางใบหน้าให้ตรงกรอบ แล้วกด '📸 ถ่ายภาพค้นหา'`;
+        }
 
         // =====================================================================
         // ระบบจัดเก็บข้อมูลเวกเตอร์ใบหน้าใน IndexedDB (Descriptor Cache)
@@ -3184,6 +3400,9 @@
         // =====================================================================
         async function toggleCameraFacingMode() {
             currentFacingMode = (currentFacingMode === 'user') ? 'environment' : 'user';
+            const facingLabel = document.getElementById('cameraFacingLabel');
+            if (facingLabel) facingLabel.innerText = currentFacingMode === 'user' ? 'กล้องหน้า' : 'กล้องหลัง';
+            
             const statusText = document.getElementById('scanStatusText');
             if (statusText) statusText.innerText = `กำลังสลับเป็นกล้อง${currentFacingMode === 'user' ? 'หน้า' : 'หลัง'}...`;
             await startWebcam();
@@ -3201,7 +3420,8 @@
             }
 
             document.getElementById('faceScannerModal').classList.remove('hidden');
-            document.getElementById('scanStatusText').innerText = 'กำลังโหลด AI Model...';
+            const statusText = document.getElementById('scanStatusText');
+            if (statusText) statusText.innerText = 'กำลังโหลด AI Model...';
 
             try {
                 if (!isFaceModelLoaded) {
@@ -3227,6 +3447,7 @@
                     return;
                 }
 
+                switchScanMode('snapshot');
                 startWebcam();
 
             } catch (error) {
@@ -3239,6 +3460,8 @@
         function closeFaceScanner() {
             document.getElementById('faceScannerModal').classList.add('hidden');
             if (scanInterval) clearInterval(scanInterval);
+            if (countdownTimer) clearInterval(countdownTimer);
+            
             if (videoStream) {
                 videoStream.getTracks().forEach(track => track.stop());
                 videoStream = null;
@@ -3258,7 +3481,8 @@
 
         async function startWebcam() {
             const video = document.getElementById('webcamVideo');
-            document.getElementById('scanStatusText').innerText = `กำลังเปิดกล้อง (${currentFacingMode === 'user' ? 'กล้องหน้า' : 'กล้องหลัง'})...`;
+            const statusText = document.getElementById('scanStatusText');
+            if (statusText) statusText.innerText = `กำลังเปิดกล้อง (${currentFacingMode === 'user' ? 'กล้องหน้า' : 'กล้องหลัง'})...`;
             
             if (window.videoStream) {
                 window.videoStream.getTracks().forEach(track => track.stop());
@@ -3296,8 +3520,12 @@
                 };
                 
                 video.onplay = () => {
-                    document.getElementById('scanStatusText').innerText = `กำลังค้นหาใบหน้า... (${currentFacingMode === 'user' ? 'กล้องหน้า' : 'กล้องหลัง'})`;
-                    startFaceDetection(video);
+                    if (currentScanMode === 'live') {
+                        if (statusText) statusText.innerText = `กำลังค้นหาใบหน้าแบบสด... (${currentFacingMode === 'user' ? 'กล้องหน้า' : 'กล้องหลัง'})`;
+                        startFaceDetection(video);
+                    } else {
+                        if (statusText) statusText.innerText = `วางใบหน้าให้ตรงกรอบ แล้วกด '📸 ถ่ายภาพค้นหา'`;
+                    }
                 };
                 
             } catch (err) {
