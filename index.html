@@ -3198,6 +3198,11 @@
             // หยุดเล่นวิดีโอเพื่อ Freeze ภาพนิ่งบนหน้าจอ
             video.pause();
 
+            // ตรวจสอบและเตรียม faceMatcher หากยังไม่มี
+            if (!faceMatcher) {
+                await buildFaceMatcher(false);
+            }
+
             try {
                 const detection = await faceapi.detectSingleFace(snapCanvas).withFaceLandmarks().withFaceDescriptor();
                 const ctx = canvas.getContext('2d');
@@ -3205,10 +3210,15 @@
 
                 if (detection) {
                     const resizedDetection = faceapi.resizeResults(detection, displaySize);
-                    const bestMatch = faceMatcher.findBestMatch(resizedDetection.descriptor);
+                    
+                    let bestMatch = null;
+                    if (faceMatcher) {
+                        bestMatch = faceMatcher.findBestMatch(resizedDetection.descriptor);
+                    }
+
                     const box = resizedDetection.detection.box;
 
-                    if (bestMatch.label !== 'unknown' && bestMatch.distance < 0.48) {
+                    if (bestMatch && bestMatch.label !== 'unknown' && bestMatch.distance < 0.48) {
                         const matchedStudent = studentsList.find(s => String(s.id) === String(bestMatch.label));
                         const displayName = matchedStudent ? `${matchedStudent.name}${matchedStudent.nickname ? ' (' + matchedStudent.nickname + ')' : ''}` : bestMatch.label;
                         const confidencePercent = Math.round((1 - bestMatch.distance) * 100);
@@ -3228,14 +3238,17 @@
                             openStudentViewModal(bestMatch.label);
                         }, 600);
                     } else {
+                        const drawLabel = faceMatcher ? 'ไม่พบในระบบ' : 'ยังไม่ได้สกัดข้อมูลใบหน้า';
                         const drawBox = new faceapi.draw.DrawBox(box, { 
-                            label: 'ไม่พบในระบบ', 
+                            label: drawLabel, 
                             boxColor: '#ef4444',
                             drawLabelOptions: { fontSize: 14, fontColor: '#ffffff', backgroundColor: '#ef4444' }
                         });
                         drawBox.draw(canvas);
 
-                        if (statusText) statusText.innerText = 'ไม่พบบันทึกใบหน้านักเรียนคนนี้ในระบบ';
+                        if (statusText) {
+                            statusText.innerText = faceMatcher ? 'ไม่พบบุคคลตรงกันในระบบ' : 'ตรวจพบใบหน้า แต่ยังไม่ได้สกัดข้อมูลลงตาราง (กด ⚡ สกัดข้อมูลด้านล่างเพื่อเริ่มใช้งาน)';
+                        }
                         document.getElementById('snapshotControlGroup').classList.add('hidden');
                         document.getElementById('btnRetakeSnapshot').classList.remove('hidden');
                     }
@@ -3246,7 +3259,7 @@
                 }
             } catch(err) {
                 console.error("Snapshot error:", err);
-                if (statusText) statusText.innerText = 'เกิดข้อผิดพลาดในการประมวลผล';
+                if (statusText) statusText.innerText = 'ไม่พบใบหน้าหรือเกิดข้อผิดพลาดในการประมวลผล: ' + (err.message || 'กรุณาลองถ่ายใหม่อีกครั้ง');
                 document.getElementById('snapshotControlGroup').classList.add('hidden');
                 document.getElementById('btnRetakeSnapshot').classList.remove('hidden');
             }
