@@ -59,6 +59,7 @@ function doPost(e) {
       case 'deleteStudentData': result = JSON.parse(deleteStudentData(params.id)); break;
       case 'batchSaveFaceDescriptors': result = JSON.parse(batchSaveFaceDescriptors(params.descriptorMap)); break;
       case 'autoCleanOldData14Days': result = JSON.parse(autoCleanOldData14Days()); break;
+      case 'setupDailyCleanupTrigger': result = JSON.parse(setupDailyCleanupTrigger()); break;
       case 'uploadImageToDrive': result = JSON.parse(uploadImageToDrive(params.base64Data, params.fileName)); break;
       default: result = { status: 'error', message: 'Action not found: ' + action };
     }
@@ -474,6 +475,7 @@ function getAttendanceData(dateStr, grade) {
 }
 
 function saveAttendanceData(dateStr, grade, records) {
+  try { autoCleanOldData14Days(); } catch(e) {}
   const lock = LockService.getScriptLock();
   try {
     lock.waitLock(10000);
