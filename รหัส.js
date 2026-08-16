@@ -262,26 +262,44 @@ function deleteStudentData(id) {
 function batchSaveFaceDescriptors(descriptorMap) {
   const lock = LockService.getScriptLock();
   try {
-    lock.waitLock(20000);
+    lock.waitLock(30000);
     const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('Students');
     const data = sheet.getDataRange().getValues();
-    const headers = data[0];
+    if (data.length <= 1) {
+      return JSON.stringify({status: 'error', message: 'ไม่พบข้อมูลนักเรียนในตาราง'});
+    }
+
+    let headers = data[0];
     let descIdx = headers.indexOf('faceDescriptor');
     
+    // หากยังไม่มีคอลัมน์ faceDescriptor ให้เพิ่มในแถวแรกทันที
     if (descIdx === -1) {
-      sheet.getRange(1, headers.length + 1).setValue('faceDescriptor');
       descIdx = headers.length;
+      sheet.getRange(1, descIdx + 1).setValue('faceDescriptor');
+      headers.push('faceDescriptor');
     }
     
+    // สร้าง 2D Array สกัดข้อมูลของนักเรียนทุกคนเพื่อส่งบันทึกในรอบเดียว (< 0.3 วินาที)
+    const numRows = data.length - 1;
+    const descValues = [];
     let updatedCount = 0;
+
     for (let i = 1; i < data.length; i++) {
       let studentId = String(data[i][0]);
-      if (descriptorMap[studentId]) {
-        sheet.getRange(i + 1, descIdx + 1).setValue(descriptorMap[studentId]);
+      let newDesc = "";
+      if (descriptorMap && descriptorMap[studentId]) {
+        newDesc = String(descriptorMap[studentId]);
         updatedCount++;
+      } else if (descIdx < data[i].length) {
+        newDesc = String(data[i][descIdx] || "");
       }
+      descValues.push([newDesc]);
     }
-    sendLog('Batch Save Face Descriptors', `Updated ${updatedCount} face descriptors`);
+    
+    // บันทึกรวดเดียวทั้งคอลัมน์ด้วยคำสั่งเดียว ป้องกัน Script Timeout
+    sheet.getRange(2, descIdx + 1, numRows, 1).setValues(descValues);
+
+    sendLog('Batch Save Face Descriptors', `Updated ${updatedCount} face descriptors in bulk`);
     return JSON.stringify({status: 'success', updatedCount: updatedCount});
   } catch(e) {
     return JSON.stringify({status: 'error', message: e.message});
