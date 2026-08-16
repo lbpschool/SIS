@@ -1323,16 +1323,52 @@
             return weight;
         }
 
+        // =====================================================================
+        // ระบบแปลงและสำรองลิงก์รูปภาพ Google Drive (High-Speed & Fail-Safe CDN Engine)
+        // =====================================================================
+        function extractGoogleDriveId(url) {
+            if (!url || typeof url !== 'string') return "";
+            try {
+                let match = url.match(/id=([a-zA-Z0-9_-]+)/);
+                if (match && match[1]) return match[1];
+                match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+                if (match && match[1]) return match[1];
+                match = url.match(/googleusercontent\.com\/d\/([a-zA-Z0-9_-]+)/);
+                if (match && match[1]) return match[1];
+            } catch(e) {}
+            return "";
+        }
+
         function fixDriveUrl(url) {
             if (!url) return "";
             if (url.startsWith('data:image')) return url; 
-            let fileId = "";
-            try {
-                if (url.includes('id=')) fileId = url.match(/id=([^&]+)/)[1];
-                else if (url.includes('/d/')) fileId = url.match(/\/d\/([a-zA-Z0-9_-]+)/)[1];
-            } catch(e) {}
-            if (fileId) return 'https://drive.google.com/thumbnail?id=' + fileId + '&sz=w800';
+            const fileId = extractGoogleDriveId(url);
+            if (fileId) {
+                // lh3.googleusercontent.com/d/FILE_ID เป็น Google Direct CDN โหลดเร็วและข้ามข้อจำกัด 302 Redirect
+                return 'https://lh3.googleusercontent.com/d/' + fileId;
+            }
             return url;
+        }
+
+        function handleStudentImgError(img, fileId, name) {
+            if (!img) return;
+            const safeName = encodeURIComponent(name || 'Student');
+            const fallbackAvatar = `https://ui-avatars.com/api/?name=${safeName}&background=0d8139&color=fff&size=128&bold=true`;
+
+            if (fileId) {
+                if (!img.dataset.triedThumbnail) {
+                    img.dataset.triedThumbnail = "true";
+                    img.src = 'https://drive.google.com/thumbnail?id=' + fileId + '&sz=w800';
+                    return;
+                }
+                if (!img.dataset.triedUc) {
+                    img.dataset.triedUc = "true";
+                    img.src = 'https://drive.google.com/uc?export=view&id=' + fileId;
+                    return;
+                }
+            }
+            img.onerror = null;
+            img.src = fallbackAvatar;
         }
 
         // --- Mock Fetch ---
@@ -2130,11 +2166,14 @@
                         lsDisplay = '<span class="text-gray-400">-</span>';
                     }
 
+                    let stDriveId = extractGoogleDriveId(st.profileImg);
+                    let imgSrc = st.profileImg ? fixDriveUrl(st.profileImg) : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(st.nickname || st.name || 'Student') + '&background=0d8139&color=fff&size=128&bold=true';
+
                     let tr = document.createElement('tr');
                     tr.className = 'hover:bg-gray-50 transition-colors group cursor-pointer border-b border-gray-100 last:border-0';
                     tr.onclick = function() { openStudentViewModal(st.id); };
                     
-                    tr.innerHTML = '<td class="px-4 py-3 whitespace-nowrap text-center"><img class="w-12 h-14 rounded-md object-cover object-top shadow-sm border border-gray-200 group-hover:border-school-400 transition inline-block" src="' + imgSrc + '" onerror="this.src=\'https://ui-avatars.com/api/?name=Student&background=random\'"></td>' +
+                    tr.innerHTML = '<td class="px-4 py-3 whitespace-nowrap text-center"><img class="w-12 h-14 rounded-md object-cover object-top shadow-sm border border-gray-200 group-hover:border-school-400 transition inline-block" src="' + imgSrc + '" onerror="handleStudentImgError(this, \'' + stDriveId + '\', \'' + (st.nickname || st.name || '').replace(/'/g, "") + '\')"></td>' +
                                    '<td class="px-4 py-3 whitespace-normal min-w-[200px] text-gray-800 font-medium">' + st.name + (st.nickname ? ' <span class="text-gray-500 font-normal">(' + st.nickname + ')</span>' : '') + '<div class="mt-1.5" id="att-status-' + st.id + '">' + attBadge + '</div></td>' +
                                    '<td class="px-4 py-3 whitespace-nowrap text-gray-600 font-medium">' + st.grade + '</td>' +
                                    '<td class="px-4 py-3 whitespace-normal min-w-[200px] leading-snug">' + teacherDisplay + '</td>' +
@@ -2369,7 +2408,8 @@
                 const remark = typeof stData === 'object' ? (stData.remark || '') : '';
                 
                 let safeName = encodeURIComponent(st.nickname || st.name || 'Student');
-                let imgSrc = st.profileImg ? st.profileImg : 'https://ui-avatars.com/api/?name=' + safeName + '&background=random';
+                let stDriveId = extractGoogleDriveId(st.profileImg);
+                let imgSrc = st.profileImg ? fixDriveUrl(st.profileImg) : 'https://ui-avatars.com/api/?name=' + safeName + '&background=0d8139&color=fff&size=128&bold=true';
                 
                 let radioOptions = '';
                 
@@ -2389,7 +2429,7 @@
 
                 let tr = document.createElement('tr');
                 tr.className = 'border-b border-gray-100 last:border-0 hover:bg-gray-50';
-                tr.innerHTML = '<td class="px-2 sm:px-4 py-4 whitespace-nowrap text-center align-top"><img class="w-12 h-14 rounded-md object-cover object-top shadow-sm border border-gray-200 inline-block mt-1 cursor-pointer hover:opacity-80 transition" onclick="openDisabilityCardModal(\'' + imgSrc + '\', \'profile\')" title="คลิกเพื่อดูรูปขนาดใหญ่" src="' + imgSrc + '" onerror="this.src=\'https://ui-avatars.com/api/?name=Student&background=random\'"></td>' +
+                tr.innerHTML = '<td class="px-2 sm:px-4 py-4 whitespace-nowrap text-center align-top"><img class="w-12 h-14 rounded-md object-cover object-top shadow-sm border border-gray-200 inline-block mt-1 cursor-pointer hover:opacity-80 transition" onclick="openDisabilityCardModal(\'' + imgSrc + '\', \'profile\')" title="คลิกเพื่อดูรูปขนาดใหญ่" src="' + imgSrc + '" onerror="handleStudentImgError(this, \'' + stDriveId + '\', \'' + (st.nickname || st.name || '').replace(/'/g, "") + '\')"></td>' +
                     '<td class="px-2 sm:px-4 py-4 whitespace-normal min-w-[200px] text-gray-800">' +
                         '<div class="font-bold text-base mb-2">' + st.name + (st.nickname ? ' <span class="text-gray-500 font-normal text-sm">(' + st.nickname + ')</span>' : '') + '</div>' +
                         '<div class="bg-white p-3 rounded-xl border border-gray-200 shadow-sm mt-2">' +
@@ -2722,7 +2762,10 @@
             document.getElementById('view-guardian-relation').innerText = st.guardianRelation || "-";
 
             let safeName = encodeURIComponent(st.nickname || st.name || 'Student');
-            document.getElementById('view-profile-img').src = st.profileImg ? st.profileImg : 'https://ui-avatars.com/api/?name=' + safeName + '&background=random';
+            let stDriveId = extractGoogleDriveId(st.profileImg);
+            const viewProfileImg = document.getElementById('view-profile-img');
+            viewProfileImg.src = st.profileImg ? fixDriveUrl(st.profileImg) : 'https://ui-avatars.com/api/?name=' + safeName + '&background=0d8139&color=fff&size=128&bold=true';
+            viewProfileImg.onerror = function() { handleStudentImgError(this, stDriveId, st.nickname || st.name); };
 
             const statusBadge = document.getElementById('view-status-badge');
             if (st.commuteType === "จบการศึกษา") { statusBadge.innerHTML = '<i class="fas fa-graduation-cap mr-1"></i> จบการศึกษาแล้ว'; statusBadge.className = "px-4 py-1.5 rounded-full text-sm font-semibold mb-3 bg-gray-100 text-gray-700 border border-gray-200 shadow-sm block"; } 
@@ -2974,7 +3017,13 @@
         function resetCardZoom() { cardZoomLevel = 100; const img = document.getElementById('disabilityCardImage'); if(img) { img.style.width = 'auto'; img.style.maxWidth = '100%'; img.style.maxHeight = '85vh'; } }
 
         function openDisabilityCardModal(imgSrc, type) {
-            type = type || 'disability'; resetCardZoom(); document.getElementById('disabilityCardImage').src = imgSrc;
+            type = type || 'disability'; 
+            resetCardZoom(); 
+            const cardImg = document.getElementById('disabilityCardImage');
+            const fileId = extractGoogleDriveId(imgSrc);
+            cardImg.src = fixDriveUrl(imgSrc);
+            cardImg.onerror = function() { handleStudentImgError(this, fileId, type === 'profile' ? 'Profile' : 'Card'); };
+
             const titleEl = document.getElementById('zoomModalTitle'), iconEl = document.getElementById('zoomModalIcon');
             if (type === 'profile') { titleEl.innerText = " รูปโปรไฟล์นักเรียน"; iconEl.className = "fas fa-user-circle mr-2 sm:text-blue-600"; } 
             else { titleEl.innerText = " บัตรประจำตัวคนพิการ"; iconEl.className = "fas fa-id-card mr-2 sm:text-purple-600"; }
@@ -3374,7 +3423,8 @@
         }
 
         // =====================================================================
-        // ระบบโหลดรูปภาพพร้อม Proxy สำรองหลายเส้นทาง (CORS Fallback)
+        // =====================================================================
+        // ระบบโหลดรูปภาพพร้อม Proxy สำรองหลายเส้นทาง (CORS & Fail-Safe Fallback)
         // =====================================================================
         async function loadImageWithProxyFallback(studentId, profileImgUrl) {
             if (profileImgUrl.startsWith('data:image')) {
@@ -3384,25 +3434,52 @@
                 return img;
             }
 
+            const fileId = extractGoogleDriveId(profileImgUrl);
+            const targetUrls = [];
+            if (fileId) {
+                targetUrls.push('https://lh3.googleusercontent.com/d/' + fileId);
+                targetUrls.push('https://drive.google.com/thumbnail?id=' + fileId + '&sz=w800');
+                targetUrls.push('https://drive.google.com/uc?export=view&id=' + fileId);
+            }
+            targetUrls.push(profileImgUrl);
+
+            // 1. ลองโหลดตรงแบบไม่ใช้ Proxy ก่อน (เร็วที่สุด)
+            for (let directUrl of targetUrls) {
+                try {
+                    const img = new Image();
+                    img.crossOrigin = "Anonymous";
+                    img.src = directUrl;
+                    await new Promise((resolve, reject) => {
+                        const timer = setTimeout(() => reject(new Error('Timeout')), 4000);
+                        img.onload = () => { clearTimeout(timer); resolve(); };
+                        img.onerror = () => { clearTimeout(timer); reject(new Error('Direct error')); };
+                    });
+                    return img;
+                } catch(e) {}
+            }
+
+            // 2. หากโดนบล็อก CORS ให้สลับใช้ Proxy สำรอง 3 เส้นทาง
             const proxies = [
                 url => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url),
                 url => 'https://corsproxy.io/?' + encodeURIComponent(url),
                 url => 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(url)
             ];
 
-            for (let proxyFn of proxies) {
-                try {
-                    const img = new Image();
-                    img.crossOrigin = "Anonymous";
-                    img.src = proxyFn(profileImgUrl);
-                    await new Promise((resolve, reject) => {
-                        const timer = setTimeout(() => reject(new Error('Timeout')), 8000);
-                        img.onload = () => { clearTimeout(timer); resolve(); };
-                        img.onerror = () => { clearTimeout(timer); reject(new Error('Proxy error')); };
-                    });
-                    return img;
-                } catch (err) {
-                    console.warn(`Proxy failed for student ${studentId}, trying next proxy...`);
+            for (let directUrl of targetUrls) {
+                for (let proxyFn of proxies) {
+                    try {
+                        const img = new Image();
+                        img.crossOrigin = "Anonymous";
+                        img.src = proxyFn(directUrl);
+                        await new Promise((resolve, reject) => {
+                            const timer = setTimeout(() => reject(new Error('Timeout')), 6000);
+                            img.onload = () => { clearTimeout(timer); resolve(); };
+                            img.onerror = () => { clearTimeout(timer); reject(new Error('Proxy error')); };
+                        });
+                        return img;
+                    } catch (err) {
+                        console.warn(`Proxy failed for student ${studentId}, trying next...`);
+                    }
                 }
             }
             throw new Error('All image proxies failed');
