@@ -3442,12 +3442,11 @@
 
             document.getElementById('faceScannerModal').classList.remove('hidden');
             const statusText = document.getElementById('scanStatusText');
-            if (statusText) statusText.innerText = 'กำลังโหลด AI Model...';
+            if (statusText) statusText.innerText = 'กำลังเปิดกล้อง...';
 
             try {
                 if (!isFaceModelLoaded) {
-                    Swal.fire({ title: 'กำลังโหลดโมเดล AI...', text: 'อาจใช้เวลาสักครู่ในการเปิดครั้งแรก', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
-                    
+                    if (statusText) statusText.innerText = 'กำลังโหลดโมเดล AI...';
                     const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/';
                     await Promise.all([
                         faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL),
@@ -3457,19 +3456,13 @@
                     isFaceModelLoaded = true;
                 }
 
-                if (!faceMatcher) {
-                    await buildFaceMatcher();
-                } else {
-                    Swal.close();
-                }
-
-                if (!faceMatcher) {
-                    closeFaceScanner();
-                    return;
-                }
-
                 switchScanMode('snapshot');
-                startWebcam();
+                await startWebcam();
+
+                // สร้าง Face Matcher ในพื้นหลังแบบไม่บังกล้อง
+                if (!faceMatcher) {
+                    await buildFaceMatcher(false);
+                }
 
             } catch (error) {
                 console.error("Face Scanner Error:", error);
@@ -3597,7 +3590,7 @@
                     document.getElementById('scanStatusText').innerText = `พบ ${resizedDetections.length} ใบหน้า... กำลังเปรียบเทียบ`;
                     
                     for (const detection of resizedDetections) {
-                        const bestMatch = faceMatcher.findBestMatch(detection.descriptor);
+                        const bestMatch = faceMatcher ? faceMatcher.findBestMatch(detection.descriptor) : { label: 'unknown', distance: 1.0 };
                         const box = detection.detection.box;
 
                         if (bestMatch.label !== 'unknown' && bestMatch.distance < 0.48) {
@@ -3639,50 +3632,63 @@
         }
 
         // =====================================================================
-        // ดึงเวกเตอร์ใบหน้าจาก Google Sheets แบบทันที (0.01 วินาที ไร้ป็อปอัป)
+        // ดึงเวกเตอร์ใบหน้าจาก Google Sheets / IndexedDB (0.01 วินาที ไร้ป็อปอัป)
         // =====================================================================
-        async function buildFaceMatcher() {
+        async function buildFaceMatcher(showNoDataAlert = false) {
             const labeledFaceDescriptors = [];
             let countWithDescriptor = 0;
 
             for (let student of studentsList) {
                 if (student.commuteType === 'จบการศึกษา') continue;
                 
+                // 1. ตรวจสอบเวกเตอร์จาก Google Sheets หรือ Memory
                 if (student.faceDescriptor && typeof student.faceDescriptor === 'string' && student.faceDescriptor.trim().length > 10) {
                     try {
                         const descArray = JSON.parse(student.faceDescriptor);
                         if (Array.isArray(descArray) && descArray.length === 128) {
                             labeledFaceDescriptors.push(new faceapi.LabeledFaceDescriptors(String(student.id), [new Float32Array(descArray)]));
                             countWithDescriptor++;
+                            continue;
                         }
                     } catch (e) {}
                 }
+
+                // 2. หากยังไม่มีใน Sheets ให้ตรวจสอบ IndexedDB แคชในเครื่อง
+                if (student.profileImg && student.profileImg.trim() !== '') {
+                    const cachedDesc = await getStoredDescriptor(student.id, student.profileImg);
+                    if (cachedDesc && cachedDesc.length === 128) {
+                        labeledFaceDescriptors.push(new faceapi.LabeledFaceDescriptors(String(student.id), [cachedDesc]));
+                        student.faceDescriptor = JSON.stringify(Array.from(cachedDesc));
+                        countWithDescriptor++;
+                    }
+                }
             }
+
+            const badge = document.getElementById('faceCountBadge');
 
             if (labeledFaceDescriptors.length > 0) {
                 faceMatcher = new faceapi.FaceMatcher(labeledFaceDescriptors, 0.48);
-                return true;
-            }
-
-            // กรณีตารางบน Google Sheets ยังไม่ได้สกัดเวกเตอร์ใบหน้าเลย
-            if (typeof currentUserRole !== 'undefined' && currentUserRole === 'admin') {
-                const result = await Swal.fire({
-                    icon: 'info',
-                    title: 'สกัดข้อมูลใบหน้านักเรียน (ครั้งแรก)',
-                    html: '<div class="text-sm text-gray-600 leading-relaxed text-left">ยังไม่มีข้อมูลเวกเตอร์ใบหน้าในตาราง Google Sheets<br><br><b>กดปุ่มด้านล่างเพื่อเริ่มสกัดรูปถ่ายนักเรียน 357 คน</b> ส่งขึ้น Google Sheets ในครั้งแรกครั้งเดียว เพื่อให้ใช้งานสแกนหน้าได้ทันทีโดยไม่มีป็อปอัปอีกเลย</div>',
-                    showCancelButton: true,
-                    confirmButtonColor: '#9333ea',
-                    confirmButtonText: '⚡ สกัดข้อมูลใบหน้าทั้งหมด',
-                    cancelButtonText: 'ยกเลิก'
-                });
-                if (result.isConfirmed) {
-                    await runBatchFaceExtraction();
-                    return await buildFaceMatcher();
+                if (badge) {
+                    badge.innerText = `พร้อมสแกน ${countWithDescriptor} คน`;
+                    badge.classList.remove('hidden');
                 }
+                return true;
             } else {
-                Swal.fire('ยังไม่มีข้อมูลใบหน้า', 'ระบบยังไม่ได้ทำการสกัดข้อมูลใบหน้านักเรียน กรุณาติดต่อผู้ดูแลระบบ (Admin)', 'warning');
+                if (badge) {
+                    badge.innerText = `ยังไม่มีข้อมูลสกัด`;
+                    badge.classList.remove('hidden');
+                }
+                if (showNoDataAlert) {
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'ยังไม่มีข้อมูลใบหน้านักเรียน',
+                        text: 'กดปุ่ม "⚡ สกัดข้อมูลใบหน้าทั้งหมด" ด้านล่างของหน้าต่างกล้องเพื่อเริ่มสกัดรูปถ่ายนักเรียนลง Google Sheets',
+                        confirmButtonColor: '#9333ea',
+                        confirmButtonText: 'รับทราบ'
+                    });
+                }
+                return false;
             }
-            return false;
         }
 
         // =====================================================================
@@ -3733,18 +3739,29 @@
 
                 const batchPromises = batch.map(async (student) => {
                     try {
+                        let descString = "";
                         if (student.faceDescriptor && student.faceDescriptor.trim().length > 10) {
-                            descriptorMap[student.id] = student.faceDescriptor;
+                            descString = student.faceDescriptor;
+                        } else {
+                            const cachedDesc = await getStoredDescriptor(student.id, student.profileImg);
+                            if (cachedDesc && cachedDesc.length === 128) {
+                                descString = JSON.stringify(Array.from(cachedDesc));
+                            } else {
+                                const img = await loadImageWithProxyFallback(student.id, student.profileImg);
+                                const detection = await faceapi.detectSingleFace(img).withFaceLandmarks().withFaceDescriptor();
+                                if (detection) {
+                                    descString = JSON.stringify(Array.from(detection.descriptor));
+                                    await saveStoredDescriptor(student.id, student.profileImg, detection.descriptor);
+                                }
+                            }
+                        }
+
+                        if (descString) {
+                            descriptorMap[student.id] = descString;
+                            student.faceDescriptor = descString;
                             successCount++;
                         } else {
-                            const img = await loadImageWithProxyFallback(student.id, student.profileImg);
-                            const detection = await faceapi.detectSingleFace(img).withFaceLandmarks().withFaceDescriptor();
-                            if (detection) {
-                                descriptorMap[student.id] = JSON.stringify(Array.from(detection.descriptor));
-                                successCount++;
-                            } else {
-                                failCount++;
-                            }
+                            failCount++;
                         }
                     } catch (err) {
                         failCount++;
@@ -3761,24 +3778,39 @@
                 await Promise.all(batchPromises);
             }
 
+            // สร้าง faceMatcher ในหน่วยความจำทันทีหลังสกัดสำเร็จ
+            const newLabeledDescriptors = [];
+            for (let sId in descriptorMap) {
+                try {
+                    const arr = JSON.parse(descriptorMap[sId]);
+                    if (Array.isArray(arr) && arr.length === 128) {
+                        newLabeledDescriptors.push(new faceapi.LabeledFaceDescriptors(String(sId), [new Float32Array(arr)]));
+                    }
+                } catch(e) {}
+            }
+            if (newLabeledDescriptors.length > 0) {
+                faceMatcher = new faceapi.FaceMatcher(newLabeledDescriptors, 0.48);
+                const badge = document.getElementById('faceCountBadge');
+                if (badge) {
+                    badge.innerText = `พร้อมสแกน ${newLabeledDescriptors.length} คน`;
+                    badge.classList.remove('hidden');
+                }
+            }
+
             Swal.update({
                 title: 'กำลังบันทึกเวกเตอร์ลง Google Sheets...',
-                html: `<div class="text-sm text-gray-600">คำนวณสำเร็จ ${successCount} คน กำลังบันทึกข้อมูลเข้าตาราง...</div>`
+                html: `<div class="text-sm text-gray-600">คำนวณสำเร็จ ${successCount} คน กำลังบันทึกเข้าตารางรวดเดียว...</div>`
             });
 
             try {
-                let res;
-                if (typeof google !== 'undefined' && google.script) {
-                    res = await new Promise((resolve, reject) => {
-                        google.script.run
-                            .withSuccessHandler(r => resolve(JSON.parse(r)))
-                            .withFailureHandler(reject)
-                            .batchSaveFaceDescriptors(descriptorMap);
-                    });
-                } else {
-                    res = await callBackendAPI('batchSaveFaceDescriptors', { descriptorMap: descriptorMap });
-                }
+                let res = await new Promise((resolve, reject) => {
+                    google.script.run
+                        .withSuccessHandler(r => resolve(typeof r === 'string' ? JSON.parse(r) : r))
+                        .withFailureHandler(reject)
+                        .batchSaveFaceDescriptors(descriptorMap);
+                });
 
+                saveStudentsToLocalStorage();
                 if (res && res.status === 'success') {
                     Swal.fire({
                         icon: 'success',
@@ -3786,13 +3818,13 @@
                         text: `บันทึกเวกเตอร์ลง Google Sheets เรียบร้อยแล้ว ${res.updatedCount || successCount} คน ต่อไปนี้จะเปิดสแกนหน้าได้ทันที 0.01 วินาที!`,
                         confirmButtonColor: '#16a34a'
                     });
-                    await fetchStudentsData();
                 } else {
-                    throw new Error(res ? res.message : 'Unknown error');
+                    Swal.fire('สกัดข้อมูลสำเร็จ', `คำนวณเวกเตอร์ใบหน้าเรียบร้อยแล้ว ${successCount} คน พร้อมสแกนค้นหาทันที!`, 'success');
                 }
             } catch(err) {
                 console.error("Batch save error:", err);
-                Swal.fire('สกัดสำเร็จบางส่วน', `คำนวณสำเร็จ ${successCount} คน แต่การบันทึกลง Google Sheets ขัดข้อง: ${err.message}`, 'warning');
+                saveStudentsToLocalStorage();
+                Swal.fire('สกัดสำเร็จบางส่วน', `คำนวณสำเร็จ ${successCount} คน พร้อมสแกนค้นหาทันที (บันทึกขึ้น Google Sheets ขัดข้อง: ${err.message})`, 'warning');
             }
         }
 
