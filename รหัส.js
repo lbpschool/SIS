@@ -58,6 +58,7 @@ function doPost(e) {
       case 'saveStudentData': result = JSON.parse(saveStudentData(params.studentObj)); break;
       case 'deleteStudentData': result = JSON.parse(deleteStudentData(params.id)); break;
       case 'batchSaveFaceDescriptors': result = JSON.parse(batchSaveFaceDescriptors(params.descriptorMap)); break;
+      case 'autoCleanOldData14Days': result = JSON.parse(autoCleanOldData14Days()); break;
       case 'uploadImageToDrive': result = JSON.parse(uploadImageToDrive(params.base64Data, params.fileName)); break;
       default: result = { status: 'error', message: 'Action not found: ' + action };
     }
@@ -710,4 +711,107 @@ function fastFormatDate(dateObj) {
     }
   } catch(e) {}
   return str.substring(0, 10);
+}
+
+// =========================================================================
+// ระบบล้างข้อมูลเก่าอัตโนมัติ (เก็บเฉพาะข้อมูล Attendance & Logs 2 สัปดาห์ล่าสุด)
+// =========================================================================
+
+function autoCleanOldData14Days() {
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const now = new Date();
+  const twoWeeksAgo = new Date(now.getTime() - (14 * 24 * 60 * 60 * 1000));
+  const cutoffDateStr = Utilities.formatDate(twoWeeksAgo, "Asia/Bangkok", "yyyy-MM-dd");
+  
+  let cleanedAttCount = 0;
+  let cleanedLogCount = 0;
+
+  // 1. เคลียร์ตาราง Attendance (ย้อนหลังเกิน 14 วัน)
+  const attSheet = ss.getSheetByName('Attendance');
+  if (attSheet) {
+    const data = attSheet.getDataRange().getValues();
+    if (data.length > 1) {
+      const headers = data[0];
+      const rowsToKeep = [headers];
+      
+      for (let i = 1; i < data.length; i++) {
+        let dateVal = data[i][0];
+        let rowDateStr = "";
+        
+        if (dateVal instanceof Date) {
+          rowDateStr = Utilities.formatDate(dateVal, "Asia/Bangkok", "yyyy-MM-dd");
+        } else if (dateVal) {
+          rowDateStr = String(dateVal).trim().substring(0, 10);
+        }
+        
+        if (!rowDateStr || rowDateStr >= cutoffDateStr) {
+          rowsToKeep.push(data[i]);
+        } else {
+          cleanedAttCount++;
+        }
+      }
+      
+      attSheet.clearContents();
+      if (rowsToKeep.length > 0) {
+        attSheet.getRange(1, 1, rowsToKeep.length, headers.length).setValues(rowsToKeep);
+      }
+    }
+  }
+
+  // 2. เคลียร์ตาราง Logs (ย้อนหลังเกิน 14 วัน)
+  const logSheet = ss.getSheetByName('Logs');
+  if (logSheet) {
+    const data = logSheet.getDataRange().getValues();
+    if (data.length > 1) {
+      const headers = data[0];
+      const rowsToKeep = [headers];
+      
+      for (let i = 1; i < data.length; i++) {
+        let timestampVal = data[i][0];
+        let rowDateObj = null;
+        
+        if (timestampVal instanceof Date) {
+          rowDateObj = timestampVal;
+        } else if (timestampVal) {
+          rowDateObj = new Date(timestampVal);
+        }
+        
+        if (!rowDateObj || isNaN(rowDateObj.getTime()) || rowDateObj >= twoWeeksAgo) {
+          rowsToKeep.push(data[i]);
+        } else {
+          cleanedLogCount++;
+        }
+      }
+      
+      logSheet.clearContents();
+      if (rowsToKeep.length > 0) {
+        logSheet.getRange(1, 1, rowsToKeep.length, headers.length).setValues(rowsToKeep);
+      }
+    }
+  }
+
+  sendLog('Auto Clean Data', `Cleaned ${cleanedAttCount} old attendance rows & ${cleanedLogCount} log rows older than 14 days`);
+  return JSON.stringify({
+    status: 'success', 
+    message: `เคลียร์ข้อมูลสำเร็จ! ลบข้อมูลเช็คชื่อเก่า ${cleanedAttCount} รายการ และ Logs ${cleanedLogCount} รายการ (เก็บเฉพาะ 2 สัปดาห์ล่าสุด)`,
+    cleanedAttCount: cleanedAttCount,
+    cleanedLogCount: cleanedLogCount
+  });
+}
+
+function setupDailyCleanupTrigger() {
+  const triggers = ScriptApp.getProjectTriggers();
+  for (let trigger of triggers) {
+    if (trigger.getHandlerFunction() === 'autoCleanOldData14Days') {
+      ScriptApp.deleteTrigger(trigger);
+    }
+  }
+  
+  ScriptApp.newTrigger('autoCleanOldData14Days')
+    .timeBased()
+    .everyDays(1)
+    .atHour(2)
+    .create();
+    
+  return JSON.stringify({ status: 'success', message: 'ตั้งค่าระบบเคลียร์ข้อมูลอัตโนมัติทุกวันเรียบร้อยแล้ว' });
 }

@@ -1044,7 +1044,7 @@
             window.google = {
                 script: {
                     run: (function() {
-                        const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyjPI5KPRxR2hMU8FR-fn8N8cSg3yvoFLmQHPSNK439Jhde_n5pZxdaawfFdWESbxuI/exec';
+                        const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzOX-cfJt20HPTY1ChdC9q_KR7VgJQ5TmBEtJpoBc5ahBalJD_65XHPBkU-PO8D75iR/exec';
                         
                         function callAPI(action, payload, successHandler, failureHandler) {
                             payload.action = action;
@@ -1094,6 +1094,7 @@
                                 deleteStudentData: function(id) { callAPI('deleteStudentData', {id}, sHandler, fHandler); },
                                 uploadImageToDrive: function(base64Data, fileName) { callAPI('uploadImageToDrive', {base64Data, fileName}, sHandler, fHandler); },
                                 batchSaveFaceDescriptors: function(descriptorMap) { callAPI('batchSaveFaceDescriptors', {descriptorMap}, sHandler, fHandler); },
+                                autoCleanOldData14Days: function() { callAPI('autoCleanOldData14Days', {}, sHandler, fHandler); },
                                 getInitialAppData: function(dateStr) { callAPI('getInitialAppData', {dateStr}, sHandler, fHandler); }
                             };
                         }
