@@ -148,12 +148,15 @@ function verifyLogin(username, password) {
     const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
     const usersSheet = ss.getSheetByName('Users');
     
+    const cleanUser = String(username || '').trim().toLowerCase();
+    const cleanPass = String(password || '').trim();
+
     if (!usersSheet) {
-      if ((username === 'admin' || username === 'teacher' || username === 'headteacher') && password === '1234') {
-        let mockName = username === 'admin' ? 'ผู้ดูแลระบบ (ระบบสำรอง)' : (username === 'headteacher' ? 'หัวหน้าครู (ระบบสำรอง)' : 'คุณครู (ระบบสำรอง)');
+      if ((cleanUser === 'admin' || cleanUser === 'teacher' || cleanUser === 'headteacher') && cleanPass === '1234') {
+        let mockName = cleanUser === 'admin' ? 'ผู้ดูแลระบบ (ระบบสำรอง)' : (cleanUser === 'headteacher' ? 'หัวหน้าครู (ระบบสำรอง)' : 'คุณครู (ระบบสำรอง)');
         return JSON.stringify({
           status: 'success',
-          user: { username: username, role: username, name: mockName }
+          user: { username: cleanUser, role: cleanUser, name: mockName }
         });
       } else {
         return JSON.stringify({ status: 'error', message: 'ระบบยังไม่พร้อมใช้งาน กรุณาให้ Admin รันฟังก์ชัน setupSheets() ก่อน' });
@@ -162,15 +165,22 @@ function verifyLogin(username, password) {
 
     const data = usersSheet.getDataRange().getValues();
     for (let i = 1; i < data.length; i++) {
-      let sheetUser = String(data[i][0]).trim();
+      let sheetUser = String(data[i][0]).trim().toLowerCase();
       let sheetPass = String(data[i][1]).trim();
-      if (sheetUser === username && sheetPass === password) {
-        let role = String(data[i][2]).trim();
+      if (sheetUser === cleanUser && sheetPass === cleanPass) {
+        let role = String(data[i][2]).trim().toLowerCase();
         let name = String(data[i][3]).trim();
         sendLog('Login', `User ${name} (${username}) logged in.`);
         return JSON.stringify({ status: 'success', user: { username: sheetUser, role: role, name: name } });
       }
     }
+
+    // กรณีไม่มีในตาราง Users แต่ใช้รหัสผ่านหลัก admin/teacher/headteacher
+    if ((cleanUser === 'admin' || cleanUser === 'teacher' || cleanUser === 'headteacher') && cleanPass === '1234') {
+      let mockName = cleanUser === 'admin' ? 'ผู้ดูแลระบบสูงสุด' : (cleanUser === 'headteacher' ? 'หัวหน้าครู' : 'คุณครูทั่วไป');
+      return JSON.stringify({ status: 'success', user: { username: cleanUser, role: cleanUser, name: mockName } });
+    }
+
     return JSON.stringify({ status: 'error', message: 'ชื่อผู้ใช้งานหรือรหัสผ่านไม่ถูกต้อง' });
   } catch (e) {
     return JSON.stringify({ status: 'error', message: e.toString() });
