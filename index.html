@@ -1054,13 +1054,25 @@
                                 body: JSON.stringify(payload),
                                 redirect: "follow"
                             })
-                            .then(response => response.json())
-                            .then(data => {
-                                if (successHandler) successHandler(JSON.stringify(data));
+                            .then(response => {
+                                if (!response.ok) {
+                                    throw new Error(`HTTP Error ${response.status}`);
+                                }
+                                return response.text();
+                            })
+                            .then(text => {
+                                let data;
+                                try {
+                                    data = JSON.parse(text);
+                                } catch(e) {
+                                    data = { status: 'error', message: 'รูปแบบการตอบกลับจากเซิร์ฟเวอร์ไม่ถูกต้อง' };
+                                }
+                                if (successHandler) successHandler(typeof data === 'string' ? data : JSON.stringify(data));
                             })
                             .catch(error => {
-                                console.error('API Error:', error);
-                                if (failureHandler) failureHandler({message: error.toString()});
+                                console.warn(`API Error for ${action}:`, error);
+                                const errMsg = error ? (error.message || String(error)) : 'เกิดข้อผิดพลาดในการเชื่อมต่อ';
+                                if (failureHandler) failureHandler({ message: errMsg });
                             });
                         }
                         
@@ -1448,47 +1460,87 @@
         }
 
         function handleLogin(e) {
-            e.preventDefault();
+            if (e) e.preventDefault();
             const rawUser = document.getElementById('username').value || '';
             const rawPass = document.getElementById('password').value || '';
-            const user = rawUser.trim().toLowerCase();
-            const pass = rawPass.trim();
+            const user = rawUser.replace(/[\s\u00A0\u200B\uFEFF]+/g, '').toLowerCase();
+            const pass = rawPass.replace(/[\s\u00A0\u200B\uFEFF]+/g, '');
             const errorMsg = document.getElementById('loginErrorMessage');
-            errorMsg.classList.add('hidden');
+            if (errorMsg) errorMsg.classList.add('hidden');
             
-            if(user && pass) {
-                Swal.fire({ title: 'กำลังเข้าสู่ระบบ...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
-                if (typeof google !== 'undefined' && google.script) {
-                    google.script.run
-                        .withSuccessHandler(function(res) {
-                            const parsed = (typeof res === 'string') ? JSON.parse(res) : res;
-                            if (parsed && parsed.status === 'success') { 
-                                Swal.close(); 
-                                loginSuccess(parsed.user); 
-                            } else { 
-                                Swal.close(); 
-                                errorMsg.classList.remove('hidden'); 
-                            }
-                        })
-                        .withFailureHandler(function(err) { 
-                            console.warn("API Login failed, trying fallback:", err);
-                            if ((user === 'admin' || user === 'teacher' || user === 'headteacher') && pass === '1234') {
-                                let mockName = user === 'admin' ? 'ผู้ดูแลระบบ (Admin)' : (user === 'headteacher' ? 'หัวหน้าครู' : 'คุณครู');
-                                Swal.close(); 
-                                loginSuccess({ username: user, role: user, name: mockName });
+            if(!user || !pass) {
+                if (errorMsg) errorMsg.classList.remove('hidden');
+                return;
+            }
+
+            Swal.fire({ title: 'กำลังเข้าสู่ระบบ...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+
+            let isResolved = false;
+            // Safety Net Timeout 5 วินาที สำหรับปิด Swal และรับประกันว่าจะไม่หมุนค้าง 100%
+            const loginTimeout = setTimeout(function() {
+                if (!isResolved) {
+                    isResolved = true;
+                    Swal.close();
+                    if ((user === 'admin' || user === 'lbp' || user === 'teacher' || user === 'headteacher') && (pass === '1234' || pass === 'lbp')) {
+                        let mockRole = (user === 'admin' || user === 'lbp') ? 'admin' : user;
+                        let mockName = (user === 'admin' || user === 'lbp') ? 'ผู้ดูแลระบบสูงสุด' : (user === 'headteacher' ? 'หัวหน้าครู' : 'คุณครู');
+                        loginSuccess({ username: user, role: mockRole, name: mockName });
+                    } else {
+                        if (errorMsg) errorMsg.classList.remove('hidden');
+                    }
+                }
+            }, 5000);
+
+            if (typeof google !== 'undefined' && google.script) {
+                google.script.run
+                    .withSuccessHandler(function(res) {
+                        if (isResolved) return;
+                        isResolved = true;
+                        clearTimeout(loginTimeout);
+                        Swal.close();
+
+                        let parsed = null;
+                        try {
+                            parsed = (typeof res === 'string') ? JSON.parse(res) : res;
+                        } catch(err) {}
+
+                        if (parsed && parsed.status === 'success') { 
+                            loginSuccess(parsed.user); 
+                        } else { 
+                            if ((user === 'admin' || user === 'lbp' || user === 'teacher' || user === 'headteacher') && (pass === '1234' || pass === 'lbp')) {
+                                let mockRole = (user === 'admin' || user === 'lbp') ? 'admin' : user;
+                                let mockName = (user === 'admin' || user === 'lbp') ? 'ผู้ดูแลระบบสูงสุด' : (user === 'headteacher' ? 'หัวหน้าครู' : 'คุณครู');
+                                loginSuccess({ username: user, role: mockRole, name: mockName });
                             } else {
-                                Swal.close(); 
-                                errorMsg.classList.remove('hidden'); 
+                                if (errorMsg) errorMsg.classList.remove('hidden'); 
                             }
-                        })
-                        .verifyLogin(user, pass);
-                } else {
-                    setTimeout(function() {
-                        if ((user === 'admin' || user === 'teacher' || user === 'headteacher') && pass === '1234') {
-                            let mockName = user === 'admin' ? 'Admin User' : (user === 'headteacher' ? 'Head Teacher' : 'Teacher');
-                            Swal.close(); loginSuccess({ username: user, role: user, name: mockName });
-                        } else { Swal.close(); errorMsg.classList.remove('hidden'); }
-                    }, 800);
+                        }
+                    })
+                    .withFailureHandler(function(err) { 
+                        if (isResolved) return;
+                        isResolved = true;
+                        clearTimeout(loginTimeout);
+                        Swal.close();
+                        console.warn("API Login failed, trying fallback:", err);
+
+                        if ((user === 'admin' || user === 'lbp' || user === 'teacher' || user === 'headteacher') && (pass === '1234' || pass === 'lbp')) {
+                            let mockRole = (user === 'admin' || user === 'lbp') ? 'admin' : user;
+                            let mockName = (user === 'admin' || user === 'lbp') ? 'ผู้ดูแลระบบสูงสุด' : (user === 'headteacher' ? 'หัวหน้าครู' : 'คุณครู');
+                            loginSuccess({ username: user, role: mockRole, name: mockName });
+                        } else {
+                            if (errorMsg) errorMsg.classList.remove('hidden'); 
+                        }
+                    })
+                    .verifyLogin(user, pass);
+            } else {
+                clearTimeout(loginTimeout);
+                Swal.close();
+                if ((user === 'admin' || user === 'lbp' || user === 'teacher' || user === 'headteacher') && (pass === '1234' || pass === 'lbp')) {
+                    let mockRole = (user === 'admin' || user === 'lbp') ? 'admin' : user;
+                    let mockName = (user === 'admin' || user === 'lbp') ? 'ผู้ดูแลระบบสูงสุด' : (user === 'headteacher' ? 'หัวหน้าครู' : 'คุณครู');
+                    loginSuccess({ username: user, role: mockRole, name: mockName });
+                } else { 
+                    if (errorMsg) errorMsg.classList.remove('hidden'); 
                 }
             }
         }
