@@ -149,13 +149,20 @@ function verifyLogin(username, password) {
     const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
     let usersSheet = ss.getSheetByName('Users');
     
-    // หากยังไม่มีแผ่นงาน Users ให้สร้างพร้อมข้อมูลตั้งต้นใน Google Sheets
+    // หากยังไม่มีแผ่นงาน Users ให้สร้างขึ้นใน Google Sheets
     if (!usersSheet) {
       usersSheet = ss.insertSheet('Users');
       usersSheet.appendRow(['username', 'password', 'role', 'name']);
+    }
+
+    let data = usersSheet.getDataRange().getValues();
+    // หากตาราง Users ใน Google Sheets ยังไม่มีข้อมูลผู้ใช้ ให้เติมบัญชีตั้งต้นลง Google Sheets ทันที
+    if (data.length <= 1) {
       usersSheet.appendRow(['admin', '1234', 'admin', 'ผู้ดูแลระบบสูงสุด']);
+      usersSheet.appendRow(['lbp', '1234', 'admin', 'ผู้ดูแลระบบสูงสุด (lbp)']);
       usersSheet.appendRow(['teacher', '1234', 'teacher', 'คุณครูทั่วไป']);
       usersSheet.appendRow(['headteacher', '1234', 'headteacher', 'หัวหน้าครู']);
+      data = usersSheet.getDataRange().getValues();
     }
 
     const cleanUser = String(username || '').replace(/[\s\u00A0\u200B\uFEFF]+/g, '').toLowerCase();
@@ -165,8 +172,7 @@ function verifyLogin(username, password) {
       return JSON.stringify({ status: 'error', message: 'กรุณากรอกชื่อผู้ใช้งานและรหัสผ่าน' });
     }
 
-    const data = usersSheet.getDataRange().getValues();
-    // ค้นหาเฉพาะในตาราง Users ของ Google Sheets เท่านั้น
+    // ค้นหาเฉพาะในตาราง Users ของ Google Sheets เท่านั้น 100%
     for (let i = 1; i < data.length; i++) {
       let sheetUser = String(data[i][0] || '').replace(/[\s\u00A0\u200B\uFEFF]+/g, '').toLowerCase();
       let sheetPass = String(data[i][1] || '').replace(/[\s\u00A0\u200B\uFEFF]+/g, '');
