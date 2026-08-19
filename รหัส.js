@@ -141,58 +141,44 @@ function getInitialAppData(dateStr) {
 }
 
 // ----------------------------------------------------
-// =========================================================================
-// ระบบยืนยันตัวตนผ่าน Google Sheets (Users Sheet Strict Verification)
-// =========================================================================
+// ระบบ Login
+// ----------------------------------------------------
 function verifyLogin(username, password) {
   try {
     const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-    let usersSheet = ss.getSheetByName('Users');
+    const usersSheet = ss.getSheetByName('Users');
     
-    // หากยังไม่มีแผ่นงาน Users ให้สร้างขึ้นใน Google Sheets
+    const cleanUser = String(username || '').trim().toLowerCase();
+    const cleanPass = String(password || '').trim();
+
     if (!usersSheet) {
-      usersSheet = ss.insertSheet('Users');
-      usersSheet.appendRow(['username', 'password', 'role', 'name']);
-      usersSheet.appendRow(['admin', '1234', 'admin', 'ผู้ดูแลระบบสูงสุด']);
-      usersSheet.appendRow(['lbp', '1234', 'admin', 'ผู้ดูแลระบบสูงสุด (lbp)']);
-      usersSheet.appendRow(['teacher', '1234', 'teacher', 'คุณครูทั่วไป']);
-      usersSheet.appendRow(['headteacher', '1234', 'headteacher', 'หัวหน้าครู']);
-    }
-
-    let data = usersSheet.getDataRange().getValues();
-
-    const cleanUser = String(username || '').replace(/[\s\u00A0\u200B\uFEFF]+/g, '').toLowerCase();
-    const cleanPass = String(password || '').replace(/[\s\u00A0\u200B\uFEFF]+/g, '');
-
-    if (!cleanUser || !cleanPass) {
-      return JSON.stringify({ status: 'error', message: 'กรุณากรอกชื่อผู้ใช้งานและรหัสผ่าน' });
-    }
-
-    // 1. ค้นหาในตาราง Users ของ Google Sheets 100%
-    for (let i = 1; i < data.length; i++) {
-      let sheetUser = String(data[i][0] || '').replace(/[\s\u00A0\u200B\uFEFF]+/g, '').toLowerCase();
-      let sheetPass = String(data[i][1] || '').replace(/[\s\u00A0\u200B\uFEFF]+/g, '');
-      let role = String(data[i][2] || '').replace(/[\s\u00A0\u200B\uFEFF]+/g, '').toLowerCase();
-      let name = String(data[i][3] || '').trim();
-
-      if (sheetUser === cleanUser && sheetPass === cleanPass) {
-        sendLog('Login', `User ${name} (${sheetUser}) logged in successfully.`);
+      if ((cleanUser === 'admin' || cleanUser === 'teacher' || cleanUser === 'headteacher') && cleanPass === '1234') {
+        let mockName = cleanUser === 'admin' ? 'ผู้ดูแลระบบ (ระบบสำรอง)' : (cleanUser === 'headteacher' ? 'หัวหน้าครู (ระบบสำรอง)' : 'คุณครู (ระบบสำรอง)');
         return JSON.stringify({
           status: 'success',
-          user: { username: sheetUser, role: role || 'teacher', name: name || sheetUser }
+          user: { username: cleanUser, role: cleanUser, name: mockName }
         });
+      } else {
+        return JSON.stringify({ status: 'error', message: 'ระบบยังไม่พร้อมใช้งาน กรุณาให้ Admin รันฟังก์ชัน setupSheets() ก่อน' });
       }
     }
 
-    // 2. หากยังไม่มีผู้ใช้ lbp หรือ admin ในตาราง ให้เพิ่มลงในแผ่นงาน Users ของ Google Sheets โดยอัตโนมัติ
-    if ((cleanUser === 'lbp' || cleanUser === 'admin') && cleanPass === '1234') {
-      let mockName = cleanUser === 'lbp' ? 'ผู้ดูแลระบบสูงสุด (lbp)' : 'ผู้ดูแลระบบสูงสุด';
-      usersSheet.appendRow([cleanUser, '1234', 'admin', mockName]);
-      sendLog('Login', `Auto-registered user ${cleanUser} into Users sheet in Google Sheets.`);
-      return JSON.stringify({
-        status: 'success',
-        user: { username: cleanUser, role: 'admin', name: mockName }
-      });
+    const data = usersSheet.getDataRange().getValues();
+    for (let i = 1; i < data.length; i++) {
+      let sheetUser = String(data[i][0]).trim().toLowerCase();
+      let sheetPass = String(data[i][1]).trim();
+      if (sheetUser === cleanUser && sheetPass === cleanPass) {
+        let role = String(data[i][2]).trim().toLowerCase();
+        let name = String(data[i][3]).trim();
+        sendLog('Login', `User ${name} (${username}) logged in.`);
+        return JSON.stringify({ status: 'success', user: { username: sheetUser, role: role, name: name } });
+      }
+    }
+
+    // กรณีไม่มีในตาราง Users แต่ใช้รหัสผ่านหลัก admin/teacher/headteacher
+    if ((cleanUser === 'admin' || cleanUser === 'teacher' || cleanUser === 'headteacher') && cleanPass === '1234') {
+      let mockName = cleanUser === 'admin' ? 'ผู้ดูแลระบบสูงสุด' : (cleanUser === 'headteacher' ? 'หัวหน้าครู' : 'คุณครูทั่วไป');
+      return JSON.stringify({ status: 'success', user: { username: cleanUser, role: cleanUser, name: mockName } });
     }
 
     return JSON.stringify({ status: 'error', message: 'ชื่อผู้ใช้งานหรือรหัสผ่านไม่ถูกต้อง' });
