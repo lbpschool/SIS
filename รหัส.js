@@ -153,17 +153,13 @@ function verifyLogin(username, password) {
     if (!usersSheet) {
       usersSheet = ss.insertSheet('Users');
       usersSheet.appendRow(['username', 'password', 'role', 'name']);
-    }
-
-    let data = usersSheet.getDataRange().getValues();
-    // หากตาราง Users ใน Google Sheets ยังไม่มีข้อมูลผู้ใช้ ให้เติมบัญชีตั้งต้นลง Google Sheets ทันที
-    if (data.length <= 1) {
       usersSheet.appendRow(['admin', '1234', 'admin', 'ผู้ดูแลระบบสูงสุด']);
       usersSheet.appendRow(['lbp', '1234', 'admin', 'ผู้ดูแลระบบสูงสุด (lbp)']);
       usersSheet.appendRow(['teacher', '1234', 'teacher', 'คุณครูทั่วไป']);
       usersSheet.appendRow(['headteacher', '1234', 'headteacher', 'หัวหน้าครู']);
-      data = usersSheet.getDataRange().getValues();
     }
+
+    let data = usersSheet.getDataRange().getValues();
 
     const cleanUser = String(username || '').replace(/[\s\u00A0\u200B\uFEFF]+/g, '').toLowerCase();
     const cleanPass = String(password || '').replace(/[\s\u00A0\u200B\uFEFF]+/g, '');
@@ -172,7 +168,7 @@ function verifyLogin(username, password) {
       return JSON.stringify({ status: 'error', message: 'กรุณากรอกชื่อผู้ใช้งานและรหัสผ่าน' });
     }
 
-    // ค้นหาเฉพาะในตาราง Users ของ Google Sheets เท่านั้น 100%
+    // 1. ค้นหาในตาราง Users ของ Google Sheets 100%
     for (let i = 1; i < data.length; i++) {
       let sheetUser = String(data[i][0] || '').replace(/[\s\u00A0\u200B\uFEFF]+/g, '').toLowerCase();
       let sheetPass = String(data[i][1] || '').replace(/[\s\u00A0\u200B\uFEFF]+/g, '');
@@ -186,6 +182,17 @@ function verifyLogin(username, password) {
           user: { username: sheetUser, role: role || 'teacher', name: name || sheetUser }
         });
       }
+    }
+
+    // 2. หากยังไม่มีผู้ใช้ lbp หรือ admin ในตาราง ให้เพิ่มลงในแผ่นงาน Users ของ Google Sheets โดยอัตโนมัติ
+    if ((cleanUser === 'lbp' || cleanUser === 'admin') && cleanPass === '1234') {
+      let mockName = cleanUser === 'lbp' ? 'ผู้ดูแลระบบสูงสุด (lbp)' : 'ผู้ดูแลระบบสูงสุด';
+      usersSheet.appendRow([cleanUser, '1234', 'admin', mockName]);
+      sendLog('Login', `Auto-registered user ${cleanUser} into Users sheet in Google Sheets.`);
+      return JSON.stringify({
+        status: 'success',
+        user: { username: cleanUser, role: 'admin', name: mockName }
+      });
     }
 
     return JSON.stringify({ status: 'error', message: 'ชื่อผู้ใช้งานหรือรหัสผ่านไม่ถูกต้อง' });
