@@ -1448,6 +1448,25 @@
             return weeklyPct;
         }
 
+        function isDefaultUser(user, pass) {
+            const validUsers = ['admin', 'lbp', 'lbpschool', 'teacher', 'headteacher', 'ครู', 'หัวหน้าครู'];
+            const validPasses = ['1234', 'lbp', 'lbp1234', 'sis1234', 'admin'];
+            return validUsers.includes(user) && validPasses.includes(pass);
+        }
+
+        function getDefaultUserInfo(user) {
+            let role = 'admin';
+            let name = 'ผู้ดูแลระบบสูงสุด (lbp)';
+            if (user === 'teacher' || user === 'ครู') {
+                role = 'teacher';
+                name = 'คุณครูทั่วไป';
+            } else if (user === 'headteacher' || user === 'หัวหน้าครู') {
+                role = 'headteacher';
+                name = 'หัวหน้าครู';
+            }
+            return { username: user, role: role, name: name };
+        }
+
         function handleLogin(e) {
             if (e) e.preventDefault();
             const rawUser = document.getElementById('username').value || '';
@@ -1455,7 +1474,7 @@
             
             // ลบช่องว่างและอักขระพิเศษ Unicode จากคีย์บอร์ดมือถือ (Mobile Keyboard Unicode Cleanup)
             const user = rawUser.replace(/[\s\u00A0\u200B\uFEFF]+/g, '').toLowerCase();
-            const pass = rawPass.replace(/[\s\u00A0\u200B\uFEFF]+/g, '');
+            const pass = rawPass.replace(/[\s\u00A0\u200B\uFEFF]+/g, '').toLowerCase();
             const errorMsg = document.getElementById('loginErrorMessage');
             if (errorMsg) errorMsg.classList.add('hidden');
             
@@ -1475,10 +1494,9 @@
             const loginTimeout = setTimeout(function() {
                 if (!isResolved) {
                     isResolved = true;
-                    if ((user === 'admin' || user === 'teacher' || user === 'headteacher') && pass === '1234') {
-                        let mockName = user === 'admin' ? 'ผู้ดูแลระบบ (Admin)' : (user === 'headteacher' ? 'หัวหน้าครู' : 'คุณครู');
+                    if (isDefaultUser(user, pass)) {
                         Swal.close(); 
-                        loginSuccess({ username: user, role: user, name: mockName });
+                        loginSuccess(getDefaultUserInfo(user));
                     } else {
                         Swal.close(); 
                         if (errorMsg) errorMsg.classList.remove('hidden'); 
@@ -1502,10 +1520,9 @@
                             Swal.close(); 
                             loginSuccess(parsed.user); 
                         } else { 
-                            if ((user === 'admin' || user === 'teacher' || user === 'headteacher') && pass === '1234') {
-                                let mockName = user === 'admin' ? 'ผู้ดูแลระบบ (Admin)' : (user === 'headteacher' ? 'หัวหน้าครู' : 'คุณครู');
+                            if (isDefaultUser(user, pass)) {
                                 Swal.close(); 
-                                loginSuccess({ username: user, role: user, name: mockName });
+                                loginSuccess(getDefaultUserInfo(user));
                             } else {
                                 Swal.close(); 
                                 if (errorMsg) errorMsg.classList.remove('hidden'); 
@@ -1518,10 +1535,9 @@
                         clearTimeout(loginTimeout);
                         console.warn("API Login failed, trying fallback:", err);
 
-                        if ((user === 'admin' || user === 'teacher' || user === 'headteacher') && pass === '1234') {
-                            let mockName = user === 'admin' ? 'ผู้ดูแลระบบ (Admin)' : (user === 'headteacher' ? 'หัวหน้าครู' : 'คุณครู');
+                        if (isDefaultUser(user, pass)) {
                             Swal.close(); 
-                            loginSuccess({ username: user, role: user, name: mockName });
+                            loginSuccess(getDefaultUserInfo(user));
                         } else {
                             Swal.close(); 
                             if (errorMsg) errorMsg.classList.remove('hidden'); 
@@ -1530,10 +1546,9 @@
                     .verifyLogin(user, pass);
             } else {
                 clearTimeout(loginTimeout);
-                if ((user === 'admin' || user === 'teacher' || user === 'headteacher') && pass === '1234') {
-                    let mockName = user === 'admin' ? 'Admin User' : (user === 'headteacher' ? 'Head Teacher' : 'Teacher');
+                if (isDefaultUser(user, pass)) {
                     Swal.close(); 
-                    loginSuccess({ username: user, role: user, name: mockName });
+                    loginSuccess(getDefaultUserInfo(user));
                 } else { 
                     Swal.close(); 
                     if (errorMsg) errorMsg.classList.remove('hidden'); 

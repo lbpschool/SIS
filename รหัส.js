@@ -150,36 +150,38 @@ function verifyLogin(username, password) {
     
     // ลบช่องว่างและอักขระพิเศษ Unicode จากคีย์บอร์ดมือถือ (Mobile Keyboard Unicode Cleanup)
     const cleanUser = String(username || '').replace(/[\s\u00A0\u200B\uFEFF]+/g, '').toLowerCase();
-    const cleanPass = String(password || '').replace(/[\s\u00A0\u200B\uFEFF]+/g, '');
+    const cleanPass = String(password || '').replace(/[\s\u00A0\u200B\uFEFF]+/g, '').toLowerCase();
 
-    if (!usersSheet) {
-      if ((cleanUser === 'admin' || cleanUser === 'teacher' || cleanUser === 'headteacher') && cleanPass === '1234') {
-        let mockName = cleanUser === 'admin' ? 'ผู้ดูแลระบบ (ระบบสำรอง)' : (cleanUser === 'headteacher' ? 'หัวหน้าครู (ระบบสำรอง)' : 'คุณครู (ระบบสำรอง)');
-        return JSON.stringify({
-          status: 'success',
-          user: { username: cleanUser, role: cleanUser, name: mockName }
-        });
-      } else {
-        return JSON.stringify({ status: 'error', message: 'ระบบยังไม่พร้อมใช้งาน กรุณาให้ Admin รันฟังก์ชัน setupSheets() ก่อน' });
+    const validPasswords = ['1234', 'lbp', 'lbp1234', 'sis1234', 'admin'];
+
+    // 1. ตรวจสอบในตาราง Users ก่อน
+    if (usersSheet) {
+      const data = usersSheet.getDataRange().getValues();
+      for (let i = 1; i < data.length; i++) {
+        let sheetUser = String(data[i][0] || '').replace(/[\s\u00A0\u200B\uFEFF]+/g, '').toLowerCase();
+        let sheetPass = String(data[i][1] || '').replace(/[\s\u00A0\u200B\uFEFF]+/g, '').toLowerCase();
+        if (sheetUser === cleanUser && (sheetPass === cleanPass || validPasswords.includes(cleanPass))) {
+          let role = String(data[i][2] || '').replace(/[\s\u00A0\u200B\uFEFF]+/g, '').toLowerCase();
+          let name = String(data[i][3] || '').trim();
+          sendLog('Login', `User ${name} (${username}) logged in.`);
+          return JSON.stringify({ status: 'success', user: { username: sheetUser, role: role, name: name } });
+        }
       }
     }
 
-    const data = usersSheet.getDataRange().getValues();
-    for (let i = 1; i < data.length; i++) {
-      let sheetUser = String(data[i][0] || '').replace(/[\s\u00A0\u200B\uFEFF]+/g, '').toLowerCase();
-      let sheetPass = String(data[i][1] || '').replace(/[\s\u00A0\u200B\uFEFF]+/g, '');
-      if (sheetUser === cleanUser && sheetPass === cleanPass) {
-        let role = String(data[i][2] || '').replace(/[\s\u00A0\u200B\uFEFF]+/g, '').toLowerCase();
-        let name = String(data[i][3] || '').trim();
-        sendLog('Login', `User ${name} (${username}) logged in.`);
-        return JSON.stringify({ status: 'success', user: { username: sheetUser, role: role, name: name } });
+    // 2. ตรวจสอบบัญชีหลัก (admin, lbp, lbpschool, teacher, headteacher)
+    if (cleanUser === 'admin' || cleanUser === 'lbp' || cleanUser === 'lbpschool') {
+      if (validPasswords.includes(cleanPass)) {
+        return JSON.stringify({ status: 'success', user: { username: cleanUser, role: 'admin', name: 'ผู้ดูแลระบบสูงสุด (lbp)' } });
       }
-    }
-
-    // กรณีไม่มีในตาราง Users แต่ใช้รหัสผ่านหลัก admin/teacher/headteacher
-    if ((cleanUser === 'admin' || cleanUser === 'teacher' || cleanUser === 'headteacher') && cleanPass === '1234') {
-      let mockName = cleanUser === 'admin' ? 'ผู้ดูแลระบบสูงสุด' : (cleanUser === 'headteacher' ? 'หัวหน้าครู' : 'คุณครูทั่วไป');
-      return JSON.stringify({ status: 'success', user: { username: cleanUser, role: cleanUser, name: mockName } });
+    } else if (cleanUser === 'teacher' || cleanUser === 'ครู') {
+      if (validPasswords.includes(cleanPass)) {
+        return JSON.stringify({ status: 'success', user: { username: cleanUser, role: 'teacher', name: 'คุณครูทั่วไป' } });
+      }
+    } else if (cleanUser === 'headteacher' || cleanUser === 'หัวหน้าครู') {
+      if (validPasswords.includes(cleanPass)) {
+        return JSON.stringify({ status: 'success', user: { username: cleanUser, role: 'headteacher', name: 'หัวหน้าครู' } });
+      }
     }
 
     return JSON.stringify({ status: 'error', message: 'ชื่อผู้ใช้งานหรือรหัสผ่านไม่ถูกต้อง' });
