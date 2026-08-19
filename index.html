@@ -777,9 +777,14 @@
         <div class="bg-white rounded-xl shadow-2xl w-full max-w-3xl relative flex flex-col max-h-[95vh]">
             <div class="flex justify-between items-center px-4 sm:px-6 py-4 border-b bg-school-50 rounded-t-xl shrink-0">
                 <h2 class="text-lg sm:text-xl font-bold text-school-800"><i class="fas fa-address-card mr-2"></i>รายละเอียดข้อมูลนักเรียน</h2>
-                <button onclick="closeStudentViewModal()" class="text-gray-400 hover:text-red-500 hover:bg-red-50 p-2 rounded-lg transition text-xl focus:outline-none -mr-2">
-                    <i class="fas fa-times"></i>
-                </button>
+                <div class="flex items-center gap-2">
+                    <button onclick="printStudentA4Current()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition shadow-sm flex items-center cursor-pointer">
+                        <i class="fas fa-print mr-1.5"></i> พิมพ์เอกสาร A4
+                    </button>
+                    <button onclick="closeStudentViewModal()" class="text-gray-400 hover:text-red-500 hover:bg-red-50 p-2 rounded-lg transition text-xl focus:outline-none -mr-2">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
             </div>
             
             <div class="p-4 sm:p-6 overflow-y-auto custom-scrollbar flex-1">
@@ -2227,12 +2232,13 @@
                     if(dynCo1 && dynCo1 !== '-') teacherDisplay += '<div class="text-xs text-gray-400 mt-0.5">ร่วม 1: ' + dynCo1 + '</div>';
                     if(dynCo2 && dynCo2 !== '-') teacherDisplay += '<div class="text-xs text-gray-400 mt-0.5">ร่วม 2: ' + dynCo2 + '</div>';
 
-                    let disabilityBtn = (st.hasDisability && st.disabilityImg) ? '<button onclick="event.stopPropagation(); openDisabilityCardModal(\'' + st.disabilityImg + '\')" class="text-purple-600 hover:text-purple-800 mx-1.5 text-lg transition-transform hover:scale-110 bg-purple-100 w-8 h-8 rounded-full" title="ดูบัตรคนพิการ"><i class="fas fa-id-card"></i></button>' : '';
+                    let safeId = String(st.id).replace(/'/g, "\\'");
+                    let printBtn = '<button onclick="event.stopPropagation(); printStudentA4(\'' + safeId + '\')" class="text-indigo-600 hover:text-indigo-800 mx-1 text-lg transition-transform hover:scale-110 bg-indigo-100 w-8 h-8 rounded-full inline-flex items-center justify-center shadow-sm" title="พิมพ์ประวัตินักเรียน A4"><i class="fas fa-print"></i></button>';
+                    let disabilityBtn = (st.hasDisability && st.disabilityImg) ? '<button onclick="event.stopPropagation(); openDisabilityCardModal(\'' + st.disabilityImg + '\')" class="text-purple-600 hover:text-purple-800 mx-1 text-lg transition-transform hover:scale-110 bg-purple-100 w-8 h-8 rounded-full inline-flex items-center justify-center shadow-sm" title="ดูบัตรคนพิการ"><i class="fas fa-id-card"></i></button>' : '';
                     let actionButtons = '';
                     if (currentUserRole === 'admin') {
-                        let safeId = String(st.id).replace(/'/g, "\\'");
-                        actionButtons = '<button onclick="event.stopPropagation(); openStudentModal(\'' + safeId + '\')" class="text-blue-600 hover:text-blue-800 mx-1.5 text-lg transition-transform hover:scale-110 bg-blue-100 w-8 h-8 rounded-full" title="แก้ไขข้อมูล"><i class="fas fa-edit"></i></button>' +
-                                        '<button onclick="event.stopPropagation(); deleteStudent(\'' + safeId + '\')" class="text-red-500 hover:text-red-700 mx-1.5 text-lg transition-transform hover:scale-110 bg-red-100 w-8 h-8 rounded-full" title="ลบ"><i class="fas fa-trash"></i></button>';
+                        actionButtons = '<button onclick="event.stopPropagation(); openStudentModal(\'' + safeId + '\')" class="text-blue-600 hover:text-blue-800 mx-1 text-lg transition-transform hover:scale-110 bg-blue-100 w-8 h-8 rounded-full inline-flex items-center justify-center shadow-sm" title="แก้ไขข้อมูล"><i class="fas fa-edit"></i></button>' +
+                                        '<button onclick="event.stopPropagation(); deleteStudent(\'' + safeId + '\')" class="text-red-500 hover:text-red-700 mx-1 text-lg transition-transform hover:scale-110 bg-red-100 w-8 h-8 rounded-full inline-flex items-center justify-center shadow-sm" title="ลบ"><i class="fas fa-trash"></i></button>';
                     }
 
                     let lsDisplay = '';
@@ -2255,7 +2261,7 @@
                                    '<td class="px-4 py-3 whitespace-normal min-w-[200px] leading-snug">' + teacherDisplay + '</td>' +
                                    '<td class="px-4 py-3 whitespace-normal min-w-[150px] text-gray-700">' + ((st.dormitory && st.dormitory !== '-') ? st.dormitory : '<span class="text-gray-400">-</span>') + '</td>' +
                                    '<td class="px-4 py-3 whitespace-nowrap text-center">' + lsDisplay + '</td>' +
-                                   '<td class="px-4 py-3 whitespace-nowrap text-right pr-6">' + disabilityBtn + actionButtons + '</td>';
+                                   '<td class="px-4 py-3 whitespace-nowrap text-right pr-6">' + printBtn + disabilityBtn + actionButtons + '</td>';
                     fragment.appendChild(tr);
                 }
             });
@@ -2788,11 +2794,285 @@
             updateDashboardStats(); populateClassDropdown();
         }
 
-        let currentViewDisabilityImg = "", currentViewMedicine = "", currentViewDisease = ""; 
+        let currentViewDisabilityImg = "", currentViewMedicine = "", currentViewDisease = "", currentViewingStudentId = null; 
+
+        function printStudentA4Current() {
+            if (currentViewingStudentId) {
+                printStudentA4(currentViewingStudentId);
+            }
+        }
+
+        function printStudentA4(id) {
+            const st = studentsList.find(function(s) { return s.id === id; });
+            if (!st) { 
+                if (typeof Swal !== 'undefined') Swal.fire('แจ้งเตือน', 'ไม่พบข้อมูลนักเรียน', 'warning'); 
+                return; 
+            }
+
+            let dynTeacher = st.teacher, dynCo1 = st.coTeacher, dynCo2 = st.coTeacher2;
+            if (!dynTeacher || dynTeacher === '-' || dynTeacher === 'รอจัดสรร') {
+                let tFound = teachersList.find(function(t) { return t.assignedClass === st.grade && t.teacherPosition === "1"; });
+                if (tFound) dynTeacher = tFound.name;
+            }
+            if (!dynCo1 || dynCo1 === '-') {
+                let tFound = teachersList.find(function(t) { return t.assignedClass === st.grade && t.teacherPosition === "2"; });
+                if (tFound) dynCo1 = tFound.name;
+            }
+            if (!dynCo2 || dynCo2 === '-') {
+                let tFound = teachersList.find(function(t) { return t.assignedClass === st.grade && t.teacherPosition === "3"; });
+                if (tFound) dynCo2 = tFound.name;
+            }
+
+            let safeName = encodeURIComponent(st.nickname || st.name || 'Student');
+            let profileImgSrc = st.profileImg ? fixDriveUrl(st.profileImg) : 'https://ui-avatars.com/api/?name=' + safeName + '&background=0d8139&color=fff&size=128&bold=true';
+            let disabilityImgSrc = (st.hasDisability && st.disabilityImg) ? fixDriveUrl(st.disabilityImg) : '';
+            const todayNow = new Date();
+            const yearStr = todayNow.getFullYear() > 2400 ? todayNow.getFullYear() : todayNow.getFullYear() + 543;
+            const thaiMonths = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+            const thaiDatePrint = `${todayNow.getDate()} ${thaiMonths[todayNow.getMonth()]} ${yearStr}`;
+
+            let printWindow = window.open('', '_blank', 'width=950,height=1000');
+            if (!printWindow) {
+                if (typeof Swal !== 'undefined') Swal.fire('แจ้งเตือน', 'กรุณาอนุญาตให้เปิดเบราว์เซอร์ Pop-up เพื่อพิมพ์เอกสาร A4', 'warning');
+                return;
+            }
+
+            let html = `<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <title>แบบบันทึกประวัตินักเรียน A4 - ${st.name}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        @page { size: A4 portrait; margin: 5mm 7mm 5mm 7mm; }
+        * { box-sizing: border-box; font-family: 'Sarabun', sans-serif; }
+        body { margin: 0; padding: 0; background: #fff; color: #1f2937; font-size: 11pt; line-height: 1.35; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .page-container { width: 100%; max-width: 194mm; margin: 0 auto; padding: 4px; background: #fff; }
+        .header { display: flex; align-items: center; justify-content: space-between; border-bottom: 2.5px solid #00a651; padding-bottom: 6px; margin-bottom: 8px; }
+        .header-logo { height: 55px; width: auto; }
+        .header-text { text-align: center; flex: 1; margin: 0 10px; }
+        .header-title { font-size: 14pt; font-weight: 700; color: #074d23; margin: 0; }
+        .header-sub { font-size: 11pt; font-weight: 600; color: #374151; margin: 2px 0 0 0; }
         
+        .section-title { font-size: 10.5pt; font-weight: 700; color: #0d8139; background: #f0fdf4; padding: 3px 8px; border-left: 4px solid #00a651; margin: 6px 0 4px 0; border-radius: 2px; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        
+        .profile-row { display: flex; gap: 12px; margin-bottom: 6px; align-items: flex-start; }
+        .profile-img-box { width: 115px; height: 140px; border: 1.5px solid #00a651; border-radius: 6px; overflow: hidden; shrink: 0; text-align: center; background: #f9fafb; display: flex; align-items: center; justify-content: center; shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .profile-img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
+        
+        .info-table { width: 100%; border-collapse: collapse; margin-bottom: 2px; }
+        .info-table td { padding: 3px 5px; vertical-align: top; border-bottom: 1px dashed #e5e7eb; font-size: 10pt; }
+        .info-label { font-weight: 600; color: #4b5563; width: 33%; white-space: nowrap; }
+        .info-val { font-weight: 500; color: #111827; }
+        
+        .box-card { border: 1px solid #d1d5db; border-radius: 6px; padding: 6px 8px; background: #fafafa; margin-bottom: 6px; }
+        .disability-card-box { width: 220px; height: 130px; border: 1.5px solid #8b5cf6; border-radius: 6px; overflow: hidden; background: #f3f4f6; display: flex; align-items: center; justify-content: center; shrink: 0; }
+        .disability-img { width: 100%; height: 100%; object-fit: contain; }
+        
+        .footer-signatures { display: flex; justify-content: space-between; margin-top: 12px; padding-top: 6px; }
+        .sig-box { text-align: center; width: 45%; font-size: 9.5pt; }
+        .sig-line { margin-top: 25px; border-bottom: 1px dotted #6b7280; width: 85%; margin-left: auto; margin-right: auto; }
+        
+        @media print {
+            body { background: none; }
+            .no-print { display: none !important; }
+        }
+    </style>
+</head>
+<body>
+    <div class="no-print" style="position: fixed; top: 12px; right: 12px; z-index: 999; background: #ffffff; padding: 12px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); border: 1px solid #e5e7eb;">
+        <button onclick="window.print()" style="background: #00a651; color: white; border: none; padding: 8px 18px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 11pt;">🖨️ พิมพ์เอกสาร A4</button>
+        <button onclick="window.close()" style="background: #ef4444; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 11pt; margin-left: 6px;">ปิดหน้าต่าง</button>
+    </div>
+
+    <div class="page-container">
+        <!-- Header -->
+        <div class="header">
+            <img src="https://lbpschool.github.io/SIS/school_logo.png?v=3" class="header-logo" alt="ตราโรงเรียน">
+            <div class="header-text">
+                <div class="header-title">แบบบันทึกประวัตินักเรียนรายบุคคล (A4)</div>
+                <div class="header-sub">โรงเรียนลพบุรีปัญญานุกูล จังหวัดลพบุรี</div>
+            </div>
+            <div style="text-align: right; font-size: 8.5pt; color: #6b7280; line-height: 1.4;">
+                วันที่พิมพ์: ${thaiDatePrint}<br>
+                รหัส SIS: <span style="font-weight:700; color:#111827;">${st.id}</span>
+            </div>
+        </div>
+
+        <!-- Section 1: รูปภาพและข้อมูลส่วนตัว -->
+        <div class="profile-row">
+            <div class="profile-img-box">
+                <img src="${profileImgSrc}" class="profile-img" alt="รูปโปรไฟล์" onerror="this.src='https://ui-avatars.com/api/?name=${safeName}&background=0d8139&color=fff&size=128&bold=true'">
+            </div>
+            <div style="flex: 1;">
+                <div class="section-title" style="margin-top:0;">1. ข้อมูลส่วนตัวและข้อมูลการศึกษา</div>
+                <table class="info-table">
+                    <tr>
+                        <td class="info-label">ชื่อ - นามสกุล:</td>
+                        <td class="info-val" style="font-weight: 700; color: #0d8139; font-size: 11.5pt;">${st.name} ${(st.nickname ? '(' + st.nickname + ')' : '')}</td>
+                        <td class="info-label">รหัสนักเรียน:</td>
+                        <td class="info-val" style="font-weight: 700;">${st.id}</td>
+                    </tr>
+                    <tr>
+                        <td class="info-label">เลขบัตรประชาชน:</td>
+                        <td class="info-val">${st.idCard || '-'}</td>
+                        <td class="info-label">ชั้นเรียน / ห้อง:</td>
+                        <td class="info-val" style="font-weight: 700; color: #1d4ed8;">${st.grade || '-'}</td>
+                    </tr>
+                    <tr>
+                        <td class="info-label">วัน/เดือน/ปีเกิด:</td>
+                        <td class="info-val">${formatDateAndAge(st.dob)}</td>
+                        <td class="info-label">ประเภทการเดินทาง:</td>
+                        <td class="info-val">${st.commuteType || 'ไป-กลับ'}</td>
+                    </tr>
+                    <tr>
+                        <td class="info-label">เรือนนอน:</td>
+                        <td class="info-val">${(st.dormitory && st.dormitory !== '-') ? st.dormitory : 'ไม่มี (ไป-กลับ)'}</td>
+                        <td class="info-label">แหล่งเรียนรู้:</td>
+                        <td class="info-val">${(st.learningSource && st.learningSource !== '-') ? st.learningSource : '-'}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- Section 2: ครูประจำชั้น & ข้อมูลสุขภาพ -->
+        <div class="grid-2">
+            <div class="box-card">
+                <div class="section-title" style="margin-top:0;">2. ครูประจำชั้นและครูผู้ดูแล</div>
+                <table class="info-table">
+                    <tr>
+                        <td class="info-label">ครูประจำชั้นหลัก:</td>
+                        <td class="info-val" style="font-weight:600;">${(dynTeacher && dynTeacher !== '-' && dynTeacher !== 'รอจัดสรร') ? dynTeacher : 'รอจัดสรร'}</td>
+                    </tr>
+                    <tr>
+                        <td class="info-label">ครูผู้ดูแลร่วม 1:</td>
+                        <td class="info-val">${(dynCo1 && dynCo1 !== '-') ? dynCo1 : '-'}</td>
+                    </tr>
+                    <tr>
+                        <td class="info-label">ครูผู้ดูแลร่วม 2:</td>
+                        <td class="info-val">${(dynCo2 && dynCo2 !== '-') ? dynCo2 : '-'}</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="box-card">
+                <div class="section-title" style="margin-top:0;">3. ข้อมูลสุขภาพและการรับยา</div>
+                <table class="info-table">
+                    <tr>
+                        <td class="info-label">โรคประจำตัว:</td>
+                        <td class="info-val" style="color: ${(st.disease && st.disease !== '-') ? '#dc2626' : '#111827'}; font-weight: ${(st.disease && st.disease !== '-') ? '600' : 'normal'};">${st.disease || 'ไม่มี'}</td>
+                    </tr>
+                    <tr>
+                        <td class="info-label">ยาประจำตัว:</td>
+                        <td class="info-val" style="color: ${(st.medicine && st.medicine !== '-') ? '#d97706' : '#111827'}; font-weight: ${(st.medicine && st.medicine !== '-') ? '600' : 'normal'};">${st.medicine || 'ไม่มี'}</td>
+                    </tr>
+                    <tr>
+                        <td class="info-label">สถานะความพิการ:</td>
+                        <td class="info-val" style="font-weight:600; color:${st.hasDisability ? '#6b21a8' : '#374151'};">${st.hasDisability ? ('มีบัตรความพิการ (' + (st.disabilityType || 'ไม่ระบุประเภท') + ')') : 'ไม่มีบัตรความพิการ'}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- Section 3: ข้อมูลครอบครัว & ที่อยู่ -->
+        <div class="box-card">
+            <div class="section-title" style="margin-top:0;">4. ข้อมูลครอบครัว บิดา-มารดา และผู้ปกครอง</div>
+            <div class="grid-2">
+                <table class="info-table">
+                    <tr>
+                        <td class="info-label">ชื่อบิดา:</td>
+                        <td class="info-val">${st.fatherName || '-'}</td>
+                    </tr>
+                    <tr>
+                        <td class="info-label">เบอร์โทรบิดา:</td>
+                        <td class="info-val">${st.fatherPhone || '-'}</td>
+                    </tr>
+                    <tr>
+                        <td class="info-label">ชื่อมารดา:</td>
+                        <td class="info-val">${st.motherName || '-'}</td>
+                    </tr>
+                    <tr>
+                        <td class="info-label">เบอร์โทรมารดา:</td>
+                        <td class="info-val">${st.motherPhone || '-'}</td>
+                    </tr>
+                </table>
+
+                <table class="info-table">
+                    <tr>
+                        <td class="info-label">ชื่อผู้ปกครอง:</td>
+                        <td class="info-val">${st.guardianName || '-'}</td>
+                    </tr>
+                    <tr>
+                        <td class="info-label">ความสัมพันธ์:</td>
+                        <td class="info-val">${st.guardianRelation || '-'}</td>
+                    </tr>
+                    <tr>
+                        <td class="info-label">เบอร์โทรผู้ปกครอง:</td>
+                        <td class="info-val">${st.guardianPhone || '-'}</td>
+                    </tr>
+                    <tr>
+                        <td class="info-label">ที่อยู่ปัจจุบัน:</td>
+                        <td class="info-val">${st.address || 'ไม่ระบุที่อยู่'}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- Section 4: รูปบัตรประจำตัวคนพิการ -->
+        <div class="box-card">
+            <div class="section-title" style="margin-top:0;">5. บัตรประจำตัวคนพิการ / เอกสารประจำตัว</div>
+            <div style="display: flex; gap: 14px; align-items: center;">
+                ${disabilityImgSrc ? `
+                    <div class="disability-card-box">
+                        <img src="${disabilityImgSrc}" class="disability-img" alt="รูปบัตรคนพิการ">
+                    </div>
+                    <div style="flex: 1; font-size: 10pt; color: #374151;">
+                        <p style="margin: 0 0 4px 0; font-weight: 700; color: #6b21a8; font-size:10.5pt;">ประเภทความพิการ: ${st.disabilityType || 'ไม่ระบุประเภท'}</p>
+                        <p style="margin: 0; color: #059669; font-weight:500;">✓ เอกสารบัตรประจำตัวคนพิการได้รับการบันทึกในระบบ SIS เรียบร้อยแล้ว</p>
+                    </div>
+                ` : `
+                    <div style="padding: 10px; background: #f3f4f6; border: 1px dashed #d1d5db; border-radius: 6px; width: 100%; text-align: center; color: #6b7280; font-size: 10pt;">
+                        ไม่มีรูปภาพบัตรประจำตัวคนพิการแนบในระบบ
+                    </div>
+                `}
+            </div>
+        </div>
+
+        <!-- Signatures -->
+        <div class="footer-signatures">
+            <div class="sig-box">
+                <div class="sig-line"></div>
+                <p style="margin: 4px 0 0 0; font-weight: 600;">( ${dynTeacher || '..........................................................'} )</p>
+                <p style="margin: 2px 0 0 0; color: #6b7280;">ครูประจำชั้น / ผู้รับรองข้อมูล</p>
+            </div>
+            <div class="sig-box">
+                <div class="sig-line"></div>
+                <p style="margin: 4px 0 0 0; font-weight: 600;">( .......................................................... )</p>
+                <p style="margin: 2px 0 0 0; color: #6b7280;">หัวหน้าฝ่ายงาน / ผู้ตรวจสอบ</p>
+            </div>
+        </div>
+    </div>
+
+    <` + `script>
+        window.onload = function() {
+            setTimeout(function() {
+                window.print();
+            }, 600);
+        };
+    <` + `/script>
+</body>
+</html>`;
+
+            printWindow.document.write(html);
+            printWindow.document.close();
+        }
+
         function openStudentViewModal(id) {
             const st = studentsList.find(function(s) { return s.id === id; });
             if(!st) return;
+
+            currentViewingStudentId = id;
 
             document.getElementById('view-id').innerText = st.id;
             document.getElementById('view-idcard').innerText = st.idCard || "-";
