@@ -141,46 +141,44 @@ function getInitialAppData(dateStr) {
 }
 
 // ----------------------------------------------------
-// ระบบ Login
-// ----------------------------------------------------
+// =========================================================================
+// ระบบยืนยันตัวตนผ่าน Google Sheets (Users Sheet Strict Verification)
+// =========================================================================
 function verifyLogin(username, password) {
   try {
     const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-    const usersSheet = ss.getSheetByName('Users');
+    let usersSheet = ss.getSheetByName('Users');
     
-    // ลบช่องว่างและอักขระพิเศษ Unicode จากคีย์บอร์ดมือถือ (Mobile Keyboard Unicode Cleanup)
-    const cleanUser = String(username || '').replace(/[\s\u00A0\u200B\uFEFF]+/g, '').toLowerCase();
-    const cleanPass = String(password || '').replace(/[\s\u00A0\u200B\uFEFF]+/g, '').toLowerCase();
-
-    const validPasswords = ['1234', 'lbp', 'lbp1234', 'sis1234', 'admin'];
-
-    // 1. ตรวจสอบในตาราง Users ก่อน
-    if (usersSheet) {
-      const data = usersSheet.getDataRange().getValues();
-      for (let i = 1; i < data.length; i++) {
-        let sheetUser = String(data[i][0] || '').replace(/[\s\u00A0\u200B\uFEFF]+/g, '').toLowerCase();
-        let sheetPass = String(data[i][1] || '').replace(/[\s\u00A0\u200B\uFEFF]+/g, '').toLowerCase();
-        if (sheetUser === cleanUser && (sheetPass === cleanPass || validPasswords.includes(cleanPass))) {
-          let role = String(data[i][2] || '').replace(/[\s\u00A0\u200B\uFEFF]+/g, '').toLowerCase();
-          let name = String(data[i][3] || '').trim();
-          sendLog('Login', `User ${name} (${username}) logged in.`);
-          return JSON.stringify({ status: 'success', user: { username: sheetUser, role: role, name: name } });
-        }
-      }
+    // หากยังไม่มีแผ่นงาน Users ให้สร้างพร้อมข้อมูลตั้งต้นใน Google Sheets
+    if (!usersSheet) {
+      usersSheet = ss.insertSheet('Users');
+      usersSheet.appendRow(['username', 'password', 'role', 'name']);
+      usersSheet.appendRow(['admin', '1234', 'admin', 'ผู้ดูแลระบบสูงสุด']);
+      usersSheet.appendRow(['teacher', '1234', 'teacher', 'คุณครูทั่วไป']);
+      usersSheet.appendRow(['headteacher', '1234', 'headteacher', 'หัวหน้าครู']);
     }
 
-    // 2. ตรวจสอบบัญชีหลัก (admin, lbp, lbpschool, teacher, headteacher)
-    if (cleanUser === 'admin' || cleanUser === 'lbp' || cleanUser === 'lbpschool') {
-      if (validPasswords.includes(cleanPass)) {
-        return JSON.stringify({ status: 'success', user: { username: cleanUser, role: 'admin', name: 'ผู้ดูแลระบบสูงสุด (lbp)' } });
-      }
-    } else if (cleanUser === 'teacher' || cleanUser === 'ครู') {
-      if (validPasswords.includes(cleanPass)) {
-        return JSON.stringify({ status: 'success', user: { username: cleanUser, role: 'teacher', name: 'คุณครูทั่วไป' } });
-      }
-    } else if (cleanUser === 'headteacher' || cleanUser === 'หัวหน้าครู') {
-      if (validPasswords.includes(cleanPass)) {
-        return JSON.stringify({ status: 'success', user: { username: cleanUser, role: 'headteacher', name: 'หัวหน้าครู' } });
+    const cleanUser = String(username || '').replace(/[\s\u00A0\u200B\uFEFF]+/g, '').toLowerCase();
+    const cleanPass = String(password || '').replace(/[\s\u00A0\u200B\uFEFF]+/g, '');
+
+    if (!cleanUser || !cleanPass) {
+      return JSON.stringify({ status: 'error', message: 'กรุณากรอกชื่อผู้ใช้งานและรหัสผ่าน' });
+    }
+
+    const data = usersSheet.getDataRange().getValues();
+    // ค้นหาเฉพาะในตาราง Users ของ Google Sheets เท่านั้น
+    for (let i = 1; i < data.length; i++) {
+      let sheetUser = String(data[i][0] || '').replace(/[\s\u00A0\u200B\uFEFF]+/g, '').toLowerCase();
+      let sheetPass = String(data[i][1] || '').replace(/[\s\u00A0\u200B\uFEFF]+/g, '');
+      let role = String(data[i][2] || '').replace(/[\s\u00A0\u200B\uFEFF]+/g, '').toLowerCase();
+      let name = String(data[i][3] || '').trim();
+
+      if (sheetUser === cleanUser && sheetPass === cleanPass) {
+        sendLog('Login', `User ${name} (${sheetUser}) logged in successfully.`);
+        return JSON.stringify({
+          status: 'success',
+          user: { username: sheetUser, role: role || 'teacher', name: name || sheetUser }
+        });
       }
     }
 

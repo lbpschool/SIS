@@ -367,11 +367,6 @@
                             </div>
                         </div>
                         <div class="flex gap-2 w-full xl:w-auto shrink-0 mt-1 xl:mt-0">
-                            <!-- ปุ่มซิงค์ข้อมูลตรงกับ Google Sheets -->
-                            <button onclick="refreshInitialData(true)" class="bg-amber-500 text-white px-3 py-2 rounded-lg hover:bg-amber-600 flex-1 sm:flex-none shadow-sm text-sm font-medium transition flex items-center justify-center whitespace-nowrap" title="ดึงข้อมูลอัปเดตล่าสุดตรงจาก Google Sheets">
-                                <i class="fas fa-sync-alt mr-1.5" id="syncBtnIcon"></i> ซิงค์ Google Sheets
-                            </button>
-
                             <!-- ปุ่มสแกนใบหน้า (จำกัดเฉพาะ Admin) -->
                             <button onclick="openFaceScanner()" class="bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 flex-1 sm:flex-none shadow-sm text-sm font-medium transition flex items-center justify-center whitespace-nowrap admin-only">
                                 <i class="fas fa-camera mr-1.5"></i> สแกนหน้าค้นหา
@@ -1453,25 +1448,6 @@
             return weeklyPct;
         }
 
-        function isDefaultUser(user, pass) {
-            const validUsers = ['admin', 'lbp', 'lbpschool', 'teacher', 'headteacher', 'ครู', 'หัวหน้าครู'];
-            const validPasses = ['1234', 'lbp', 'lbp1234', 'sis1234', 'admin'];
-            return validUsers.includes(user) && validPasses.includes(pass);
-        }
-
-        function getDefaultUserInfo(user) {
-            let role = 'admin';
-            let name = 'ผู้ดูแลระบบสูงสุด (lbp)';
-            if (user === 'teacher' || user === 'ครู') {
-                role = 'teacher';
-                name = 'คุณครูทั่วไป';
-            } else if (user === 'headteacher' || user === 'หัวหน้าครู') {
-                role = 'headteacher';
-                name = 'หัวหน้าครู';
-            }
-            return { username: user, role: role, name: name };
-        }
-
         function handleLogin(e) {
             if (e) e.preventDefault();
             const rawUser = document.getElementById('username').value || '';
@@ -1479,43 +1455,27 @@
             
             // ลบช่องว่างและอักขระพิเศษ Unicode จากคีย์บอร์ดมือถือ (Mobile Keyboard Unicode Cleanup)
             const user = rawUser.replace(/[\s\u00A0\u200B\uFEFF]+/g, '').toLowerCase();
-            const pass = rawPass.replace(/[\s\u00A0\u200B\uFEFF]+/g, '').toLowerCase();
+            const pass = rawPass.replace(/[\s\u00A0\u200B\uFEFF]+/g, '');
             const errorMsg = document.getElementById('loginErrorMessage');
             if (errorMsg) errorMsg.classList.add('hidden');
             
             if (!user || !pass) {
-                if (errorMsg) errorMsg.classList.remove('hidden');
+                if (errorMsg) {
+                    errorMsg.querySelector('span').innerText = 'กรุณากรอกชื่อผู้ใช้และรหัสผ่าน!';
+                    errorMsg.classList.remove('hidden');
+                }
                 return;
             }
 
             Swal.fire({ 
-                title: 'กำลังเข้าสู่ระบบ...', 
+                title: 'กำลังตรวจสอบสิทธิ์ผ่าน Google Sheets...', 
                 allowOutsideClick: false, 
                 didOpen: () => { Swal.showLoading(); } 
             });
 
-            // ตั้งค่า Timeout 6 วินาทีสำหรับมือถือ เพื่อสลับใช้ระบบสำรองอัตโนมัติหากสัญญาณมือถือล่าช้า
-            let isResolved = false;
-            const loginTimeout = setTimeout(function() {
-                if (!isResolved) {
-                    isResolved = true;
-                    if (isDefaultUser(user, pass)) {
-                        Swal.close(); 
-                        loginSuccess(getDefaultUserInfo(user));
-                    } else {
-                        Swal.close(); 
-                        if (errorMsg) errorMsg.classList.remove('hidden'); 
-                    }
-                }
-            }, 6000);
-
             if (typeof google !== 'undefined' && google.script) {
                 google.script.run
                     .withSuccessHandler(function(res) {
-                        if (isResolved) return;
-                        isResolved = true;
-                        clearTimeout(loginTimeout);
-
                         let parsed = null;
                         try {
                             parsed = (typeof res === 'string') ? JSON.parse(res) : res;
@@ -1525,38 +1485,23 @@
                             Swal.close(); 
                             loginSuccess(parsed.user); 
                         } else { 
-                            if (isDefaultUser(user, pass)) {
-                                Swal.close(); 
-                                loginSuccess(getDefaultUserInfo(user));
-                            } else {
-                                Swal.close(); 
-                                if (errorMsg) errorMsg.classList.remove('hidden'); 
+                            Swal.close(); 
+                            if (errorMsg) {
+                                errorMsg.querySelector('span').innerText = (parsed && parsed.message) ? parsed.message : 'ชื่อผู้ใช้งานหรือรหัสผ่านไม่ถูกต้อง!';
+                                errorMsg.classList.remove('hidden'); 
                             }
                         }
                     })
                     .withFailureHandler(function(err) { 
-                        if (isResolved) return;
-                        isResolved = true;
-                        clearTimeout(loginTimeout);
-                        console.warn("API Login failed, trying fallback:", err);
-
-                        if (isDefaultUser(user, pass)) {
-                            Swal.close(); 
-                            loginSuccess(getDefaultUserInfo(user));
-                        } else {
-                            Swal.close(); 
-                            if (errorMsg) errorMsg.classList.remove('hidden'); 
-                        }
+                        Swal.close(); 
+                        Swal.fire('การเชื่อมต่อขัดข้อง', err.message || 'ไม่สามารถเชื่อมต่อกับ Google Sheets ได้', 'error');
                     })
                     .verifyLogin(user, pass);
             } else {
-                clearTimeout(loginTimeout);
-                if (isDefaultUser(user, pass)) {
-                    Swal.close(); 
-                    loginSuccess(getDefaultUserInfo(user));
-                } else { 
-                    Swal.close(); 
-                    if (errorMsg) errorMsg.classList.remove('hidden'); 
+                Swal.close();
+                if (errorMsg) {
+                    errorMsg.querySelector('span').innerText = 'ชื่อผู้ใช้งานหรือรหัสผ่านไม่ถูกต้อง!';
+                    errorMsg.classList.remove('hidden');
                 }
             }
         }
