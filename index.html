@@ -367,6 +367,11 @@
                             </div>
                         </div>
                         <div class="flex gap-2 w-full xl:w-auto shrink-0 mt-1 xl:mt-0">
+                            <!-- ปุ่มซิงค์ข้อมูลตรงกับ Google Sheets -->
+                            <button onclick="refreshInitialData(true)" class="bg-amber-500 text-white px-3 py-2 rounded-lg hover:bg-amber-600 flex-1 sm:flex-none shadow-sm text-sm font-medium transition flex items-center justify-center whitespace-nowrap" title="ดึงข้อมูลอัปเดตล่าสุดตรงจาก Google Sheets">
+                                <i class="fas fa-sync-alt mr-1.5" id="syncBtnIcon"></i> ซิงค์ Google Sheets
+                            </button>
+
                             <!-- ปุ่มสแกนใบหน้า (จำกัดเฉพาะ Admin) -->
                             <button onclick="openFaceScanner()" class="bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 flex-1 sm:flex-none shadow-sm text-sm font-medium transition flex items-center justify-center whitespace-nowrap admin-only">
                                 <i class="fas fa-camera mr-1.5"></i> สแกนหน้าค้นหา
@@ -1673,6 +1678,79 @@
                     updateDashboardStats(false);
                     renderTeachers();
                 }, 800);
+            }
+        }
+
+        // =====================================================================
+        // ฟังก์ชันบังคับซิงค์ข้อมูลสดตรงจาก Google Sheets (Force Full Sync)
+        // =====================================================================
+        function refreshInitialData(showAlert) {
+            const syncIcon = document.getElementById('syncBtnIcon');
+            if (syncIcon) syncIcon.classList.add('fa-spin');
+
+            if (showAlert) {
+                Swal.fire({
+                    title: 'กำลังซิงค์ข้อมูลกับ Google Sheets...',
+                    text: 'กำลังดึงข้อมูลล่าสุดของนักเรียน ครู และการเช็คชื่อสดๆ จาก Google Sheets...',
+                    allowOutsideClick: false,
+                    didOpen: () => { Swal.showLoading(); }
+                });
+            }
+
+            const dateInput = document.getElementById('attendanceDate');
+            const todayStr = dateInput ? dateInput.value : new Date().toISOString().split('T')[0];
+
+            if (typeof google !== 'undefined' && google.script && google.script.run.getInitialAppData) {
+                google.script.run
+                    .withSuccessHandler(function(res) {
+                        if (syncIcon) syncIcon.classList.remove('fa-spin');
+                        try {
+                            const parsed = (typeof res === 'string') ? JSON.parse(res) : res;
+                            if (parsed && parsed.status === 'success') {
+                                studentsList = (parsed.students || []).map(formatStudentData);
+                                teachersList = (parsed.teachers || []).map(formatTeacherData);
+                                todayAttendanceStats = parsed.todayStats || {};
+                                
+                                localStorage.setItem('sis_students_cache', JSON.stringify(studentsList));
+                                localStorage.setItem('sis_teachers_cache', JSON.stringify(teachersList));
+                                localStorage.setItem('sis_todaystats_cache', JSON.stringify(todayAttendanceStats));
+                                localStorage.setItem('sis_weeklystats_cache', JSON.stringify(parsed.weeklyStats || {}));
+
+                                populateClassDropdown();
+                                populateTeacherDatalist();
+                                updateDashboardStats(false);
+                                renderStudents();
+                                renderTeachers();
+                                if (parsed.weeklyStats) updateWeeklyChart(parsed.weeklyStats);
+
+                                if (showAlert) {
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: 'ซิงค์ข้อมูลสำเร็จ 100%',
+                                        text: `ข้อมูลตรงกับ Google Sheets เรียบร้อยแล้ว (นักเรียน ${studentsList.length} คน, ครู ${teachersList.length} คน)`,
+                                        timer: 2000,
+                                        showConfirmButton: false
+                                    });
+                                }
+                            } else {
+                                if (showAlert) Swal.fire('เกิดข้อผิดพลาด', parsed ? parsed.message : 'ไม่สามารถดึงข้อมูลได้', 'error');
+                            }
+                        } catch(e) {
+                            if (showAlert) Swal.fire('เกิดข้อผิดพลาด', e.message, 'error');
+                        }
+                    })
+                    .withFailureHandler(function(err) {
+                        if (syncIcon) syncIcon.classList.remove('fa-spin');
+                        if (showAlert) Swal.fire('การเชื่อมต่อขัดข้อง', err.message, 'error');
+                    })
+                    .getInitialAppData(todayStr);
+            } else {
+                if (syncIcon) syncIcon.classList.remove('fa-spin');
+                fetchStudentsData();
+                fetchTeachersData();
+                if (showAlert) {
+                    Swal.fire({ icon: 'success', title: 'ซิงค์ข้อมูลสำเร็จ', timer: 1500, showConfirmButton: false });
+                }
             }
         }
 
