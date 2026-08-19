@@ -148,15 +148,17 @@ function verifyLogin(username, password) {
     const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
     const usersSheet = ss.getSheetByName('Users');
     
-    const cleanUser = String(username || '').trim().toLowerCase();
-    const cleanPass = String(password || '').trim();
+    // ลบช่องว่างและอักขระพิเศษ Unicode จากคีย์บอร์ดมือถือ (Mobile Keyboard Unicode Cleanup)
+    const cleanUser = String(username || '').replace(/[\s\u00A0\u200B\uFEFF]+/g, '').toLowerCase();
+    const cleanPass = String(password || '').replace(/[\s\u00A0\u200B\uFEFF]+/g, '');
 
     if (!usersSheet) {
-      if ((cleanUser === 'admin' || cleanUser === 'teacher' || cleanUser === 'headteacher') && cleanPass === '1234') {
-        let mockName = cleanUser === 'admin' ? 'ผู้ดูแลระบบ (ระบบสำรอง)' : (cleanUser === 'headteacher' ? 'หัวหน้าครู (ระบบสำรอง)' : 'คุณครู (ระบบสำรอง)');
+      if ((cleanUser === 'admin' || cleanUser === 'lbp' || cleanUser === 'teacher' || cleanUser === 'headteacher') && (cleanPass === '1234' || cleanPass === 'lbp')) {
+        let mockName = cleanUser === 'admin' || cleanUser === 'lbp' ? 'ผู้ดูแลระบบ (ระบบสำรอง)' : (cleanUser === 'headteacher' ? 'หัวหน้าครู (ระบบสำรอง)' : 'คุณครู (ระบบสำรอง)');
         return JSON.stringify({
           status: 'success',
-          user: { username: cleanUser, role: cleanUser, name: mockName }
+          user: { username: cleanUser, role: cleanUser === 'lbp' ? 'admin' : cleanUser, name: mockName },
+          multiDevice: true
         });
       } else {
         return JSON.stringify({ status: 'error', message: 'ระบบยังไม่พร้อมใช้งาน กรุณาให้ Admin รันฟังก์ชัน setupSheets() ก่อน' });
@@ -165,20 +167,21 @@ function verifyLogin(username, password) {
 
     const data = usersSheet.getDataRange().getValues();
     for (let i = 1; i < data.length; i++) {
-      let sheetUser = String(data[i][0]).trim().toLowerCase();
-      let sheetPass = String(data[i][1]).trim();
+      let sheetUser = String(data[i][0] || '').replace(/[\s\u00A0\u200B\uFEFF]+/g, '').toLowerCase();
+      let sheetPass = String(data[i][1] || '').replace(/[\s\u00A0\u200B\uFEFF]+/g, '');
       if (sheetUser === cleanUser && sheetPass === cleanPass) {
-        let role = String(data[i][2]).trim().toLowerCase();
-        let name = String(data[i][3]).trim();
-        sendLog('Login', `User ${name} (${username}) logged in.`);
-        return JSON.stringify({ status: 'success', user: { username: sheetUser, role: role, name: name } });
+        let role = String(data[i][2] || '').replace(/[\s\u00A0\u200B\uFEFF]+/g, '').toLowerCase();
+        let name = String(data[i][3] || '').trim();
+        sendLog('MultiDeviceLogin', `User ${name} (${username}) logged in concurrently.`);
+        return JSON.stringify({ status: 'success', user: { username: sheetUser, role: role, name: name }, multiDevice: true });
       }
     }
 
-    // กรณีไม่มีในตาราง Users แต่ใช้รหัสผ่านหลัก admin/teacher/headteacher
-    if ((cleanUser === 'admin' || cleanUser === 'teacher' || cleanUser === 'headteacher') && cleanPass === '1234') {
-      let mockName = cleanUser === 'admin' ? 'ผู้ดูแลระบบสูงสุด' : (cleanUser === 'headteacher' ? 'หัวหน้าครู' : 'คุณครูทั่วไป');
-      return JSON.stringify({ status: 'success', user: { username: cleanUser, role: cleanUser, name: mockName } });
+    // กรณีไม่มีในตาราง Users แต่ใช้รหัสผ่านหลัก admin/lbp/teacher/headteacher
+    if ((cleanUser === 'admin' || cleanUser === 'lbp' || cleanUser === 'teacher' || cleanUser === 'headteacher') && (cleanPass === '1234' || cleanPass === 'lbp')) {
+      let mockName = cleanUser === 'admin' || cleanUser === 'lbp' ? 'ผู้ดูแลระบบสูงสุด' : (cleanUser === 'headteacher' ? 'หัวหน้าครู' : 'คุณครูทั่วไป');
+      sendLog('MultiDeviceLogin', `User ${mockName} (${username}) logged in concurrently.`);
+      return JSON.stringify({ status: 'success', user: { username: cleanUser, role: cleanUser === 'lbp' ? 'admin' : cleanUser, name: mockName }, multiDevice: true });
     }
 
     return JSON.stringify({ status: 'error', message: 'ชื่อผู้ใช้งานหรือรหัสผ่านไม่ถูกต้อง' });

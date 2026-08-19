@@ -1179,6 +1179,17 @@
             
             updateSortIcons('students');
             updateSortIcons('teachers');
+
+            // ตรวจสอบการเข้าสู่ระบบค้างไว้เพื่อรองรับการใช้งานหลายเครื่อง/เปิดเว็บซ้ำโดยไม่ต้องพิมพ์รหัสใหม่
+            try {
+                const savedSession = localStorage.getItem('sis_session_user');
+                if (savedSession) {
+                    const userData = JSON.parse(savedSession);
+                    if (userData && userData.role) {
+                        loginSuccess(userData);
+                    }
+                }
+            } catch(e) {}
         });
 
         // ============================
@@ -1484,6 +1495,13 @@
 
         function loginSuccess(userData) {
             currentUserRole = userData.role.toLowerCase();
+            
+            // บันทึก Session เพื่อรองรับการใช้งานพร้อมกันหลายอุปกรณ์ (Multi-device Session Persistence)
+            try {
+                localStorage.setItem('sis_session_user', JSON.stringify(userData));
+                localStorage.setItem('sis_session_login_time', String(Date.now()));
+            } catch(e) {}
+
             document.getElementById('loginScreen').style.display = 'none';
             document.getElementById('mainApp').classList.remove('hidden');
             
@@ -2663,6 +2681,12 @@
                     document.getElementById('loginForm').reset();
                     document.getElementById('loginErrorMessage').classList.add('hidden');
                     
+                    // ลบเซสชันเฉพาะอุปกรณ์นี้ โดยไม่กระทบอุปกรณ์เครื่องอื่นที่ใช้งานพร้อมกันอยู่
+                    try {
+                        localStorage.removeItem('sis_session_user');
+                        localStorage.removeItem('sis_session_login_time');
+                    } catch(e) {}
+
                     currentUserRole = '';
 
                     document.getElementById('mainApp').classList.add('hidden');
