@@ -148,8 +148,9 @@ function verifyLogin(username, password) {
     const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
     const usersSheet = ss.getSheetByName('Users');
     
-    const cleanUser = String(username || '').trim().toLowerCase();
-    const cleanPass = String(password || '').trim();
+    // ลบช่องว่างและอักขระพิเศษ Unicode จากคีย์บอร์ดมือถือ (Mobile Keyboard Unicode Cleanup)
+    const cleanUser = String(username || '').replace(/[\s\u00A0\u200B\uFEFF]+/g, '').toLowerCase();
+    const cleanPass = String(password || '').replace(/[\s\u00A0\u200B\uFEFF]+/g, '');
 
     if (!usersSheet) {
       if ((cleanUser === 'admin' || cleanUser === 'teacher' || cleanUser === 'headteacher') && cleanPass === '1234') {
@@ -165,11 +166,11 @@ function verifyLogin(username, password) {
 
     const data = usersSheet.getDataRange().getValues();
     for (let i = 1; i < data.length; i++) {
-      let sheetUser = String(data[i][0]).trim().toLowerCase();
-      let sheetPass = String(data[i][1]).trim();
+      let sheetUser = String(data[i][0] || '').replace(/[\s\u00A0\u200B\uFEFF]+/g, '').toLowerCase();
+      let sheetPass = String(data[i][1] || '').replace(/[\s\u00A0\u200B\uFEFF]+/g, '');
       if (sheetUser === cleanUser && sheetPass === cleanPass) {
-        let role = String(data[i][2]).trim().toLowerCase();
-        let name = String(data[i][3]).trim();
+        let role = String(data[i][2] || '').replace(/[\s\u00A0\u200B\uFEFF]+/g, '').toLowerCase();
+        let name = String(data[i][3] || '').trim();
         sendLog('Login', `User ${name} (${username}) logged in.`);
         return JSON.stringify({ status: 'success', user: { username: sheetUser, role: role, name: name } });
       }

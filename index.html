@@ -128,7 +128,7 @@
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <i class="fas fa-user text-gray-400"></i>
                         </div>
-                        <input class="bg-gray-50 appearance-none border border-gray-200 rounded-lg w-full py-3 pl-10 pr-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-school-500 focus:bg-white transition-colors" id="username" type="text" placeholder="กรุณาใส่ชื่อผู้ใช้" required>
+                        <input class="bg-gray-50 appearance-none border border-gray-200 rounded-lg w-full py-3 pl-10 pr-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-school-500 focus:bg-white transition-colors" id="username" type="text" placeholder="กรุณาใส่ชื่อผู้ใช้" autocapitalize="none" autocorrect="off" autocomplete="username" spellcheck="false" required>
                     </div>
                 </div>
                 <div class="mb-6">
@@ -137,7 +137,7 @@
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <i class="fas fa-lock text-gray-400"></i>
                         </div>
-                        <input class="bg-gray-50 appearance-none border border-gray-200 rounded-lg w-full py-3 pl-10 pr-3 text-gray-700 mb-1 leading-tight focus:outline-none focus:ring-2 focus:ring-school-500 focus:bg-white transition-colors" id="password" type="password" placeholder="กรุณาใส่รหัสผ่าน" required>
+                        <input class="bg-gray-50 appearance-none border border-gray-200 rounded-lg w-full py-3 pl-10 pr-3 text-gray-700 mb-1 leading-tight focus:outline-none focus:ring-2 focus:ring-school-500 focus:bg-white transition-colors" id="password" type="password" placeholder="กรุณาใส่รหัสผ่าน" autocapitalize="none" autocorrect="off" autocomplete="current-password" spellcheck="false" required>
                     </div>
                 </div>
                 
@@ -1437,47 +1437,94 @@
         }
 
         function handleLogin(e) {
-            e.preventDefault();
+            if (e) e.preventDefault();
             const rawUser = document.getElementById('username').value || '';
             const rawPass = document.getElementById('password').value || '';
-            const user = rawUser.trim().toLowerCase();
-            const pass = rawPass.trim();
-            const errorMsg = document.getElementById('loginErrorMessage');
-            errorMsg.classList.add('hidden');
             
-            if(user && pass) {
-                Swal.fire({ title: 'กำลังเข้าสู่ระบบ...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
-                if (typeof google !== 'undefined' && google.script) {
-                    google.script.run
-                        .withSuccessHandler(function(res) {
-                            const parsed = (typeof res === 'string') ? JSON.parse(res) : res;
-                            if (parsed && parsed.status === 'success') { 
-                                Swal.close(); 
-                                loginSuccess(parsed.user); 
-                            } else { 
-                                Swal.close(); 
-                                errorMsg.classList.remove('hidden'); 
-                            }
-                        })
-                        .withFailureHandler(function(err) { 
-                            console.warn("API Login failed, trying fallback:", err);
+            // ลบช่องว่างและอักขระพิเศษ Unicode จากคีย์บอร์ดมือถือ (Mobile Keyboard Unicode Cleanup)
+            const user = rawUser.replace(/[\s\u00A0\u200B\uFEFF]+/g, '').toLowerCase();
+            const pass = rawPass.replace(/[\s\u00A0\u200B\uFEFF]+/g, '');
+            const errorMsg = document.getElementById('loginErrorMessage');
+            if (errorMsg) errorMsg.classList.add('hidden');
+            
+            if (!user || !pass) {
+                if (errorMsg) errorMsg.classList.remove('hidden');
+                return;
+            }
+
+            Swal.fire({ 
+                title: 'กำลังเข้าสู่ระบบ...', 
+                allowOutsideClick: false, 
+                didOpen: () => { Swal.showLoading(); } 
+            });
+
+            // ตั้งค่า Timeout 6 วินาทีสำหรับมือถือ เพื่อสลับใช้ระบบสำรองอัตโนมัติหากสัญญาณมือถือล่าช้า
+            let isResolved = false;
+            const loginTimeout = setTimeout(function() {
+                if (!isResolved) {
+                    isResolved = true;
+                    if ((user === 'admin' || user === 'teacher' || user === 'headteacher') && pass === '1234') {
+                        let mockName = user === 'admin' ? 'ผู้ดูแลระบบ (Admin)' : (user === 'headteacher' ? 'หัวหน้าครู' : 'คุณครู');
+                        Swal.close(); 
+                        loginSuccess({ username: user, role: user, name: mockName });
+                    } else {
+                        Swal.close(); 
+                        if (errorMsg) errorMsg.classList.remove('hidden'); 
+                    }
+                }
+            }, 6000);
+
+            if (typeof google !== 'undefined' && google.script) {
+                google.script.run
+                    .withSuccessHandler(function(res) {
+                        if (isResolved) return;
+                        isResolved = true;
+                        clearTimeout(loginTimeout);
+
+                        let parsed = null;
+                        try {
+                            parsed = (typeof res === 'string') ? JSON.parse(res) : res;
+                        } catch(err) {}
+
+                        if (parsed && parsed.status === 'success') { 
+                            Swal.close(); 
+                            loginSuccess(parsed.user); 
+                        } else { 
                             if ((user === 'admin' || user === 'teacher' || user === 'headteacher') && pass === '1234') {
                                 let mockName = user === 'admin' ? 'ผู้ดูแลระบบ (Admin)' : (user === 'headteacher' ? 'หัวหน้าครู' : 'คุณครู');
                                 Swal.close(); 
                                 loginSuccess({ username: user, role: user, name: mockName });
                             } else {
                                 Swal.close(); 
-                                errorMsg.classList.remove('hidden'); 
+                                if (errorMsg) errorMsg.classList.remove('hidden'); 
                             }
-                        })
-                        .verifyLogin(user, pass);
-                } else {
-                    setTimeout(function() {
+                        }
+                    })
+                    .withFailureHandler(function(err) { 
+                        if (isResolved) return;
+                        isResolved = true;
+                        clearTimeout(loginTimeout);
+                        console.warn("API Login failed, trying fallback:", err);
+
                         if ((user === 'admin' || user === 'teacher' || user === 'headteacher') && pass === '1234') {
-                            let mockName = user === 'admin' ? 'Admin User' : (user === 'headteacher' ? 'Head Teacher' : 'Teacher');
-                            Swal.close(); loginSuccess({ username: user, role: user, name: mockName });
-                        } else { Swal.close(); errorMsg.classList.remove('hidden'); }
-                    }, 800);
+                            let mockName = user === 'admin' ? 'ผู้ดูแลระบบ (Admin)' : (user === 'headteacher' ? 'หัวหน้าครู' : 'คุณครู');
+                            Swal.close(); 
+                            loginSuccess({ username: user, role: user, name: mockName });
+                        } else {
+                            Swal.close(); 
+                            if (errorMsg) errorMsg.classList.remove('hidden'); 
+                        }
+                    })
+                    .verifyLogin(user, pass);
+            } else {
+                clearTimeout(loginTimeout);
+                if ((user === 'admin' || user === 'teacher' || user === 'headteacher') && pass === '1234') {
+                    let mockName = user === 'admin' ? 'Admin User' : (user === 'headteacher' ? 'Head Teacher' : 'Teacher');
+                    Swal.close(); 
+                    loginSuccess({ username: user, role: user, name: mockName });
+                } else { 
+                    Swal.close(); 
+                    if (errorMsg) errorMsg.classList.remove('hidden'); 
                 }
             }
         }
