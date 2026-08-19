@@ -1479,17 +1479,17 @@
             Swal.fire({ title: 'กำลังเข้าสู่ระบบ...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
 
             let isResolved = false;
-            // Safety Net Timeout 8 วินาที สำหรับปิด Swal เมื่ออินเทอร์เน็ตมือถือช้า
+            // Safety Net Timeout 15 วินาที ป้องกันการค้างหมุน และรองรับการ Cold Start ของเซิร์ฟเวอร์ Google
             const loginTimeout = setTimeout(function() {
                 if (!isResolved) {
                     isResolved = true;
                     Swal.close();
                     if (errorMsg) {
-                        errorMsg.querySelector('span').innerText = 'สัญญาณอินเทอร์เน็ตช้า กรุณาลองใหม่อีกครั้ง!';
+                        errorMsg.querySelector('span').innerText = 'การตอบกลับจากเซิร์ฟเวอร์ใช้เวลานานเกินไป กรุณาลองใหม่อีกครั้ง!';
                         errorMsg.classList.remove('hidden');
                     }
                 }
-            }, 8000);
+            }, 15000);
 
             if (typeof google !== 'undefined' && google.script) {
                 google.script.run
