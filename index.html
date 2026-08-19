@@ -1469,27 +1469,27 @@
             if (errorMsg) errorMsg.classList.add('hidden');
             
             if(!user || !pass) {
-                if (errorMsg) errorMsg.classList.remove('hidden');
+                if (errorMsg) {
+                    errorMsg.querySelector('span').innerText = 'กรุณากรอกชื่อผู้ใช้และรหัสผ่าน!';
+                    errorMsg.classList.remove('hidden');
+                }
                 return;
             }
 
-            Swal.fire({ title: 'กำลังเข้าสู่ระบบ...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+            Swal.fire({ title: 'กำลังตรวจสอบสิทธิ์ผ่าน Google Sheets...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
 
             let isResolved = false;
-            // Safety Net Timeout 5 วินาที สำหรับปิด Swal และรับประกันว่าจะไม่หมุนค้าง 100%
+            // Safety Net Timeout 8 วินาที สำหรับปิด Swal เมื่ออินเทอร์เน็ตมือถือช้า
             const loginTimeout = setTimeout(function() {
                 if (!isResolved) {
                     isResolved = true;
                     Swal.close();
-                    if ((user === 'admin' || user === 'lbp' || user === 'teacher' || user === 'headteacher') && (pass === '1234' || pass === 'lbp')) {
-                        let mockRole = (user === 'admin' || user === 'lbp') ? 'admin' : user;
-                        let mockName = (user === 'admin' || user === 'lbp') ? 'ผู้ดูแลระบบสูงสุด' : (user === 'headteacher' ? 'หัวหน้าครู' : 'คุณครู');
-                        loginSuccess({ username: user, role: mockRole, name: mockName });
-                    } else {
-                        if (errorMsg) errorMsg.classList.remove('hidden');
+                    if (errorMsg) {
+                        errorMsg.querySelector('span').innerText = 'สัญญาณอินเทอร์เน็ตช้า กรุณาลองใหม่อีกครั้ง!';
+                        errorMsg.classList.remove('hidden');
                     }
                 }
-            }, 5000);
+            }, 8000);
 
             if (typeof google !== 'undefined' && google.script) {
                 google.script.run
@@ -1507,12 +1507,9 @@
                         if (parsed && parsed.status === 'success') { 
                             loginSuccess(parsed.user); 
                         } else { 
-                            if ((user === 'admin' || user === 'lbp' || user === 'teacher' || user === 'headteacher') && (pass === '1234' || pass === 'lbp')) {
-                                let mockRole = (user === 'admin' || user === 'lbp') ? 'admin' : user;
-                                let mockName = (user === 'admin' || user === 'lbp') ? 'ผู้ดูแลระบบสูงสุด' : (user === 'headteacher' ? 'หัวหน้าครู' : 'คุณครู');
-                                loginSuccess({ username: user, role: mockRole, name: mockName });
-                            } else {
-                                if (errorMsg) errorMsg.classList.remove('hidden'); 
+                            if (errorMsg) {
+                                errorMsg.querySelector('span').innerText = (parsed && parsed.message) ? parsed.message : 'ชื่อผู้ใช้งานหรือรหัสผ่านไม่ถูกต้อง!';
+                                errorMsg.classList.remove('hidden'); 
                             }
                         }
                     })
@@ -1521,26 +1518,20 @@
                         isResolved = true;
                         clearTimeout(loginTimeout);
                         Swal.close();
-                        console.warn("API Login failed, trying fallback:", err);
+                        console.warn("API Login failed:", err);
 
-                        if ((user === 'admin' || user === 'lbp' || user === 'teacher' || user === 'headteacher') && (pass === '1234' || pass === 'lbp')) {
-                            let mockRole = (user === 'admin' || user === 'lbp') ? 'admin' : user;
-                            let mockName = (user === 'admin' || user === 'lbp') ? 'ผู้ดูแลระบบสูงสุด' : (user === 'headteacher' ? 'หัวหน้าครู' : 'คุณครู');
-                            loginSuccess({ username: user, role: mockRole, name: mockName });
-                        } else {
-                            if (errorMsg) errorMsg.classList.remove('hidden'); 
+                        if (errorMsg) {
+                            errorMsg.querySelector('span').innerText = 'ไม่สามารถเชื่อมต่อกับ Google Sheets ได้!';
+                            errorMsg.classList.remove('hidden'); 
                         }
                     })
                     .verifyLogin(user, pass);
             } else {
                 clearTimeout(loginTimeout);
                 Swal.close();
-                if ((user === 'admin' || user === 'lbp' || user === 'teacher' || user === 'headteacher') && (pass === '1234' || pass === 'lbp')) {
-                    let mockRole = (user === 'admin' || user === 'lbp') ? 'admin' : user;
-                    let mockName = (user === 'admin' || user === 'lbp') ? 'ผู้ดูแลระบบสูงสุด' : (user === 'headteacher' ? 'หัวหน้าครู' : 'คุณครู');
-                    loginSuccess({ username: user, role: mockRole, name: mockName });
-                } else { 
-                    if (errorMsg) errorMsg.classList.remove('hidden'); 
+                if (errorMsg) {
+                    errorMsg.querySelector('span').innerText = 'ชื่อผู้ใช้งานหรือรหัสผ่านไม่ถูกต้อง!';
+                    errorMsg.classList.remove('hidden');
                 }
             }
         }
