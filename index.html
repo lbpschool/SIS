@@ -778,7 +778,10 @@
             <div class="flex justify-between items-center px-4 sm:px-6 py-4 border-b bg-school-50 rounded-t-xl shrink-0">
                 <h2 class="text-lg sm:text-xl font-bold text-school-800"><i class="fas fa-address-card mr-2"></i>รายละเอียดข้อมูลนักเรียน</h2>
                 <div class="flex items-center gap-2">
-                    <button onclick="printStudentA4Current()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition shadow-sm flex items-center cursor-pointer">
+                    <button onclick="printStudentA4Current(true)" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition shadow-sm flex items-center cursor-pointer" title="บันทึกไฟล์ PDF">
+                        <i class="fas fa-file-pdf mr-1.5"></i> บันทึกเป็น PDF
+                    </button>
+                    <button onclick="printStudentA4Current(false)" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition shadow-sm flex items-center cursor-pointer" title="พิมพ์เอกสาร A4">
                         <i class="fas fa-print mr-1.5"></i> พิมพ์เอกสาร A4
                     </button>
                     <button onclick="closeStudentViewModal()" class="text-gray-400 hover:text-red-500 hover:bg-red-50 p-2 rounded-lg transition text-xl focus:outline-none -mr-2">
@@ -2796,13 +2799,13 @@
 
         let currentViewDisabilityImg = "", currentViewMedicine = "", currentViewDisease = "", currentViewingStudentId = null; 
 
-        function printStudentA4Current() {
+        function printStudentA4Current(isSavePdf) {
             if (currentViewingStudentId) {
-                printStudentA4(currentViewingStudentId);
+                printStudentA4(currentViewingStudentId, isSavePdf);
             }
         }
 
-        function printStudentA4(id) {
+        function printStudentA4(id, isSavePdf) {
             const st = studentsList.find(function(s) { return s.id === id; });
             if (!st) { 
                 if (typeof Swal !== 'undefined') Swal.fire('แจ้งเตือน', 'ไม่พบข้อมูลนักเรียน', 'warning'); 
@@ -2831,9 +2834,9 @@
             const thaiMonths = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
             const thaiDatePrint = `${todayNow.getDate()} ${thaiMonths[todayNow.getMonth()]} ${yearStr}`;
 
-            let printWindow = window.open('', '_blank', 'width=950,height=1000');
+            let printWindow = window.open('', '_blank', 'width=980,height=1000');
             if (!printWindow) {
-                if (typeof Swal !== 'undefined') Swal.fire('แจ้งเตือน', 'กรุณาอนุญาตให้เปิดเบราว์เซอร์ Pop-up เพื่อพิมพ์เอกสาร A4', 'warning');
+                if (typeof Swal !== 'undefined') Swal.fire('แจ้งเตือน', 'กรุณาอนุญาตให้เปิดเบราว์เซอร์ Pop-up เพื่อบันทึก PDF หรือพิมพ์เอกสาร', 'warning');
                 return;
             }
 
@@ -2841,38 +2844,46 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <title>แบบบันทึกประวัตินักเรียน A4 - ${st.name}</title>
+    <title>แบบบันทึกประวัตินักเรียน - ${st.name}</title>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <` + `script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"><` + `/script>
     <style>
-        @page { size: A4 portrait; margin: 5mm 7mm 5mm 7mm; }
+        @page { size: A4 portrait; margin: 4mm 6mm 4mm 6mm; }
         * { box-sizing: border-box; font-family: 'Sarabun', sans-serif; }
-        body { margin: 0; padding: 0; background: #fff; color: #1f2937; font-size: 11pt; line-height: 1.35; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-        .page-container { width: 100%; max-width: 194mm; margin: 0 auto; padding: 4px; background: #fff; }
-        .header { display: flex; align-items: center; justify-content: space-between; border-bottom: 2.5px solid #00a651; padding-bottom: 6px; margin-bottom: 8px; }
-        .header-logo { height: 55px; width: auto; }
+        body { margin: 0; padding: 0; background: #fff; color: #1f2937; font-size: 10.5pt; line-height: 1.32; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .page-container { width: 100%; max-width: 198mm; margin: 0 auto; padding: 4px; background: #fff; }
+        .header { display: flex; align-items: center; justify-content: space-between; border-bottom: 2.5px solid #00a651; padding-bottom: 5px; margin-bottom: 6px; }
+        .header-logo { height: 52px; width: auto; }
         .header-text { text-align: center; flex: 1; margin: 0 10px; }
         .header-title { font-size: 14pt; font-weight: 700; color: #074d23; margin: 0; }
         .header-sub { font-size: 11pt; font-weight: 600; color: #374151; margin: 2px 0 0 0; }
         
-        .section-title { font-size: 10.5pt; font-weight: 700; color: #0d8139; background: #f0fdf4; padding: 3px 8px; border-left: 4px solid #00a651; margin: 6px 0 4px 0; border-radius: 2px; }
-        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .section-title { font-size: 10pt; font-weight: 700; color: #0d8139; background: #f0fdf4; padding: 3px 8px; border-left: 4px solid #00a651; margin: 0 0 4px 0; border-radius: 2px; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
         
-        .profile-row { display: flex; gap: 12px; margin-bottom: 6px; align-items: flex-start; }
-        .profile-img-box { width: 115px; height: 140px; border: 1.5px solid #00a651; border-radius: 6px; overflow: hidden; shrink: 0; text-align: center; background: #f9fafb; display: flex; align-items: center; justify-content: center; shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .profile-row { display: flex; gap: 10px; margin-bottom: 6px; align-items: flex-start; }
+        .profile-img-box { width: 110px; height: 135px; border: 1.5px solid #00a651; border-radius: 6px; overflow: hidden; shrink: 0; text-align: center; background: #f9fafb; display: flex; align-items: center; justify-content: center; }
         .profile-img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
         
-        .info-table { width: 100%; border-collapse: collapse; margin-bottom: 2px; }
-        .info-table td { padding: 3px 5px; vertical-align: top; border-bottom: 1px dashed #e5e7eb; font-size: 10pt; }
-        .info-label { font-weight: 600; color: #4b5563; width: 33%; white-space: nowrap; }
+        .info-table { width: 100%; border-collapse: collapse; margin-bottom: 1px; }
+        .info-table td { padding: 2.5px 4px; vertical-align: top; border-bottom: 1px dashed #e5e7eb; font-size: 9.5pt; }
+        .info-label { font-weight: 600; color: #4b5563; width: 34%; white-space: nowrap; }
         .info-val { font-weight: 500; color: #111827; }
         
-        .box-card { border: 1px solid #d1d5db; border-radius: 6px; padding: 6px 8px; background: #fafafa; margin-bottom: 6px; }
-        .disability-card-box { width: 220px; height: 130px; border: 1.5px solid #8b5cf6; border-radius: 6px; overflow: hidden; background: #f3f4f6; display: flex; align-items: center; justify-content: center; shrink: 0; }
-        .disability-img { width: 100%; height: 100%; object-fit: contain; }
+        .box-card { border: 1px solid #d1d5db; border-radius: 6px; padding: 5px 7px; background: #fafafa; }
         
-        .footer-signatures { display: flex; justify-content: space-between; margin-top: 12px; padding-top: 6px; }
-        .sig-box { text-align: center; width: 45%; font-size: 9.5pt; }
-        .sig-line { margin-top: 25px; border-bottom: 1px dotted #6b7280; width: 85%; margin-left: auto; margin-right: auto; }
+        /* Layout: Left Column (Sections 2, 3, 4) & Right Column (Section 5) */
+        .main-flex-layout { display: flex; gap: 8px; margin-bottom: 6px; align-items: stretch; }
+        .left-col { flex: 1.55; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+        .right-col { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+        
+        .disability-card-wrapper { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; padding-top: 2px; }
+        .disability-card-box-v { width: 100%; height: 260px; border: 1.5px solid #8b5cf6; border-radius: 6px; overflow: hidden; background: #f8fafc; display: flex; align-items: center; justify-content: center; padding: 4px; }
+        .disability-img-v { max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain; border-radius: 4px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
+        
+        .footer-signatures { display: flex; justify-content: space-between; margin-top: 10px; padding-top: 4px; }
+        .sig-box { text-align: center; width: 45%; font-size: 9pt; }
+        .sig-line { margin-top: 22px; border-bottom: 1px dotted #6b7280; width: 85%; margin-left: auto; margin-right: auto; }
         
         @media print {
             body { background: none; }
@@ -2881,9 +2892,10 @@
     </style>
 </head>
 <body>
-    <div class="no-print" style="position: fixed; top: 12px; right: 12px; z-index: 999; background: #ffffff; padding: 12px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); border: 1px solid #e5e7eb;">
-        <button onclick="window.print()" style="background: #00a651; color: white; border: none; padding: 8px 18px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 11pt;">🖨️ พิมพ์เอกสาร A4</button>
-        <button onclick="window.close()" style="background: #ef4444; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 11pt; margin-left: 6px;">ปิดหน้าต่าง</button>
+    <div class="no-print" style="position: fixed; top: 10px; right: 10px; z-index: 999; background: #ffffff; padding: 10px 14px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); border: 1px solid #cbd5e1; display: flex; align-items: center; gap: 8px;">
+        <button onclick="downloadPDF()" style="background: #2563eb; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 10.5pt; display: flex; align-items: center; gap: 5px;">📄 บันทึกเป็น PDF</button>
+        <button onclick="window.print()" style="background: #00a651; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 10.5pt; display: flex; align-items: center; gap: 5px;">🖨️ พิมพ์เอกสาร A4</button>
+        <button onclick="window.close()" style="background: #ef4444; color: white; border: none; padding: 8px 14px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 10.5pt; margin-left: 4px;">ปิดหน้าต่าง</button>
     </div>
 
     <div class="page-container">
@@ -2891,7 +2903,7 @@
         <div class="header">
             <img src="https://lbpschool.github.io/SIS/school_logo.png?v=3" class="header-logo" alt="ตราโรงเรียน">
             <div class="header-text">
-                <div class="header-title">แบบบันทึกประวัตินักเรียนรายบุคคล (A4)</div>
+                <div class="header-title">แบบบันทึกประวัตินักเรียนรายบุคคล</div>
                 <div class="header-sub">โรงเรียนลพบุรีปัญญานุกูล จังหวัดลพบุรี</div>
             </div>
             <div style="text-align: right; font-size: 8.5pt; color: #6b7280; line-height: 1.4;">
@@ -2906,11 +2918,11 @@
                 <img src="${profileImgSrc}" class="profile-img" alt="รูปโปรไฟล์" onerror="this.src='https://ui-avatars.com/api/?name=${safeName}&background=0d8139&color=fff&size=128&bold=true'">
             </div>
             <div style="flex: 1;">
-                <div class="section-title" style="margin-top:0;">1. ข้อมูลส่วนตัวและข้อมูลการศึกษา</div>
+                <div class="section-title">1. ข้อมูลส่วนตัวและข้อมูลการศึกษา</div>
                 <table class="info-table">
                     <tr>
                         <td class="info-label">ชื่อ - นามสกุล:</td>
-                        <td class="info-val" style="font-weight: 700; color: #0d8139; font-size: 11.5pt;">${st.name} ${(st.nickname ? '(' + st.nickname + ')' : '')}</td>
+                        <td class="info-val" style="font-weight: 700; color: #0d8139; font-size: 11pt;">${st.name} ${(st.nickname ? '(' + st.nickname + ')' : '')}</td>
                         <td class="info-label">รหัสนักเรียน:</td>
                         <td class="info-val" style="font-weight: 700;">${st.id}</td>
                     </tr>
@@ -2936,106 +2948,114 @@
             </div>
         </div>
 
-        <!-- Section 2: ครูประจำชั้น & ข้อมูลสุขภาพ -->
-        <div class="grid-2">
-            <div class="box-card">
-                <div class="section-title" style="margin-top:0;">2. ครูประจำชั้นและครูผู้ดูแล</div>
-                <table class="info-table">
-                    <tr>
-                        <td class="info-label">ครูประจำชั้นหลัก:</td>
-                        <td class="info-val" style="font-weight:600;">${(dynTeacher && dynTeacher !== '-' && dynTeacher !== 'รอจัดสรร') ? dynTeacher : 'รอจัดสรร'}</td>
-                    </tr>
-                    <tr>
-                        <td class="info-label">ครูผู้ดูแลร่วม 1:</td>
-                        <td class="info-val">${(dynCo1 && dynCo1 !== '-') ? dynCo1 : '-'}</td>
-                    </tr>
-                    <tr>
-                        <td class="info-label">ครูผู้ดูแลร่วม 2:</td>
-                        <td class="info-val">${(dynCo2 && dynCo2 !== '-') ? dynCo2 : '-'}</td>
-                    </tr>
-                </table>
+        <!-- Main Flex Layout: Left Side (Sections 2, 3, 4) & Right Side (Section 5) -->
+        <div class="main-flex-layout">
+            <!-- Left Side -->
+            <div class="left-col">
+                <!-- Sections 2 & 3 Grid -->
+                <div class="grid-2">
+                    <div class="box-card">
+                        <div class="section-title">2. ครูประจำชั้นและครูผู้ดูแล</div>
+                        <table class="info-table">
+                            <tr>
+                                <td class="info-label">ครูประจำชั้นหลัก:</td>
+                                <td class="info-val" style="font-weight:600;">${(dynTeacher && dynTeacher !== '-' && dynTeacher !== 'รอจัดสรร') ? dynTeacher : 'รอจัดสรร'}</td>
+                            </tr>
+                            <tr>
+                                <td class="info-label">ครูผู้ดูแลร่วม 1:</td>
+                                <td class="info-val">${(dynCo1 && dynCo1 !== '-') ? dynCo1 : '-'}</td>
+                            </tr>
+                            <tr>
+                                <td class="info-label">ครูผู้ดูแลร่วม 2:</td>
+                                <td class="info-val">${(dynCo2 && dynCo2 !== '-') ? dynCo2 : '-'}</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <div class="box-card">
+                        <div class="section-title">3. ข้อมูลสุขภาพและการรับยา</div>
+                        <table class="info-table">
+                            <tr>
+                                <td class="info-label">โรคประจำตัว:</td>
+                                <td class="info-val" style="color: ${(st.disease && st.disease !== '-') ? '#dc2626' : '#111827'}; font-weight: ${(st.disease && st.disease !== '-') ? '600' : 'normal'};">${st.disease || 'ไม่มี'}</td>
+                            </tr>
+                            <tr>
+                                <td class="info-label">ยาประจำตัว:</td>
+                                <td class="info-val" style="color: ${(st.medicine && st.medicine !== '-') ? '#d97706' : '#111827'}; font-weight: ${(st.medicine && st.medicine !== '-') ? '600' : 'normal'};">${st.medicine || 'ไม่มี'}</td>
+                            </tr>
+                            <tr>
+                                <td class="info-label">สถานะความพิการ:</td>
+                                <td class="info-val" style="font-weight:600; color:${st.hasDisability ? '#6b21a8' : '#374151'};">${st.hasDisability ? ('มีบัตรความพิการ (' + (st.disabilityType || 'ไม่ระบุประเภท') + ')') : 'ไม่มีบัตรความพิการ'}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Section 4: ข้อมูลครอบครัว & ที่อยู่ -->
+                <div class="box-card">
+                    <div class="section-title">4. ข้อมูลครอบครัว บิดา-มารดา และผู้ปกครอง</div>
+                    <div class="grid-2">
+                        <table class="info-table">
+                            <tr>
+                                <td class="info-label">ชื่อบิดา:</td>
+                                <td class="info-val">${st.fatherName || '-'}</td>
+                            </tr>
+                            <tr>
+                                <td class="info-label">เบอร์โทรบิดา:</td>
+                                <td class="info-val">${st.fatherPhone || '-'}</td>
+                            </tr>
+                            <tr>
+                                <td class="info-label">ชื่อมารดา:</td>
+                                <td class="info-val">${st.motherName || '-'}</td>
+                            </tr>
+                            <tr>
+                                <td class="info-label">เบอร์โทรมารดา:</td>
+                                <td class="info-val">${st.motherPhone || '-'}</td>
+                            </tr>
+                        </table>
+
+                        <table class="info-table">
+                            <tr>
+                                <td class="info-label">ชื่อผู้ปกครอง:</td>
+                                <td class="info-val">${st.guardianName || '-'}</td>
+                            </tr>
+                            <tr>
+                                <td class="info-label">ความสัมพันธ์:</td>
+                                <td class="info-val">${st.guardianRelation || '-'}</td>
+                            </tr>
+                            <tr>
+                                <td class="info-label">เบอร์โทรผู้ปกครอง:</td>
+                                <td class="info-val">${st.guardianPhone || '-'}</td>
+                            </tr>
+                            <tr>
+                                <td class="info-label">ที่อยู่ปัจจุบัน:</td>
+                                <td class="info-val">${st.address || 'ไม่ระบุที่อยู่'}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
             </div>
 
-            <div class="box-card">
-                <div class="section-title" style="margin-top:0;">3. ข้อมูลสุขภาพและการรับยา</div>
-                <table class="info-table">
-                    <tr>
-                        <td class="info-label">โรคประจำตัว:</td>
-                        <td class="info-val" style="color: ${(st.disease && st.disease !== '-') ? '#dc2626' : '#111827'}; font-weight: ${(st.disease && st.disease !== '-') ? '600' : 'normal'};">${st.disease || 'ไม่มี'}</td>
-                    </tr>
-                    <tr>
-                        <td class="info-label">ยาประจำตัว:</td>
-                        <td class="info-val" style="color: ${(st.medicine && st.medicine !== '-') ? '#d97706' : '#111827'}; font-weight: ${(st.medicine && st.medicine !== '-') ? '600' : 'normal'};">${st.medicine || 'ไม่มี'}</td>
-                    </tr>
-                    <tr>
-                        <td class="info-label">สถานะความพิการ:</td>
-                        <td class="info-val" style="font-weight:600; color:${st.hasDisability ? '#6b21a8' : '#374151'};">${st.hasDisability ? ('มีบัตรความพิการ (' + (st.disabilityType || 'ไม่ระบุประเภท') + ')') : 'ไม่มีบัตรความพิการ'}</td>
-                    </tr>
-                </table>
-            </div>
-        </div>
-
-        <!-- Section 3: ข้อมูลครอบครัว & ที่อยู่ -->
-        <div class="box-card">
-            <div class="section-title" style="margin-top:0;">4. ข้อมูลครอบครัว บิดา-มารดา และผู้ปกครอง</div>
-            <div class="grid-2">
-                <table class="info-table">
-                    <tr>
-                        <td class="info-label">ชื่อบิดา:</td>
-                        <td class="info-val">${st.fatherName || '-'}</td>
-                    </tr>
-                    <tr>
-                        <td class="info-label">เบอร์โทรบิดา:</td>
-                        <td class="info-val">${st.fatherPhone || '-'}</td>
-                    </tr>
-                    <tr>
-                        <td class="info-label">ชื่อมารดา:</td>
-                        <td class="info-val">${st.motherName || '-'}</td>
-                    </tr>
-                    <tr>
-                        <td class="info-label">เบอร์โทรมารดา:</td>
-                        <td class="info-val">${st.motherPhone || '-'}</td>
-                    </tr>
-                </table>
-
-                <table class="info-table">
-                    <tr>
-                        <td class="info-label">ชื่อผู้ปกครอง:</td>
-                        <td class="info-val">${st.guardianName || '-'}</td>
-                    </tr>
-                    <tr>
-                        <td class="info-label">ความสัมพันธ์:</td>
-                        <td class="info-val">${st.guardianRelation || '-'}</td>
-                    </tr>
-                    <tr>
-                        <td class="info-label">เบอร์โทรผู้ปกครอง:</td>
-                        <td class="info-val">${st.guardianPhone || '-'}</td>
-                    </tr>
-                    <tr>
-                        <td class="info-label">ที่อยู่ปัจจุบัน:</td>
-                        <td class="info-val">${st.address || 'ไม่ระบุที่อยู่'}</td>
-                    </tr>
-                </table>
-            </div>
-        </div>
-
-        <!-- Section 4: รูปบัตรประจำตัวคนพิการ -->
-        <div class="box-card">
-            <div class="section-title" style="margin-top:0;">5. บัตรประจำตัวคนพิการ / เอกสารประจำตัว</div>
-            <div style="display: flex; gap: 14px; align-items: center;">
-                ${disabilityImgSrc ? `
-                    <div class="disability-card-box">
-                        <img src="${disabilityImgSrc}" class="disability-img" alt="รูปบัตรคนพิการ">
+            <!-- Right Side: Section 5: บัตรประจำตัวคนพิการแนวตั้ง -->
+            <div class="right-col">
+                <div class="box-card" style="height: 100%; display: flex; flex-direction: column;">
+                    <div class="section-title">5. บัตรประจำตัวคนพิการ / เอกสารประจำตัว</div>
+                    <div class="disability-card-wrapper">
+                        ${disabilityImgSrc ? `
+                            <div class="disability-card-box-v">
+                                <img src="${disabilityImgSrc}" class="disability-img-v" alt="รูปบัตรคนพิการ">
+                            </div>
+                            <div style="margin-top: 6px; font-size: 9pt; color: #374151; text-align: center;">
+                                <p style="margin: 0 0 2px 0; font-weight: 700; color: #6b21a8; font-size:9.5pt;">ประเภท: ${st.disabilityType || 'ไม่ระบุประเภท'}</p>
+                                <p style="margin: 0; color: #059669; font-weight:500; font-size: 8.5pt;">✓ บันทึกในระบบ SIS เรียบร้อย</p>
+                            </div>
+                        ` : `
+                            <div style="padding: 15px 10px; background: #f3f4f6; border: 1px dashed #d1d5db; border-radius: 6px; width: 100%; height: 100%; min-height: 250px; display: flex; align-items: center; justify-content: center; text-align: center; color: #6b7280; font-size: 9.5pt;">
+                                ไม่มีรูปภาพบัตรประจำตัวคนพิการแนบในระบบ
+                            </div>
+                        `}
                     </div>
-                    <div style="flex: 1; font-size: 10pt; color: #374151;">
-                        <p style="margin: 0 0 4px 0; font-weight: 700; color: #6b21a8; font-size:10.5pt;">ประเภทความพิการ: ${st.disabilityType || 'ไม่ระบุประเภท'}</p>
-                        <p style="margin: 0; color: #059669; font-weight:500;">✓ เอกสารบัตรประจำตัวคนพิการได้รับการบันทึกในระบบ SIS เรียบร้อยแล้ว</p>
-                    </div>
-                ` : `
-                    <div style="padding: 10px; background: #f3f4f6; border: 1px dashed #d1d5db; border-radius: 6px; width: 100%; text-align: center; color: #6b7280; font-size: 10pt;">
-                        ไม่มีรูปภาพบัตรประจำตัวคนพิการแนบในระบบ
-                    </div>
-                `}
+                </div>
             </div>
         </div>
 
@@ -3055,9 +3075,38 @@
     </div>
 
     <` + `script>
+        function downloadPDF() {
+            const element = document.querySelector('.page-container');
+            const btnContainer = document.querySelector('.no-print');
+            if (btnContainer) btnContainer.style.display = 'none';
+            
+            if (typeof html2pdf !== 'undefined') {
+                const opt = {
+                    margin: [4, 6, 4, 6],
+                    filename: 'ประวัตินักเรียน_${st.name}.pdf',
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2, useCORS: true, logging: false },
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                };
+                html2pdf().set(opt).from(element).save().then(function() {
+                    if (btnContainer) btnContainer.style.display = 'flex';
+                }).catch(function(err) {
+                    if (btnContainer) btnContainer.style.display = 'flex';
+                    window.print();
+                });
+            } else {
+                if (btnContainer) btnContainer.style.display = 'flex';
+                window.print();
+            }
+        }
+
         window.onload = function() {
             setTimeout(function() {
-                window.print();
+                if (${isSavePdf ? 'true' : 'false'}) {
+                    downloadPDF();
+                } else {
+                    window.print();
+                }
             }, 600);
         };
     <` + `/script>
