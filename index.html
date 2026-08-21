@@ -367,8 +367,8 @@
                             </div>
                         </div>
                         <div class="flex gap-2 w-full xl:w-auto shrink-0 mt-1 xl:mt-0">
-                            <!-- ปุ่มสแกนใบหน้า (จำกัดเฉพาะ Admin) -->
-                            <button onclick="openFaceScanner()" class="bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 flex-1 sm:flex-none shadow-sm text-sm font-medium transition flex items-center justify-center whitespace-nowrap admin-only">
+                            <!-- ปุ่มสแกนใบหน้า (เปิดใช้งานได้ทุก Role) -->
+                            <button onclick="openFaceScanner()" class="bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 flex-1 sm:flex-none shadow-sm text-sm font-medium transition flex items-center justify-center whitespace-nowrap">
                                 <i class="fas fa-camera mr-1.5"></i> สแกนหน้าค้นหา
                             </button>
 
@@ -3912,11 +3912,6 @@
         }
 
         async function openFaceScanner() {
-            if (typeof currentUserRole !== 'undefined' && currentUserRole !== 'admin') {
-                Swal.fire('ปฏิเสธการเข้าถึง', 'ฟีเจอร์สแกนใบหน้าสงวนไว้สำหรับผู้ดูแลระบบ (Admin) เท่านั้น', 'error');
-                return;
-            }
-
             if (studentsList.length === 0) {
                 Swal.fire('แจ้งเตือน', 'ยังไม่มีข้อมูลนักเรียนในระบบ', 'warning');
                 return;
