@@ -323,13 +323,28 @@
                     </div>
 
                     <!-- Dormitory Chart -->
-                    <div class="grid grid-cols-1 gap-6 mb-4">
+                    <div class="grid grid-cols-1 gap-6 mb-6">
                         <div class="bg-white rounded-xl shadow-sm p-4 flex flex-col">
                             <h3 class="text-lg font-semibold text-gray-800 mb-4">กราฟเปรียบเทียบจำนวนนักเรียนแยกตามเรือนนอน</h3>
                             <div class="relative w-full h-64 flex-1">
                                 <canvas id="dormChart"></canvas>
                             </div>
                         </div>
+                    </div>
+
+                    <!-- Learning Source Cards (เพิ่มระบบสถิติแหล่งเรียนรู้) -->
+                    <div class="flex justify-between items-center mb-4 mt-6 px-1">
+                        <h3 class="text-lg font-semibold text-gray-800 flex items-center">
+                            <i class="fas fa-seedling text-emerald-600 mr-2"></i>สถิติจำนวนนักเรียนและครูแยกตามแหล่งเรียนรู้
+                        </h3>
+                        <span class="text-xs text-emerald-700 font-bold bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200 shadow-2xs">รวม 19 แหล่งเรียนรู้</span>
+                    </div>
+                    <div id="learningStatsContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-6">
+                        <!-- Skeleton for Learning Cards -->
+                        <div class="bg-white rounded-xl shadow-sm p-4 border-l-4 border-emerald-400 animate-pulse"><div class="h-4 bg-gray-200 rounded w-1/2 mb-2"></div><div class="h-6 bg-gray-200 rounded w-1/3"></div></div>
+                        <div class="bg-white rounded-xl shadow-sm p-4 border-l-4 border-emerald-400 animate-pulse"><div class="h-4 bg-gray-200 rounded w-1/2 mb-2"></div><div class="h-6 bg-gray-200 rounded w-1/3"></div></div>
+                        <div class="bg-white rounded-xl shadow-sm p-4 border-l-4 border-emerald-400 animate-pulse"><div class="h-4 bg-gray-200 rounded w-1/2 mb-2"></div><div class="h-6 bg-gray-200 rounded w-1/3"></div></div>
+                        <div class="bg-white rounded-xl shadow-sm p-4 border-l-4 border-emerald-400 animate-pulse"><div class="h-4 bg-gray-200 rounded w-1/2 mb-2"></div><div class="h-6 bg-gray-200 rounded w-1/3"></div></div>
                     </div>
                 </div>
 
@@ -391,6 +406,12 @@
                     <!-- ส่วนแสดงสถิติเมื่อเลือกเรือนนอน (เพิ่มใหม่) -->
                     <!-- ========================================== -->
                     <div id="dormFilterStatsContainer" class="hidden grid-cols-3 gap-1.5 sm:gap-3 shrink-0 w-full">
+                        <!-- กล่องสถิติจะถูกสร้างอัตโนมัติด้วย JavaScript -->
+                    </div>
+                    <!-- ========================================== -->
+                    <!-- ส่วนแสดงสถิติเมื่อเลือกแหล่งเรียนรู้ (เพิ่มใหม่) -->
+                    <!-- ========================================== -->
+                    <div id="learningFilterStatsContainer" class="hidden grid-cols-2 sm:grid-cols-4 gap-1.5 sm:gap-3 shrink-0 w-full">
                         <!-- กล่องสถิติจะถูกสร้างอัตโนมัติด้วย JavaScript -->
                     </div>
                     <!-- ========================================== -->
@@ -1726,6 +1747,7 @@
                         localStorage.setItem('sis_teachers_cache', JSON.stringify(teachersList)); 
                         renderTeachers();
                         populateTeacherDatalist();
+                        updateLearningCards();
                         if (typeof callback === 'function') callback();
                     } catch(e) { console.error("Parse teachers error:", e); }
                 }).withFailureHandler(function(err) {
@@ -1735,6 +1757,7 @@
                  teachersList = JSON.parse(localStorage.getItem('sis_teachers_cache')) || JSON.parse(localStorage.getItem('sis_teachers')) || [];
                  renderTeachers();
                  populateTeacherDatalist();
+                 updateLearningCards();
                  if (typeof callback === 'function') callback();
             }
         }
@@ -1982,6 +2005,7 @@
                     calculateTodayAttendancePercent();
                     updateGradeCards();
                     updateDormCards(); 
+                    updateLearningCards();
                     updateDormChart();
                     renderStudents();
                 }).getTodayAttendanceStats(todayStr);
@@ -1995,6 +2019,7 @@
                 calculateTodayAttendancePercent();
                 updateGradeCards();
                 updateDormCards();
+                updateLearningCards();
                 updateDormChart();
             }
         }
@@ -2169,6 +2194,109 @@
                         </div>
                     </div>`;
             });
+        }
+
+        function updateLearningCards() {
+            const container = document.getElementById('learningStatsContainer');
+            if(!container) return;
+            container.innerHTML = '';
+
+            const learningMap = {};
+            const standardSources = [
+                "1.การเลี้ยงกบ", "2.การเลี้ยงไก่พื้นเมือง", "3.การเลี้ยงจิ้งหรีด", "4.มีชัยพัฒนา",
+                "5.การทำปุ๋ยอินทรีย์จากใบไม้", "6.การทำน้ำหมักชีวภาพ", "7.การปลูกมะนาวในวงบ่อ",
+                "8.การปลูกผักสวนครัว", "9.การปลูกผักกางมุ้ง", "10.การปลูกผักในกระถาง 1",
+                "11.การปลูกผักในกระถาง 2", "12.การปลูกผักไม้เลื้อย 1", "13.การปลูกผักไม้เลื้อย 2",
+                "14.การเลี้ยงปลาน้ำจืด", "15.การทำเกษตรผสมผสาน 1", "16.การทำเกษตรผสมผสาน 2",
+                "17.การทำนาข้าว", "18.การทำเกษตรทฤษฎีใหม่", "19.การปลูกผักในกระบะ"
+            ];
+
+            standardSources.forEach(function(ls) {
+                learningMap[ls] = { studentTotal: 0, studentPresent: 0, teachers: [], headTeacher: '' };
+            });
+
+            // รวมจำนวนนักเรียนในแต่ละแหล่งเรียนรู้
+            studentsList.forEach(function(st) {
+                if(st.commuteType !== 'จบการศึกษา' && st.learningSource && st.learningSource !== '-') {
+                    let ls = st.learningSource.trim();
+                    if(!learningMap[ls]) learningMap[ls] = { studentTotal: 0, studentPresent: 0, teachers: [], headTeacher: '' };
+                    learningMap[ls].studentTotal += 1;
+
+                    const attData = todayAttendanceStats[st.id];
+                    const status = attData ? (typeof attData === 'string' ? attData : attData.status) : null;
+                    if(status === 'present' || status === 'late') learningMap[ls].studentPresent += 1;
+                }
+            });
+
+            // รวมจำนวนและรายชื่อครูประจำแหล่งเรียนรู้
+            teachersList.forEach(function(t) {
+                if(t.learningSource && t.learningSource !== '-') {
+                    let ls = t.learningSource.trim();
+                    if(!learningMap[ls]) learningMap[ls] = { studentTotal: 0, studentPresent: 0, teachers: [], headTeacher: '' };
+                    learningMap[ls].teachers.push(t.name);
+                    if(t.isLearningSourceHead) learningMap[ls].headTeacher = t.name;
+                }
+            });
+
+            const sortedSources = Object.keys(learningMap).sort(function(a, b) {
+                let numA = parseInt(String(a).match(/^\d+/)) || 999;
+                let numB = parseInt(String(b).match(/^\d+/)) || 999;
+                if (numA !== numB) return numA - numB;
+                return String(a).localeCompare(String(b), 'th');
+            });
+
+            sortedSources.forEach(function(ls) {
+                const data = learningMap[ls];
+                const teacherCount = data.teachers.length;
+                let teacherSubText = 'ยังไม่มีครูผู้ดูแล';
+                if (teacherCount > 0) {
+                    if (data.headTeacher) teacherSubText = `⭐ หัวหน้า: ${data.headTeacher}`;
+                    else teacherSubText = `ครูผู้ดูแล ${teacherCount} คน`;
+                }
+
+                const safeLs = String(ls).replace(/'/g, "\\'");
+
+                container.innerHTML += `
+                    <div onclick="filterByLearningSourceFromDashboard('${safeLs}')" class="bg-white rounded-xl shadow-xs p-3.5 border-l-4 border-emerald-500 hover:shadow-md transition-all cursor-pointer group hover:-translate-y-0.5 border border-gray-100 flex flex-col justify-between" title="คลิกเพื่อดูกลุ่มนักเรียนในแหล่งเรียนรู้นี้">
+                        <div>
+                            <div class="flex items-start justify-between gap-1 mb-2">
+                                <h4 class="text-xs sm:text-sm font-bold text-gray-800 group-hover:text-emerald-600 transition-colors line-clamp-1 flex items-center gap-1.5" title="${ls}">
+                                    <i class="fas fa-seedling text-emerald-500 text-xs"></i> ${ls}
+                                </h4>
+                                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${teacherCount > 0 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-gray-100 text-gray-400'}">
+                                    ครู ${teacherCount} คน
+                                </span>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2 mt-2 pt-2 border-t border-gray-100">
+                                <div>
+                                    <p class="text-[10px] text-gray-400 font-bold mb-0.5">จำนวนนักเรียน</p>
+                                    <p class="text-sm sm:text-base font-extrabold text-gray-800">${data.studentTotal} <span class="text-[10px] font-normal text-gray-500">คน</span></p>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] text-gray-400 font-bold mb-0.5">มาเรียนวันนี้</p>
+                                    <p class="text-sm sm:text-base font-extrabold text-emerald-600">${data.studentPresent} <span class="text-[10px] font-normal text-gray-500">คน</span></p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-2.5 pt-2 border-t border-gray-100 text-[11px] text-gray-600 truncate flex items-center gap-1.5" title="${data.teachers.join(', ') || 'ยังไม่มีครูผู้ดูแล'}">
+                            <i class="fas fa-user-tie text-emerald-600 text-xs shrink-0"></i>
+                            <span class="truncate font-medium">${teacherSubText}</span>
+                        </div>
+                    </div>`;
+            });
+
+            if(sortedSources.length === 0) {
+                container.innerHTML = '<div class="col-span-full text-center py-4 text-gray-500 text-sm">ยังไม่มีข้อมูลแหล่งเรียนรู้</div>';
+            }
+        }
+
+        function filterByLearningSourceFromDashboard(learningSource) {
+            switchPage('students');
+            const filterEl = document.getElementById('filterLearningSource');
+            if(filterEl) {
+                filterEl.value = learningSource;
+                renderStudents();
+            }
         }
 
         function renderStudents() {
@@ -2380,6 +2508,64 @@
                 dormFilterStatsContainer.classList.remove('hidden'); dormFilterStatsContainer.classList.add('grid');
             } else if (dormFilterStatsContainer) {
                 dormFilterStatsContainer.classList.add('hidden'); dormFilterStatsContainer.classList.remove('grid');
+            }
+
+            const learningFilterStatsContainer = document.getElementById('learningFilterStatsContainer');
+            if (learningFilterStatsContainer && selLearning !== "") {
+                let totalInLearning = 0, presentCount = 0, absentCount = 0, notCheckedCount = 0;
+                const learningStudents = studentsList.filter(function(s) { return s.learningSource === selLearning && s.commuteType !== 'จบการศึกษา'; });
+                totalInLearning = learningStudents.length;
+
+                learningStudents.forEach(function(st) {
+                    const attData = todayAttendanceStats[st.id];
+                    const attStatus = attData ? (typeof attData === 'string' ? attData : attData.status) : null;
+                    if (attStatus === 'present' || attStatus === 'late') presentCount++;
+                    else if (attStatus === 'absent' || attStatus === 'leave' || attStatus === 'home') absentCount++;
+                    else notCheckedCount++;
+                });
+
+                let matchedTeachers = teachersList.filter(function(t) { return t.learningSource === selLearning; });
+                let teacherCount = matchedTeachers.length;
+                let teacherNamesText = matchedTeachers.map(function(t) { 
+                    return t.isLearningSourceHead ? `${t.name} (หัวหน้า)` : t.name;
+                }).join(', ') || 'ยังไม่มีข้อมูลครูผู้ดูแล';
+
+                learningFilterStatsContainer.innerHTML = `
+                    <div class="bg-white rounded-lg shadow-sm p-2 sm:p-3 border-l-4 border-emerald-500 flex justify-between items-center">
+                        <div>
+                            <p class="text-[10px] sm:text-xs text-gray-500 font-bold mb-0.5">นักเรียนทั้งหมด (${selLearning})</p>
+                            <h3 class="text-lg sm:text-xl font-bold text-gray-800 leading-none">${totalInLearning} <span class="text-[10px] sm:text-xs font-normal text-gray-500">คน</span></h3>
+                        </div>
+                        <div class="bg-emerald-50 p-1.5 sm:p-2 rounded-full text-emerald-500"><i class="fas fa-user-graduate text-sm sm:text-base"></i></div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-sm p-2 sm:p-3 border-l-4 border-amber-500 flex justify-between items-center cursor-pointer" title="${teacherNamesText}">
+                        <div>
+                            <p class="text-[10px] sm:text-xs text-gray-500 font-bold mb-0.5">ครูผู้ดูแลแหล่งเรียนรู้</p>
+                            <h3 class="text-lg sm:text-xl font-bold text-amber-600 leading-none">${teacherCount} <span class="text-[10px] sm:text-xs font-normal text-gray-500">คน</span></h3>
+                            <p class="text-[9px] text-gray-500 mt-1 leading-none truncate max-w-[140px]">${teacherNamesText}</p>
+                        </div>
+                        <div class="bg-amber-50 p-1.5 sm:p-2 rounded-full text-amber-500"><i class="fas fa-chalkboard-teacher text-sm sm:text-base"></i></div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-sm p-2 sm:p-3 border-l-4 border-green-500 flex justify-between items-center">
+                        <div>
+                            <p class="text-[10px] sm:text-xs text-gray-500 font-bold mb-0.5">มาเรียน (วันนี้)</p>
+                            <h3 class="text-lg sm:text-xl font-bold text-green-600 leading-none">${presentCount} <span class="text-[10px] sm:text-xs font-normal text-gray-500">คน</span></h3>
+                        </div>
+                        <div class="bg-green-50 p-1.5 sm:p-2 rounded-full text-green-500"><i class="fas fa-check text-sm sm:text-base"></i></div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-sm p-2 sm:p-3 border-l-4 border-red-500 flex justify-between items-center">
+                        <div>
+                            <p class="text-[10px] sm:text-xs text-gray-500 font-bold mb-0.5">ไม่มาโรงเรียน / กลับบ้าน</p>
+                            <h3 class="text-lg sm:text-xl font-bold text-red-600 leading-none">${absentCount} <span class="text-[10px] sm:text-xs font-normal text-gray-500">คน</span></h3>
+                            ${notCheckedCount > 0 ? `<p class="text-[9px] text-gray-400 mt-1 leading-none">*ยังไม่เช็ค ${notCheckedCount} คน</p>` : ''}
+                        </div>
+                        <div class="bg-red-50 p-1.5 sm:p-2 rounded-full text-red-500"><i class="fas fa-times text-sm sm:text-base"></i></div>
+                    </div>
+                `;
+                
+                learningFilterStatsContainer.classList.remove('hidden'); learningFilterStatsContainer.classList.add('grid');
+            } else if (learningFilterStatsContainer) {
+                learningFilterStatsContainer.classList.add('hidden'); learningFilterStatsContainer.classList.remove('grid');
             }
         }
 
