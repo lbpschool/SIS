@@ -381,17 +381,17 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="flex gap-2 w-full xl:w-auto shrink-0 mt-1 xl:mt-0">
+                        <div class="grid grid-cols-3 xl:flex gap-1.5 sm:gap-2 w-full xl:w-auto shrink-0 mt-1 xl:mt-0">
                             <!-- ปุ่มสแกนใบหน้า (เปิดใช้งานได้ทุก Role) -->
-                            <button onclick="openFaceScanner()" class="bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 flex-1 sm:flex-none shadow-sm text-sm font-medium transition flex items-center justify-center whitespace-nowrap">
-                                <i class="fas fa-camera mr-1.5"></i> สแกนหน้าค้นหา
+                            <button onclick="openFaceScanner()" class="bg-blue-600 text-white px-1 sm:px-3 py-2 rounded-lg hover:bg-blue-700 w-full xl:w-auto shadow-sm text-[11px] min-[375px]:text-xs sm:text-sm font-medium transition flex items-center justify-center whitespace-nowrap min-w-0">
+                                <i class="fas fa-camera mr-1 shrink-0"></i> <span class="truncate">สแกนหน้าค้นหา</span>
                             </button>
 
-                            <button onclick="exportToCSV()" class="bg-[#00a651] text-white px-3 py-2 rounded-lg hover:bg-[#008f45] flex-1 sm:flex-none admin-only shadow-sm text-sm font-medium transition flex items-center justify-center whitespace-nowrap">
-                                <i class="fas fa-file-excel mr-1.5"></i> Export CSV
+                            <button onclick="exportToCSV()" class="bg-[#00a651] text-white px-1 sm:px-3 py-2 rounded-lg hover:bg-[#008f45] w-full xl:w-auto admin-only shadow-sm text-[11px] min-[375px]:text-xs sm:text-sm font-medium transition flex items-center justify-center whitespace-nowrap min-w-0">
+                                <i class="fas fa-file-excel mr-1 shrink-0"></i> <span class="truncate">Export CSV</span>
                             </button>
-                            <button onclick="openStudentModal()" class="bg-[#00a651] text-white px-3 py-2 rounded-lg hover:bg-[#008f45] flex-1 sm:flex-none admin-only shadow-sm text-sm font-medium transition flex items-center justify-center whitespace-nowrap">
-                                <i class="fas fa-plus mr-1.5"></i> เพิ่มนักเรียน
+                            <button onclick="openStudentModal()" class="bg-[#00a651] text-white px-1 sm:px-3 py-2 rounded-lg hover:bg-[#008f45] w-full xl:w-auto admin-only shadow-sm text-[11px] min-[375px]:text-xs sm:text-sm font-medium transition flex items-center justify-center whitespace-nowrap min-w-0">
+                                <i class="fas fa-plus mr-1 shrink-0"></i> <span class="truncate">เพิ่มนักเรียน</span>
                             </button>
                         </div>
                     </div>
@@ -489,18 +489,18 @@
                     <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-3 shrink-0 w-full">
                         <div class="flex flex-col sm:flex-row gap-3 items-start sm:items-end w-full">
             
-                            <!-- กลุ่ม เลือกห้องเรียน และ วันที่ (ใช้ flex-1 เพื่อแบ่งครึ่งเท่าๆ กัน) -->
-                            <div class="flex flex-row w-full sm:flex-1 gap-2 sm:gap-3">
-                                <div class="flex-1 min-w-0"> 
-                                    <label class="block text-xs font-semibold text-gray-600 mb-1">เลือกห้องเรียน</label>
+                            <!-- กลุ่ม เลือกห้องเรียน และ วันที่ (ใช้ grid 2 คอลัมน์ในมือถือ ป้องกันล้นขอบการ์ด) -->
+                            <div class="grid grid-cols-2 w-full sm:flex-1 gap-2 sm:gap-3 min-w-0 overflow-hidden">
+                                <div class="w-full min-w-0 overflow-hidden"> 
+                                    <label class="block text-xs font-semibold text-gray-600 mb-1 truncate">เลือกห้องเรียน</label>
                                     <!-- บังคับความสูงด้วย h-[42px] เพื่อให้เท่ากัน 100% -->
-                                    <select id="attendanceClass" onchange="fetchAttendance()" class="w-full h-[42px] border border-gray-200 rounded-lg px-2 sm:px-3 outline-none focus:border-school-500 focus:ring-1 focus:ring-school-500 text-sm bg-white appearance-none cursor-pointer shadow-sm truncate">
+                                    <select id="attendanceClass" onchange="fetchAttendance()" class="w-full h-[42px] border border-gray-200 rounded-lg px-1.5 sm:px-3 outline-none focus:border-school-500 focus:ring-1 focus:ring-school-500 text-xs sm:text-sm bg-white appearance-none cursor-pointer shadow-sm truncate">
                                     </select>
                                 </div>
-                                <div class="flex-1 min-w-0"> 
-                                    <label class="block text-xs font-semibold text-gray-600 mb-1">วันที่</label>
+                                <div class="w-full min-w-0 overflow-hidden"> 
+                                    <label class="block text-xs font-semibold text-gray-600 mb-1 truncate">วันที่</label>
                                     <!-- บังคับความสูงด้วย h-[42px] และข้อความตรงกลาง -->
-                                    <input type="text" id="attendanceDate" class="w-full h-[42px] border border-gray-200 rounded-lg px-2 sm:px-3 outline-none focus:border-school-500 focus:ring-1 focus:ring-school-500 text-[13px] sm:text-sm bg-white cursor-pointer shadow-sm text-center" placeholder="วว/ดด/ปปปป">
+                                    <input type="text" id="attendanceDate" class="w-full max-w-full h-[42px] border border-gray-200 rounded-lg px-1.5 sm:px-3 outline-none focus:border-school-500 focus:ring-1 focus:ring-school-500 text-[11px] min-[375px]:text-[12px] sm:text-sm bg-white cursor-pointer shadow-sm text-center truncate" style="box-sizing: border-box;" placeholder="วว/ดด/ปปปป">
                                 </div>
                             </div>
             
