@@ -996,34 +996,50 @@
     </div>
 
     <!-- Disability Card Zoom Modal -->
-    <div id="disabilityCardModal" class="fixed inset-0 bg-black bg-opacity-90 z-[70] hidden flex justify-center items-center p-0 sm:p-4 backdrop-blur-sm">
-        <div class="bg-transparent sm:bg-white sm:rounded-xl w-full h-full sm:h-auto max-w-4xl flex flex-col overflow-hidden relative">
-            <div class="flex justify-between items-center p-3 sm:p-4 bg-black/50 sm:bg-white text-white sm:text-gray-800 shrink-0 absolute sm:relative top-0 w-full z-10 transition-colors gap-2 overflow-x-auto custom-scrollbar">
-                <h3 class="text-sm sm:text-lg font-bold flex items-center shrink-0"><i id="zoomModalIcon" class="fas fa-id-card mr-2 sm:text-purple-600"></i><span id="zoomModalTitle"> บัตรประจำตัว</span></h3>
+    <div id="disabilityCardModal" class="fixed inset-0 bg-black/90 z-[70] hidden flex flex-col justify-center items-center p-0 sm:p-4 backdrop-blur-sm">
+        <div class="bg-gray-900 sm:bg-white sm:rounded-xl w-full h-full sm:h-auto max-w-4xl flex flex-col overflow-hidden relative shadow-2xl">
+            <!-- Header Toolbar: Pinned Sticky Top -->
+            <div class="flex justify-between items-center p-3 sm:p-4 bg-gray-900 sm:bg-white text-white sm:text-gray-800 shrink-0 sticky top-0 w-full z-30 border-b border-gray-800 sm:border-gray-200 shadow-sm gap-2 overflow-x-auto custom-scrollbar">
+                <h3 class="text-sm sm:text-lg font-bold flex items-center shrink-0">
+                    <i id="zoomModalIcon" class="fas fa-id-card mr-2 text-purple-400 sm:text-purple-600"></i>
+                    <span id="zoomModalTitle"> บัตรประจำตัว</span>
+                </h3>
                 <div class="flex items-center space-x-1 sm:space-x-2 shrink-0">
-                    <button type="button" onclick="zoomCard(25)" class="p-2 sm:p-2.5 text-white sm:text-gray-500 hover:text-white sm:hover:text-school-600 hover:bg-white/20 sm:hover:bg-gray-100 rounded-lg transition" title="ขยาย"><i class="fas fa-search-plus text-base sm:text-xl"></i></button>
-                    <button type="button" onclick="zoomCard(-25)" class="p-2 sm:p-2.5 text-white sm:text-gray-500 hover:text-white sm:hover:text-school-600 hover:bg-white/20 sm:hover:bg-gray-100 rounded-lg transition" title="ย่อ"><i class="fas fa-search-minus text-base sm:text-xl"></i></button>
-                    <button type="button" onclick="resetCardZoom()" class="p-2 sm:p-2.5 text-white sm:text-gray-500 hover:text-white sm:hover:text-school-600 hover:bg-white/20 sm:hover:bg-gray-100 rounded-lg transition" title="ขนาดปกติ"><i class="fas fa-compress text-base sm:text-xl"></i></button>
+                    <button type="button" onclick="zoomCard(25)" class="p-2 sm:p-2.5 text-gray-300 sm:text-gray-600 hover:text-white sm:hover:text-school-600 hover:bg-white/20 sm:hover:bg-gray-100 rounded-lg transition flex items-center" title="ขยายรูป"><i class="fas fa-search-plus text-base sm:text-lg"></i></button>
+                    <button type="button" onclick="zoomCard(-25)" class="p-2 sm:p-2.5 text-gray-300 sm:text-gray-600 hover:text-white sm:hover:text-school-600 hover:bg-white/20 sm:hover:bg-gray-100 rounded-lg transition flex items-center" title="ย่อรูป"><i class="fas fa-search-minus text-base sm:text-lg"></i></button>
                     
-                    <div class="h-5 sm:h-6 border-l border-gray-400 sm:border-gray-300 mx-0.5 sm:mx-1"></div>
+                    <!-- ปุ่มกดกลับไปดูขนาดเดิม 100% -->
+                    <button type="button" onclick="resetCardZoom()" class="px-2.5 py-1.5 bg-gray-800 sm:bg-gray-100 text-gray-200 sm:text-gray-700 hover:bg-gray-700 sm:hover:bg-gray-200 rounded-lg text-xs font-semibold transition flex items-center gap-1 border border-gray-700 sm:border-gray-300" title="กลับไปดูรูปภาพขนาดเดิม (100%)">
+                        <i class="fas fa-undo text-xs text-amber-400 sm:text-amber-600"></i>
+                        <span id="zoomPercentText">ขนาดเดิม</span>
+                    </button>
+                    
+                    <div class="h-5 sm:h-6 border-l border-gray-700 sm:border-gray-300 mx-0.5 sm:mx-1"></div>
 
-                    <!-- ปุ่มเพิ่มใหม่: บันทึกเป็น PDF (รูปคมชัด 100%) -->
+                    <!-- ปุ่มบันทึกเป็น PDF (รูปคมชัด 100%) -->
                     <button type="button" onclick="downloadDisabilityCardPDF()" class="bg-red-600 hover:bg-red-700 text-white px-2.5 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition flex items-center shadow-xs cursor-pointer whitespace-nowrap" title="บันทึกรูปนี้เป็นไฟล์ PDF คมชัด 100%">
                         <i class="fas fa-file-pdf mr-1 sm:mr-1.5"></i> <span class="hidden min-[480px]:inline">บันทึก</span> PDF
                     </button>
                     
-                    <!-- ปุ่มเพิ่มใหม่: พิมพ์เอกสาร (รูปคมชัด 100%) -->
+                    <!-- ปุ่มพิมพ์เอกสาร (รูปคมชัด 100%) -->
                     <button type="button" onclick="printDisabilityCard()" class="bg-blue-600 hover:bg-blue-700 text-white px-2.5 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition flex items-center shadow-xs cursor-pointer whitespace-nowrap" title="พิมพ์รูปนี้เป็นเอกสาร คมชัด 100%">
                         <i class="fas fa-print mr-1 sm:mr-1.5"></i> <span class="hidden min-[480px]:inline">พิมพ์</span>เอกสาร
                     </button>
 
-                    <div class="h-5 sm:h-6 border-l border-gray-400 sm:border-gray-300 mx-0.5 sm:mx-1"></div>
+                    <div class="h-5 sm:h-6 border-l border-gray-700 sm:border-gray-300 mx-0.5 sm:mx-1"></div>
 
                     <button type="button" onclick="closeDisabilityCardModal()" class="p-2 sm:p-2.5 text-red-400 sm:text-gray-400 hover:text-red-500 hover:bg-white/20 sm:hover:bg-red-50 rounded-lg text-xl sm:text-2xl transition ml-0.5" title="ปิดหน้าต่าง"><i class="fas fa-times"></i></button>
                 </div>
             </div>
-            <div class="p-0 sm:p-4 overflow-auto bg-transparent sm:bg-gray-50 flex-1 flex justify-center items-center h-full custom-scrollbar">
-                <img id="disabilityCardImage" src="" alt="ภาพขยาย" style="max-height: 85vh; max-width: 100%; width: auto; touch-action: pinch-zoom;" class="sm:rounded shadow-2xl transition-all duration-200 select-none object-contain mt-16 sm:mt-0">
+
+            <!-- Image Area -->
+            <div class="p-2 sm:p-4 overflow-auto bg-gray-950 sm:bg-gray-50 flex-1 flex justify-center items-center custom-scrollbar relative min-h-[50vh] max-h-[85vh]">
+                <img id="disabilityCardImage" src="" alt="ภาพขยาย" ondblclick="resetCardZoom()" title="ดับเบิลคลิกที่รูปเพื่อรีเซ็ตกลับเป็นขนาดเดิม" style="max-height: 80vh; max-width: 100%; width: auto; touch-action: pinch-zoom;" class="sm:rounded shadow-2xl transition-all duration-200 select-none object-contain cursor-zoom-in">
+                
+                <!-- ปุ่มลอยด้านขวาล่าง เมื่อขยายรูปแล้ว ให้กดกลับขนาดเดิมได้สะดวก -->
+                <button id="btnFloatingResetZoom" type="button" onclick="resetCardZoom()" class="hidden absolute bottom-4 right-4 z-40 bg-gray-900/90 text-white hover:bg-black px-3 py-2 rounded-full shadow-2xl border border-gray-700 text-xs font-bold transition flex items-center gap-1.5 backdrop-blur-md">
+                    <i class="fas fa-undo text-amber-400"></i> <span id="floatingZoomText">กลับไปขนาดเดิม</span>
+                </button>
             </div>
         </div>
     </div>
@@ -3789,8 +3805,51 @@
         let currentModalImgSrc = '';
         let currentModalType = 'disability';
 
-        function zoomCard(step) { cardZoomLevel += step; if (cardZoomLevel < 50) cardZoomLevel = 50; if (cardZoomLevel > 300) cardZoomLevel = 300; const img = document.getElementById('disabilityCardImage'); if(img) { img.style.width = cardZoomLevel + '%'; img.style.maxWidth = 'none'; img.style.maxHeight = 'none'; } }
-        function resetCardZoom() { cardZoomLevel = 100; const img = document.getElementById('disabilityCardImage'); if(img) { img.style.width = 'auto'; img.style.maxWidth = '100%'; img.style.maxHeight = '85vh'; } }
+        function zoomCard(step) { 
+            cardZoomLevel += step; 
+            if (cardZoomLevel < 50) cardZoomLevel = 50; 
+            if (cardZoomLevel > 400) cardZoomLevel = 400; 
+            applyCardZoom();
+        }
+
+        function resetCardZoom() { 
+            cardZoomLevel = 100; 
+            applyCardZoom();
+        }
+
+        function applyCardZoom() {
+            const img = document.getElementById('disabilityCardImage');
+            const percentText = document.getElementById('zoomPercentText');
+            const floatingBtn = document.getElementById('btnFloatingResetZoom');
+            const floatingText = document.getElementById('floatingZoomText');
+
+            if(img) { 
+                if (cardZoomLevel === 100) {
+                    img.style.width = 'auto'; 
+                    img.style.maxWidth = '100%'; 
+                    img.style.maxHeight = '80vh';
+                    img.className = "sm:rounded shadow-2xl transition-all duration-200 select-none object-contain cursor-zoom-in";
+                } else {
+                    img.style.width = cardZoomLevel + '%'; 
+                    img.style.maxWidth = 'none'; 
+                    img.style.maxHeight = 'none'; 
+                    img.className = "sm:rounded shadow-2xl transition-all duration-200 select-none object-contain cursor-zoom-out";
+                }
+            }
+
+            if (percentText) {
+                percentText.innerText = cardZoomLevel === 100 ? 'ขนาดเดิม' : `${cardZoomLevel}%`;
+            }
+
+            if (floatingBtn) {
+                if (cardZoomLevel !== 100) {
+                    floatingBtn.classList.remove('hidden');
+                    if (floatingText) floatingText.innerText = `กลับไปขนาดเดิม (${cardZoomLevel}%)`;
+                } else {
+                    floatingBtn.classList.add('hidden');
+                }
+            }
+        }
 
         function openDisabilityCardModal(imgSrc, type) {
             type = type || 'disability'; 
