@@ -4915,7 +4915,7 @@
             const previewImg = document.getElementById(type === 'profile' ? 'profilePreview' : 'disabilityPreview');
             
             statusText.classList.remove('hidden'); 
-            statusText.innerText = 'กำลังบีบอัดและอัปโหลดรูปภาพ...'; 
+            statusText.innerText = type === 'profile' ? 'กำลังประมวลผลรูปโปรไฟล์ (HD)...' : 'กำลังประมวลผลรูปภาพความคมชัดสูง Ultra HD (95%)...'; 
             statusText.className = 'text-xs text-blue-600 mt-2 font-semibold block';
 
             const reader = new FileReader();
@@ -4923,23 +4923,31 @@
                 const img = new Image();
                 img.onload = function() {
                     const canvas = document.createElement('canvas');
-                    const MAX_WIDTH = 800;
-                    const MAX_HEIGHT = 800;
+                    
+                    // ปรับค่าความละเอียดและคุณภาพแยกตามประเภทรูปภาพ
+                    // รูปบัตรคนพิการ: ขอบเขตสูงสุด 2800px คุณภาพ 95% (Ultra HD อ่านออก 100% ทุกตัวอักษร)
+                    // รูปโปรไฟล์: ขอบเขตสูงสุด 1600px คุณภาพ 92% (ชัดเจนสำหรับสแกนใบหน้า)
+                    const MAX_WIDTH = type === 'profile' ? 1600 : 2800;
+                    const MAX_HEIGHT = type === 'profile' ? 1600 : 2800;
+                    const quality = type === 'profile' ? 0.92 : 0.95;
+
                     let width = img.width;
                     let height = img.height;
 
                     if (width > height) {
-                        if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
+                        if (width > MAX_WIDTH) { height = Math.round(height * (MAX_WIDTH / width)); width = MAX_WIDTH; }
                     } else {
-                        if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
+                        if (height > MAX_HEIGHT) { width = Math.round(width * (MAX_HEIGHT / height)); height = MAX_HEIGHT; }
                     }
 
                     canvas.width = width;
                     canvas.height = height;
                     const ctx = canvas.getContext('2d');
+                    ctx.imageSmoothingEnabled = true;
+                    ctx.imageSmoothingQuality = 'high';
                     ctx.drawImage(img, 0, 0, width, height);
 
-                    const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+                    const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
                     
                     previewImg.src = compressedBase64; 
                     previewImg.classList.remove('hidden'); 
