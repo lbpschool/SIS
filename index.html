@@ -736,8 +736,40 @@
                             </div>
                             
                             <h3 class="col-span-full font-bold text-school-700 bg-school-50 p-2.5 rounded-lg border border-school-100 mt-4">ข้อมูลสุขภาพ / ความพิการ</h3>
-                            <div><label class="text-xs font-medium text-gray-600 mb-1 block">โรคประจำตัว</label><input type="text" id="formDisease" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-school-500 outline-none" placeholder="-"></div>
-                            <div><label class="text-xs font-medium text-gray-600 mb-1 block">ชื่อยาประจำตัว</label><input type="text" id="formMedicine" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-school-500 outline-none" placeholder="-"></div>
+                            
+                            <!-- โรคประจำตัว (Dynamic Input List) -->
+                            <div class="col-span-full sm:col-span-1 bg-gray-50/80 p-3 rounded-xl border border-gray-200/80 flex flex-col justify-between">
+                                <div>
+                                    <div class="flex items-center justify-between mb-2">
+                                        <label class="text-xs font-bold text-gray-700 flex items-center gap-1.5">
+                                            <i class="fas fa-notes-medical text-orange-500"></i> โรคประจำตัว
+                                        </label>
+                                    </div>
+                                    <div id="diseaseInputsContainer" class="flex flex-col gap-2">
+                                        <!-- Dynamic rows rendered by JS -->
+                                    </div>
+                                </div>
+                                <button type="button" onclick="addDiseaseInputRow()" class="mt-2.5 w-full py-1.5 px-3 bg-white hover:bg-orange-50 text-orange-600 border border-orange-200 rounded-lg text-xs font-semibold transition flex items-center justify-center gap-1 shadow-2xs">
+                                    <i class="fas fa-plus text-[10px]"></i> เพิ่มโรคประจำตัว
+                                </button>
+                            </div>
+
+                            <!-- ชื่อยาประจำตัว (Dynamic Input List) -->
+                            <div class="col-span-full sm:col-span-1 bg-gray-50/80 p-3 rounded-xl border border-gray-200/80 flex flex-col justify-between">
+                                <div>
+                                    <div class="flex items-center justify-between mb-2">
+                                        <label class="text-xs font-bold text-gray-700 flex items-center gap-1.5">
+                                            <i class="fas fa-capsules text-pink-500"></i> ชื่อยาประจำตัว
+                                        </label>
+                                    </div>
+                                    <div id="medicineInputsContainer" class="flex flex-col gap-2">
+                                        <!-- Dynamic rows rendered by JS -->
+                                    </div>
+                                </div>
+                                <button type="button" onclick="addMedicineInputRow()" class="mt-2.5 w-full py-1.5 px-3 bg-white hover:bg-pink-50 text-pink-600 border border-pink-200 rounded-lg text-xs font-semibold transition flex items-center justify-center gap-1 shadow-2xs">
+                                    <i class="fas fa-plus text-[10px]"></i> เพิ่มชื่อยาประจำตัว
+                                </button>
+                            </div>
                             
                             <div id="disabilitySelectContainer" class="relative z-40 col-span-full">
                                 <label class="text-xs font-medium text-gray-600 mb-1 block">ประเภทความพิการ (ถ้ามี)</label>
@@ -3366,8 +3398,155 @@
         function closeStudentViewModal() { document.getElementById('studentViewModal').classList.add('hidden'); }
         function viewDisabilityCardFromDetails() { if (currentViewDisabilityImg) openDisabilityCardModal(currentViewDisabilityImg); }
         function viewProfileImageFromDetails() { const imgSrc = document.getElementById('view-profile-img').src; if (imgSrc) openDisabilityCardModal(imgSrc, 'profile'); }
-        function showDiseaseInfo() { if (currentViewDisease) { Swal.fire({ title: '<i class="fas fa-notes-medical text-orange-500 text-3xl mb-2"></i><br>ข้อมูลโรคประจำตัว', html: '<p class="text-lg font-medium text-gray-800">' + currentViewDisease + '</p>', confirmButtonText: 'ปิด', confirmButtonColor: '#f97316', customClass: { popup: 'rounded-xl' } }); } }
-        function showMedicineInfo() { if (currentViewMedicine) { Swal.fire({ title: '<i class="fas fa-capsules text-pink-500 text-3xl mb-2"></i><br>ข้อมูลยาประจำตัว', html: '<p class="text-lg font-medium text-gray-800">' + currentViewMedicine + '</p>', confirmButtonText: 'ปิด', confirmButtonColor: '#ec4899', customClass: { popup: 'rounded-xl' } }); } }
+        function addDiseaseInputRow(val = '') {
+            const container = document.getElementById('diseaseInputsContainer');
+            if(!container) return;
+            const div = document.createElement('div');
+            div.className = 'flex items-center gap-1.5 disease-row';
+            div.innerHTML = `
+                <input type="text" class="disease-input w-full border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs sm:text-sm focus:ring-2 focus:ring-orange-400 outline-none bg-white transition" placeholder="ระบุโรคประจำตัว (เช่น หอบหืด)" value="${val.replace(/"/g, '&quot;')}">
+                <button type="button" onclick="removeDiseaseInputRow(this)" class="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition shrink-0" title="ลบรายการนี้">
+                    <i class="fas fa-trash-alt text-xs sm:text-sm"></i>
+                </button>
+            `;
+            container.appendChild(div);
+        }
+
+        function removeDiseaseInputRow(btn) {
+            const container = document.getElementById('diseaseInputsContainer');
+            if(!container) return;
+            const rows = container.querySelectorAll('.disease-row');
+            if(rows.length > 1) {
+                btn.closest('.disease-row').remove();
+            } else {
+                const input = container.querySelector('.disease-input');
+                if(input) input.value = '';
+            }
+        }
+
+        function getDiseaseValues() {
+            const container = document.getElementById('diseaseInputsContainer');
+            if(!container) return '-';
+            const inputs = container.querySelectorAll('.disease-input');
+            const vals = [];
+            inputs.forEach(function(inp) {
+                let v = inp.value.trim();
+                if(v && v !== '-') vals.push(v);
+            });
+            return vals.length > 0 ? vals.join(', ') : '-';
+        }
+
+        function setDiseaseInputValues(str) {
+            const container = document.getElementById('diseaseInputsContainer');
+            if(!container) return;
+            container.innerHTML = '';
+            if(!str || str.trim() === '' || str.trim() === '-') {
+                addDiseaseInputRow('');
+                return;
+            }
+            const parts = str.split(/[,;\n]+/).map(s => s.trim()).filter(s => s.length > 0);
+            if(parts.length === 0) {
+                addDiseaseInputRow('');
+            } else {
+                parts.forEach(function(p) {
+                    addDiseaseInputRow(p);
+                });
+            }
+        }
+
+        function addMedicineInputRow(val = '') {
+            const container = document.getElementById('medicineInputsContainer');
+            if(!container) return;
+            const div = document.createElement('div');
+            div.className = 'flex items-center gap-1.5 medicine-row';
+            div.innerHTML = `
+                <input type="text" class="medicine-input w-full border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs sm:text-sm focus:ring-2 focus:ring-pink-400 outline-none bg-white transition" placeholder="ระบุชื่อยาประจำตัว (เช่น Risple)" value="${val.replace(/"/g, '&quot;')}">
+                <button type="button" onclick="removeMedicineInputRow(this)" class="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition shrink-0" title="ลบรายการนี้">
+                    <i class="fas fa-trash-alt text-xs sm:text-sm"></i>
+                </button>
+            `;
+            container.appendChild(div);
+        }
+
+        function removeMedicineInputRow(btn) {
+            const container = document.getElementById('medicineInputsContainer');
+            if(!container) return;
+            const rows = container.querySelectorAll('.medicine-row');
+            if(rows.length > 1) {
+                btn.closest('.medicine-row').remove();
+            } else {
+                const input = container.querySelector('.medicine-input');
+                if(input) input.value = '';
+            }
+        }
+
+        function getMedicineValues() {
+            const container = document.getElementById('medicineInputsContainer');
+            if(!container) return '-';
+            const inputs = container.querySelectorAll('.medicine-input');
+            const vals = [];
+            inputs.forEach(function(inp) {
+                let v = inp.value.trim();
+                if(v && v !== '-') vals.push(v);
+            });
+            return vals.length > 0 ? vals.join(', ') : '-';
+        }
+
+        function setMedicineInputValues(str) {
+            const container = document.getElementById('medicineInputsContainer');
+            if(!container) return;
+            container.innerHTML = '';
+            if(!str || str.trim() === '' || str.trim() === '-') {
+                addMedicineInputRow('');
+                return;
+            }
+            const parts = str.split(/[,;\n]+/).map(s => s.trim()).filter(s => s.length > 0);
+            if(parts.length === 0) {
+                addMedicineInputRow('');
+            } else {
+                parts.forEach(function(p) {
+                    addMedicineInputRow(p);
+                });
+            }
+        }
+
+        function showDiseaseInfo() { 
+            if (currentViewDisease && currentViewDisease !== '-') { 
+                const list = currentViewDisease.split(/[,;\n]+/).map(s => s.trim()).filter(s => s.length > 0);
+                let itemsHtml = list.map((item, idx) => `
+                    <div class="flex items-center gap-2.5 bg-orange-50/90 border border-orange-200 text-orange-900 px-3.5 py-2.5 rounded-xl text-left font-semibold text-sm shadow-2xs">
+                        <span class="w-6 h-6 rounded-full bg-orange-200 text-orange-700 flex items-center justify-center text-xs shrink-0 font-bold">${idx + 1}</span>
+                        <span class="flex-1">${item}</span>
+                    </div>
+                `).join('');
+                Swal.fire({ 
+                    title: '<div class="flex items-center justify-center gap-2 text-orange-600 font-bold text-lg sm:text-xl"><i class="fas fa-notes-medical text-2xl"></i> ข้อมูลโรคประจำตัว</div>', 
+                    html: `<div class="flex flex-col gap-2 mt-3 max-h-64 overflow-y-auto custom-scrollbar p-1">${itemsHtml}</div>`, 
+                    confirmButtonText: 'ปิดหน้าต่าง', 
+                    confirmButtonColor: '#f97316', 
+                    customClass: { popup: 'rounded-2xl p-4 sm:p-6' } 
+                }); 
+            } 
+        }
+
+        function showMedicineInfo() { 
+            if (currentViewMedicine && currentViewMedicine !== '-') { 
+                const list = currentViewMedicine.split(/[,;\n]+/).map(s => s.trim()).filter(s => s.length > 0);
+                let itemsHtml = list.map((item, idx) => `
+                    <div class="flex items-center gap-2.5 bg-pink-50/90 border border-pink-200 text-pink-900 px-3.5 py-2.5 rounded-xl text-left font-semibold text-sm shadow-2xs">
+                        <span class="w-6 h-6 rounded-full bg-pink-200 text-pink-700 flex items-center justify-center text-xs shrink-0 font-bold">${idx + 1}</span>
+                        <span class="flex-1">${item}</span>
+                    </div>
+                `).join('');
+                Swal.fire({ 
+                    title: '<div class="flex items-center justify-center gap-2 text-pink-600 font-bold text-lg sm:text-xl"><i class="fas fa-capsules text-2xl"></i> ข้อมูลยาประจำตัว</div>', 
+                    html: `<div class="flex flex-col gap-2 mt-3 max-h-64 overflow-y-auto custom-scrollbar p-1">${itemsHtml}</div>`, 
+                    confirmButtonText: 'ปิดหน้าต่าง', 
+                    confirmButtonColor: '#ec4899', 
+                    customClass: { popup: 'rounded-2xl p-4 sm:p-6' } 
+                }); 
+            } 
+        }
 
         function toggleDisabilityUpload() {
             const type = document.getElementById('formDisability').value, section = document.getElementById('disabilityUploadSection');
@@ -3450,7 +3629,7 @@
                     if (document.getElementById('formDob')._flatpickr) document.getElementById('formDob')._flatpickr.setDate(st.dob || ""); else document.getElementById('formDob').value = st.dob || "";
                     document.getElementById('formGrade').value = st.grade || ""; document.getElementById('formTeacher').value = st.teacher || ""; document.getElementById('formCoTeacher').value = st.coTeacher || ""; document.getElementById('formCoTeacher2').value = st.coTeacher2 || "";
                     document.getElementById('formCommuteType').value = st.commuteType || "ไป-กลับ"; document.getElementById('formDormitory').value = st.dormitory || ""; document.getElementById('formLearningSource').value = st.learningSource || "";
-                    document.getElementById('formDisease').value = st.disease || ""; document.getElementById('formMedicine').value = st.medicine || "";
+                    setDiseaseInputValues(st.disease || ""); setMedicineInputValues(st.medicine || "");
                     document.getElementById('formAddress').value = st.address || ""; document.getElementById('formFatherName').value = st.fatherName || ""; document.getElementById('formFatherPhone').value = st.fatherPhone || "";
                     document.getElementById('formMotherName').value = st.motherName || ""; document.getElementById('formMotherPhone').value = st.motherPhone || ""; document.getElementById('formGuardianName').value = st.guardianName || ""; document.getElementById('formGuardianPhone').value = st.guardianPhone || ""; document.getElementById('formGuardianRelation').value = st.guardianRelation || "";
 
@@ -3471,6 +3650,7 @@
                 }
             } else {
                 editMode.value = ""; idInput.readOnly = false; idInput.classList.remove('bg-gray-100', 'cursor-not-allowed'); document.getElementById('formCommuteType').value = "ไป-กลับ"; document.getElementById('formLearningSource').value = "";
+                setDiseaseInputValues(""); setMedicineInputValues("");
             }
             handleCommuteTypeChange();
             document.getElementById('studentModal').classList.remove('hidden'); 
@@ -3502,7 +3682,7 @@
             let studentObj = {
                 studentId: newId, id: newId, idCard: document.getElementById('formIdCard').value.trim(), name: document.getElementById('formName').value.trim(), nickname: document.getElementById('formNickname').value.trim(),
                 dob: document.getElementById('formDob').value, grade: document.getElementById('formGrade').value.trim(), teacher: document.getElementById('formTeacher').value.trim() || "รอจัดสรร", coTeacher: document.getElementById('formCoTeacher').value.trim(), coTeacher2: document.getElementById('formCoTeacher2').value.trim(),
-                commuteType: document.getElementById('formCommuteType').value, dormitory: document.getElementById('formDormitory').value.trim(), learningSource: document.getElementById('formLearningSource').value.trim(), disease: document.getElementById('formDisease').value.trim(), medicine: document.getElementById('formMedicine').value.trim(),
+                commuteType: document.getElementById('formCommuteType').value, dormitory: document.getElementById('formDormitory').value.trim(), learningSource: document.getElementById('formLearningSource').value.trim(), disease: getDiseaseValues(), medicine: getMedicineValues(),
                 hasDisability: hasDisability, disabilityType: disabilityType, disabilityImg: hasDisability ? uploadedDisabilityUrl : "", profileImg: uploadedProfileUrl, address: document.getElementById('formAddress').value.trim(),
                 fatherName: document.getElementById('formFatherName').value.trim(), fatherPhone: document.getElementById('formFatherPhone').value.trim(), motherName: document.getElementById('formMotherName').value.trim(), motherPhone: document.getElementById('formMotherPhone').value.trim(), guardianName: document.getElementById('formGuardianName').value.trim(), guardianPhone: document.getElementById('formGuardianPhone').value.trim(), guardianRelation: document.getElementById('formGuardianRelation').value.trim(),
                 faceDescriptor: ""
