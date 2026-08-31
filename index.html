@@ -998,14 +998,28 @@
     <!-- Disability Card Zoom Modal -->
     <div id="disabilityCardModal" class="fixed inset-0 bg-black bg-opacity-90 z-[70] hidden flex justify-center items-center p-0 sm:p-4 backdrop-blur-sm">
         <div class="bg-transparent sm:bg-white sm:rounded-xl w-full h-full sm:h-auto max-w-4xl flex flex-col overflow-hidden relative">
-            <div class="flex justify-between items-center p-4 bg-black/50 sm:bg-white text-white sm:text-gray-800 shrink-0 absolute sm:relative top-0 w-full z-10 transition-colors">
-                <h3 class="text-lg font-bold"><i id="zoomModalIcon" class="fas fa-id-card mr-2 sm:text-purple-600"></i><span id="zoomModalTitle"> บัตรประจำตัว</span></h3>
-                <div class="flex items-center space-x-1 sm:space-x-2">
-                    <button type="button" onclick="zoomCard(25)" class="p-2.5 text-white sm:text-gray-500 hover:text-white sm:hover:text-school-600 hover:bg-white/20 sm:hover:bg-gray-100 rounded-lg transition" title="ขยาย"><i class="fas fa-search-plus text-xl"></i></button>
-                    <button type="button" onclick="zoomCard(-25)" class="p-2.5 text-white sm:text-gray-500 hover:text-white sm:hover:text-school-600 hover:bg-white/20 sm:hover:bg-gray-100 rounded-lg transition" title="ย่อ"><i class="fas fa-search-minus text-xl"></i></button>
-                    <button type="button" onclick="resetCardZoom()" class="p-2.5 text-white sm:text-gray-500 hover:text-white sm:hover:text-school-600 hover:bg-white/20 sm:hover:bg-gray-100 rounded-lg transition mr-1 sm:mr-2" title="ขนาดปกติ"><i class="fas fa-compress text-xl"></i></button>
-                    <div class="h-6 border-l border-gray-400 sm:border-gray-300 mx-1"></div>
-                    <button type="button" onclick="closeDisabilityCardModal()" class="p-2.5 text-red-400 sm:text-gray-400 hover:text-red-500 hover:bg-white/20 sm:hover:bg-red-50 rounded-lg text-2xl transition ml-1 sm:ml-2" title="ปิดหน้าต่าง"><i class="fas fa-times"></i></button>
+            <div class="flex justify-between items-center p-3 sm:p-4 bg-black/50 sm:bg-white text-white sm:text-gray-800 shrink-0 absolute sm:relative top-0 w-full z-10 transition-colors gap-2 overflow-x-auto custom-scrollbar">
+                <h3 class="text-sm sm:text-lg font-bold flex items-center shrink-0"><i id="zoomModalIcon" class="fas fa-id-card mr-2 sm:text-purple-600"></i><span id="zoomModalTitle"> บัตรประจำตัว</span></h3>
+                <div class="flex items-center space-x-1 sm:space-x-2 shrink-0">
+                    <button type="button" onclick="zoomCard(25)" class="p-2 sm:p-2.5 text-white sm:text-gray-500 hover:text-white sm:hover:text-school-600 hover:bg-white/20 sm:hover:bg-gray-100 rounded-lg transition" title="ขยาย"><i class="fas fa-search-plus text-base sm:text-xl"></i></button>
+                    <button type="button" onclick="zoomCard(-25)" class="p-2 sm:p-2.5 text-white sm:text-gray-500 hover:text-white sm:hover:text-school-600 hover:bg-white/20 sm:hover:bg-gray-100 rounded-lg transition" title="ย่อ"><i class="fas fa-search-minus text-base sm:text-xl"></i></button>
+                    <button type="button" onclick="resetCardZoom()" class="p-2 sm:p-2.5 text-white sm:text-gray-500 hover:text-white sm:hover:text-school-600 hover:bg-white/20 sm:hover:bg-gray-100 rounded-lg transition" title="ขนาดปกติ"><i class="fas fa-compress text-base sm:text-xl"></i></button>
+                    
+                    <div class="h-5 sm:h-6 border-l border-gray-400 sm:border-gray-300 mx-0.5 sm:mx-1"></div>
+
+                    <!-- ปุ่มเพิ่มใหม่: บันทึกเป็น PDF (รูปคมชัด 100%) -->
+                    <button type="button" onclick="downloadDisabilityCardPDF()" class="bg-red-600 hover:bg-red-700 text-white px-2.5 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition flex items-center shadow-xs cursor-pointer whitespace-nowrap" title="บันทึกรูปนี้เป็นไฟล์ PDF คมชัด 100%">
+                        <i class="fas fa-file-pdf mr-1 sm:mr-1.5"></i> <span class="hidden min-[480px]:inline">บันทึก</span> PDF
+                    </button>
+                    
+                    <!-- ปุ่มเพิ่มใหม่: พิมพ์เอกสาร (รูปคมชัด 100%) -->
+                    <button type="button" onclick="printDisabilityCard()" class="bg-blue-600 hover:bg-blue-700 text-white px-2.5 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition flex items-center shadow-xs cursor-pointer whitespace-nowrap" title="พิมพ์รูปนี้เป็นเอกสาร คมชัด 100%">
+                        <i class="fas fa-print mr-1 sm:mr-1.5"></i> <span class="hidden min-[480px]:inline">พิมพ์</span>เอกสาร
+                    </button>
+
+                    <div class="h-5 sm:h-6 border-l border-gray-400 sm:border-gray-300 mx-0.5 sm:mx-1"></div>
+
+                    <button type="button" onclick="closeDisabilityCardModal()" class="p-2 sm:p-2.5 text-red-400 sm:text-gray-400 hover:text-red-500 hover:bg-white/20 sm:hover:bg-red-50 rounded-lg text-xl sm:text-2xl transition ml-0.5" title="ปิดหน้าต่าง"><i class="fas fa-times"></i></button>
                 </div>
             </div>
             <div class="p-0 sm:p-4 overflow-auto bg-transparent sm:bg-gray-50 flex-1 flex justify-center items-center h-full custom-scrollbar">
@@ -3772,15 +3786,22 @@
         }
 
         let cardZoomLevel = 100;
+        let currentModalImgSrc = '';
+        let currentModalType = 'disability';
+
         function zoomCard(step) { cardZoomLevel += step; if (cardZoomLevel < 50) cardZoomLevel = 50; if (cardZoomLevel > 300) cardZoomLevel = 300; const img = document.getElementById('disabilityCardImage'); if(img) { img.style.width = cardZoomLevel + '%'; img.style.maxWidth = 'none'; img.style.maxHeight = 'none'; } }
         function resetCardZoom() { cardZoomLevel = 100; const img = document.getElementById('disabilityCardImage'); if(img) { img.style.width = 'auto'; img.style.maxWidth = '100%'; img.style.maxHeight = '85vh'; } }
 
         function openDisabilityCardModal(imgSrc, type) {
             type = type || 'disability'; 
+            currentModalType = type;
             resetCardZoom(); 
             const cardImg = document.getElementById('disabilityCardImage');
             const fileId = extractGoogleDriveId(imgSrc);
-            cardImg.src = fixDriveUrl(imgSrc);
+            
+            const fixedUrl = fixDriveUrl(imgSrc);
+            currentModalImgSrc = fixedUrl;
+            cardImg.src = fixedUrl;
             cardImg.onerror = function() { handleStudentImgError(this, fileId, type === 'profile' ? 'Profile' : 'Card'); };
 
             const titleEl = document.getElementById('zoomModalTitle'), iconEl = document.getElementById('zoomModalIcon');
@@ -3788,7 +3809,130 @@
             else { titleEl.innerText = " บัตรประจำตัวคนพิการ"; iconEl.className = "fas fa-id-card mr-2 sm:text-purple-600"; }
             document.getElementById('disabilityCardModal').classList.remove('hidden');
         }
-        function closeDisabilityCardModal() { document.getElementById('disabilityCardModal').classList.add('hidden'); document.getElementById('disabilityCardImage').src = ""; resetCardZoom(); }
+
+        function closeDisabilityCardModal() { 
+            document.getElementById('disabilityCardModal').classList.add('hidden'); 
+            document.getElementById('disabilityCardImage').src = ""; 
+            currentModalImgSrc = "";
+            resetCardZoom(); 
+        }
+
+        function printDisabilityCard() {
+            const cardImg = document.getElementById('disabilityCardImage');
+            if (!cardImg || !cardImg.src) {
+                Swal.fire('เกิดข้อผิดพลาด', 'ไม่พบรูปภาพสำหรับพิมพ์', 'error');
+                return;
+            }
+
+            const titleText = currentModalType === 'profile' ? 'รูปโปรไฟล์นักเรียน' : 'บัตรประจำตัวคนพิการ';
+            const imgSrc = cardImg.src;
+
+            const printWindow = window.open('', '_blank');
+            if (!printWindow) {
+                Swal.fire('แจ้งเตือน', 'กรุณาอนุญาตให้เปิดเบราว์เซอร์ Pop-up เพื่อพิมพ์เอกสาร', 'warning');
+                return;
+            }
+
+            printWindow.document.write(`
+                <!DOCTYPE html>
+                <html lang="th">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>พิมพ์${titleText}</title>
+                    <style>
+                        @page { size: A4 portrait; margin: 10mm; }
+                        body { margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; background: #fff; font-family: sans-serif; }
+                        .container { text-align: center; max-width: 100%; width: 100%; }
+                        img { max-width: 100%; max-height: 270mm; object-fit: contain; image-rendering: -webkit-optimize-contrast; display: block; margin: auto; }
+                        @media print {
+                            body { min-height: auto; }
+                            img { max-height: 270mm; page-break-inside: avoid; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <img src="${imgSrc}" onload="setTimeout(function(){ window.print(); window.close(); }, 500);" onerror="alert('ไม่สามารถโหลดรูปภาพสำหรับพิมพ์ได้'); window.close();">
+                    </div>
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+        }
+
+        async function downloadDisabilityCardPDF() {
+            const cardImg = document.getElementById('disabilityCardImage');
+            if (!cardImg || !cardImg.src) {
+                Swal.fire('เกิดข้อผิดพลาด', 'ไม่พบรูปภาพสำหรับบันทึกเป็น PDF', 'error');
+                return;
+            }
+
+            const titleText = currentModalType === 'profile' ? 'รูปโปรไฟล์นักเรียน' : 'บัตรประจำตัวคนพิการ';
+            const filename = `${titleText}_${new Date().getTime()}.pdf`;
+
+            Swal.fire({
+                title: 'กำลังสร้างไฟล์ PDF...',
+                text: 'กรุณารอสักครู่ ระบบกำลังประมวลผลความคมชัด 100%',
+                allowOutsideClick: false,
+                didOpen: () => { Swal.showLoading(); }
+            });
+
+            try {
+                if (typeof html2pdf === 'undefined') {
+                    await new Promise((resolve, reject) => {
+                        const script = document.createElement('script');
+                        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+                        script.onload = resolve;
+                        script.onerror = reject;
+                        document.head.appendChild(script);
+                    });
+                }
+
+                const printContainer = document.createElement('div');
+                printContainer.style.position = 'fixed';
+                printContainer.style.left = '-9999px';
+                printContainer.style.top = '0';
+                printContainer.style.width = '210mm';
+                printContainer.style.backgroundColor = '#ffffff';
+                printContainer.style.padding = '10mm';
+                printContainer.style.boxSizing = 'border-box';
+                printContainer.style.display = 'flex';
+                printContainer.style.justifyContent = 'center';
+                printContainer.style.alignItems = 'center';
+                printContainer.style.minHeight = '277mm';
+
+                const img = document.createElement('img');
+                img.src = cardImg.src;
+                img.style.maxWidth = '100%';
+                img.style.maxHeight = '255mm';
+                img.style.objectFit = 'contain';
+                img.style.display = 'block';
+                img.style.margin = 'auto';
+
+                printContainer.appendChild(img);
+                document.body.appendChild(printContainer);
+
+                await new Promise((resolve) => {
+                    if (img.complete) resolve();
+                    else img.onload = resolve;
+                });
+
+                const opt = {
+                    margin: 0,
+                    filename: filename,
+                    image: { type: 'jpeg', quality: 1.0 },
+                    html2canvas: { scale: 3, useCORS: true, logging: false },
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                };
+
+                await html2pdf().set(opt).from(printContainer).save();
+                document.body.removeChild(printContainer);
+                Swal.fire({ icon: 'success', title: 'บันทึก PDF สำเร็จ', timer: 1500, showConfirmButton: false });
+            } catch (err) {
+                console.error("PDF generation error:", err);
+                Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถบันทึกเป็น PDF ได้: ' + err.message, 'error');
+            }
+        }
         
         function saveAttendance() {
             const panel = document.getElementById('saveAttendancePanel');
