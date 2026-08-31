@@ -3872,65 +3872,87 @@
 
             Swal.fire({
                 title: 'กำลังสร้างไฟล์ PDF...',
-                text: 'กรุณารอสักครู่ ระบบกำลังประมวลผลความคมชัด 100%',
+                text: 'ระบบกำลังประมวลผลรูปภาพความคมชัด 100%',
                 allowOutsideClick: false,
                 didOpen: () => { Swal.showLoading(); }
             });
 
             try {
-                if (typeof html2pdf === 'undefined') {
+                if (typeof window.jspdf === 'undefined' && typeof jsPDF === 'undefined') {
                     await new Promise((resolve, reject) => {
                         const script = document.createElement('script');
-                        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+                        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
                         script.onload = resolve;
                         script.onerror = reject;
                         document.head.appendChild(script);
                     });
                 }
 
-                const printContainer = document.createElement('div');
-                printContainer.style.position = 'fixed';
-                printContainer.style.left = '-9999px';
-                printContainer.style.top = '0';
-                printContainer.style.width = '210mm';
-                printContainer.style.backgroundColor = '#ffffff';
-                printContainer.style.padding = '10mm';
-                printContainer.style.boxSizing = 'border-box';
-                printContainer.style.display = 'flex';
-                printContainer.style.justifyContent = 'center';
-                printContainer.style.alignItems = 'center';
-                printContainer.style.minHeight = '277mm';
+                const jsPDFLib = window.jspdf ? window.jspdf.jsPDF : jsPDF;
 
-                const img = document.createElement('img');
-                img.src = cardImg.src;
-                img.style.maxWidth = '100%';
-                img.style.maxHeight = '255mm';
-                img.style.objectFit = 'contain';
-                img.style.display = 'block';
-                img.style.margin = 'auto';
+                let imgWidth = cardImg.naturalWidth || cardImg.width || 800;
+                let imgHeight = cardImg.naturalHeight || cardImg.height || 600;
+                let imgData = '';
 
-                printContainer.appendChild(img);
-                document.body.appendChild(printContainer);
+                try {
+                    const response = await fetch(cardImg.src);
+                    const blob = await response.blob();
+                    imgData = await new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onloadend = () => resolve(reader.result);
+                        reader.onerror = reject;
+                        reader.readAsDataURL(blob);
+                    });
+                } catch (e) {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = imgWidth;
+                    canvas.height = imgHeight;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(cardImg, 0, 0, imgWidth, imgHeight);
+                    imgData = canvas.toDataURL('image/jpeg', 1.0);
+                }
 
-                await new Promise((resolve) => {
-                    if (img.complete) resolve();
-                    else img.onload = resolve;
+                if (!imgData || imgData === 'data:,') {
+                    throw new Error('ไม่สามารถดึงข้อมูลพิกเซลของรูปภาพได้');
+                }
+
+                const pdf = new jsPDFLib({
+                    orientation: 'portrait',
+                    unit: 'mm',
+                    format: 'a4'
                 });
 
-                const opt = {
-                    margin: 0,
-                    filename: filename,
-                    image: { type: 'jpeg', quality: 1.0 },
-                    html2canvas: { scale: 3, useCORS: true, logging: false },
-                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-                };
+                const maxW = 190;
+                const maxH = 277;
 
-                await html2pdf().set(opt).from(printContainer).save();
-                document.body.removeChild(printContainer);
+                let printW = maxW;
+                let printH = (imgHeight * maxW) / imgWidth;
+
+                if (printH > maxH) {
+                    printH = maxH;
+                    printW = (imgWidth * maxH) / imgHeight;
+                }
+
+                const posX = (210 - printW) / 2;
+                const posY = (297 - printH) / 2;
+
+                const imgFormat = imgData.startsWith('data:image/png') ? 'PNG' : 'JPEG';
+                pdf.addImage(imgData, imgFormat, posX, posY, printW, printH, undefined, 'NONE');
+
+                pdf.save(filename);
                 Swal.fire({ icon: 'success', title: 'บันทึก PDF สำเร็จ', timer: 1500, showConfirmButton: false });
+
             } catch (err) {
                 console.error("PDF generation error:", err);
-                Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถบันทึกเป็น PDF ได้: ' + err.message, 'error');
+                Swal.fire({
+                    title: 'เปิดการบันทึก PDF...',
+                    text: 'ระบบกำลังเปิดหน้าต่างพิมพ์ ให้ท่านเลือกปลายทางเป็น "Save as PDF" (บันทึกเป็น PDF)',
+                    icon: 'info',
+                    timer: 2000,
+                    showConfirmButton: false
+                }).then(() => {
+                    printDisabilityCard();
+                });
             }
         }
         
