@@ -5024,15 +5024,48 @@
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' }), link = document.createElement("a"); link.setAttribute("href", URL.createObjectURL(blob)); link.setAttribute("download", "students_data_export.csv"); document.body.appendChild(link); link.click(); document.body.removeChild(link);
         }
 
+        // =====================================================================
+        // ระบบซิงค์ข้อมูลเช็คชื่อแบบเรียลไทม์ประหยัดโควตา (Smart Realtime Attendance Sync)
+        // =====================================================================
         let realtimeInterval = null;
-        function startRealtimeAttendance() { fetchRealtimeData(); if(realtimeInterval) clearInterval(realtimeInterval); realtimeInterval = setInterval(fetchRealtimeData, 10000); }
+        let isFetchingRealtime = false;
+
+        function startRealtimeAttendance() { 
+            fetchRealtimeData(); 
+            if (realtimeInterval) clearInterval(realtimeInterval); 
+            // อัปเดตรอบละ 30 วินาที ช่วยประหยัดโควตาและไม่ทำให้ระบบหน่วง
+            realtimeInterval = setInterval(fetchRealtimeData, 30000); 
+        }
+
+        // ดักจับเมื่อผู้ใช้สลับแท็บกลับมาใช้งานหน้าเว็บ ให้ดึงข้อมูลล่าสุดทันที 0 วินาที
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) {
+                fetchRealtimeData();
+            }
+        });
 
         function fetchRealtimeData() {
-            const todayStr = document.getElementById('attendanceDate').value;
+            // หยุดส่งคำขอถ้าหน้าต่างถูกพับ/ซ่อนอยู่ หรือกำลังดึงข้อมูลรอบก่อนหน้าค้างอยู่
+            if (document.hidden || isFetchingRealtime) return;
+
+            const dateInput = document.getElementById('attendanceDate');
+            const todayStr = dateInput ? dateInput.value : '';
+            if (!todayStr) return;
+
             if (typeof google !== 'undefined' && google.script) {
-                google.script.run.withSuccessHandler(function(res) {
-                    try { todayAttendanceStats = JSON.parse(res); silentUpdateAttendanceUI(); } catch(e) {}
-                }).getTodayAttendanceStats(todayStr);
+                isFetchingRealtime = true;
+                google.script.run
+                    .withSuccessHandler(function(res) {
+                        isFetchingRealtime = false;
+                        try { 
+                            todayAttendanceStats = JSON.parse(res); 
+                            silentUpdateAttendanceUI(); 
+                        } catch(e) {}
+                    })
+                    .withFailureHandler(function(err) {
+                        isFetchingRealtime = false;
+                    })
+                    .getTodayAttendanceStats(todayStr);
             }
         }
 
