@@ -1230,6 +1230,34 @@
             };
         }
 
+        // Helper สำหรับ Escaping ข้อความป้องกันช่องโหว่ Stored XSS
+        function escapeHtml(str) {
+            if (str === null || str === undefined) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        // Helper สำหรับบันทึก LocalStorage อย่างปลอดภัย ป้องกัน QuotaExceededError 5MB
+        function safeSetLocalStorage(key, value) {
+            try {
+                localStorage.setItem(key, value);
+            } catch(e) {
+                console.warn('LocalStorage quota limit reached for key:', key, e);
+                try {
+                    // เคลียร์ข้อมูลแคชสถิติเก่าเพื่อคืนพื้นที่
+                    localStorage.removeItem('sis_todaystats_cache');
+                    localStorage.removeItem('sis_weeklystats_cache');
+                    localStorage.setItem(key, value);
+                } catch(err2) {
+                    console.error('Failed to set localStorage even after cleanup:', err2);
+                }
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             const now = new Date();
             const year = now.getFullYear();
@@ -2421,9 +2449,10 @@
                         if (tFound) dynCo2 = tFound.name;
                     }
 
-                    let teacherDisplay = '<div class="font-medium text-gray-700">' + (dynTeacher && dynTeacher !== '-' && dynTeacher !== 'รอจัดสรร' ? dynTeacher : 'รอจัดสรร') + '</div>';
-                    if(dynCo1 && dynCo1 !== '-') teacherDisplay += '<div class="text-xs text-gray-400 mt-0.5">ร่วม 1: ' + dynCo1 + '</div>';
-                    if(dynCo2 && dynCo2 !== '-') teacherDisplay += '<div class="text-xs text-gray-400 mt-0.5">ร่วม 2: ' + dynCo2 + '</div>';
+                    let safeTeacherName = (dynTeacher && dynTeacher !== '-' && dynTeacher !== 'รอจัดสรร') ? escapeHtml(dynTeacher) : 'รอจัดสรร';
+                    let teacherDisplay = '<div class="font-medium text-gray-700">' + safeTeacherName + '</div>';
+                    if(dynCo1 && dynCo1 !== '-') teacherDisplay += '<div class="text-xs text-gray-400 mt-0.5">ร่วม 1: ' + escapeHtml(dynCo1) + '</div>';
+                    if(dynCo2 && dynCo2 !== '-') teacherDisplay += '<div class="text-xs text-gray-400 mt-0.5">ร่วม 2: ' + escapeHtml(dynCo2) + '</div>';
 
                     let safeId = String(st.id).replace(/'/g, "\\'");
                     let printBtn = '<button onclick="event.stopPropagation(); printStudentA4(\'' + safeId + '\')" class="text-indigo-600 hover:text-indigo-800 mx-1 text-lg transition-transform hover:scale-110 bg-indigo-100 w-8 h-8 rounded-full inline-flex items-center justify-center shadow-sm" title="พิมพ์ประวัตินักเรียน A4"><i class="fas fa-print"></i></button>';
@@ -2436,7 +2465,7 @@
 
                     let lsDisplay = '';
                     if (st.learningSource && st.learningSource !== '-') {
-                        lsDisplay = '<span class="inline-flex items-center bg-school-50 text-school-700 border border-school-200 text-xs px-2.5 py-0.5 rounded-full"><i class="fas fa-seedling mr-1.5 text-school-500"></i>' + st.learningSource + '</span>';
+                        lsDisplay = '<span class="inline-flex items-center bg-school-50 text-school-700 border border-school-200 text-xs px-2.5 py-0.5 rounded-full"><i class="fas fa-seedling mr-1.5 text-school-500"></i>' + escapeHtml(st.learningSource) + '</span>';
                     } else {
                         lsDisplay = '<span class="text-gray-400">-</span>';
                     }
@@ -2444,15 +2473,20 @@
                     let stDriveId = extractGoogleDriveId(st.profileImg);
                     let imgSrc = st.profileImg ? fixDriveUrl(st.profileImg) : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(st.nickname || st.name || 'Student') + '&background=0d8139&color=fff&size=128&bold=true';
 
+                    let safeStName = escapeHtml(st.name);
+                    let safeStNickname = st.nickname ? ' <span class="text-gray-500 font-normal">(' + escapeHtml(st.nickname) + ')</span>' : '';
+                    let safeGrade = escapeHtml(st.grade);
+                    let safeDorm = (st.dormitory && st.dormitory !== '-') ? escapeHtml(st.dormitory) : '<span class="text-gray-400">-</span>';
+
                     let tr = document.createElement('tr');
                     tr.className = 'hover:bg-gray-50 transition-colors group cursor-pointer border-b border-gray-100 last:border-0';
                     tr.onclick = function() { openStudentViewModal(st.id); };
                     
                     tr.innerHTML = '<td class="px-4 py-3 whitespace-nowrap text-center"><img class="w-12 h-14 rounded-md object-cover object-top shadow-sm border border-gray-200 group-hover:border-school-400 transition inline-block" src="' + imgSrc + '" onerror="handleStudentImgError(this, \'' + stDriveId + '\', \'' + (st.nickname || st.name || '').replace(/'/g, "") + '\')"></td>' +
-                                   '<td class="px-4 py-3 whitespace-normal min-w-[200px] text-gray-800 font-medium">' + st.name + (st.nickname ? ' <span class="text-gray-500 font-normal">(' + st.nickname + ')</span>' : '') + '<div class="mt-1.5" id="att-status-' + st.id + '">' + attBadge + '</div></td>' +
-                                   '<td class="px-4 py-3 whitespace-nowrap text-gray-600 font-medium">' + st.grade + '</td>' +
+                                   '<td class="px-4 py-3 whitespace-normal min-w-[200px] text-gray-800 font-medium">' + safeStName + safeStNickname + '<div class="mt-1.5" id="att-status-' + st.id + '">' + attBadge + '</div></td>' +
+                                   '<td class="px-4 py-3 whitespace-nowrap text-gray-600 font-medium">' + safeGrade + '</td>' +
                                    '<td class="px-4 py-3 whitespace-normal min-w-[200px] leading-snug">' + teacherDisplay + '</td>' +
-                                   '<td class="px-4 py-3 whitespace-normal min-w-[150px] text-gray-700">' + ((st.dormitory && st.dormitory !== '-') ? st.dormitory : '<span class="text-gray-400">-</span>') + '</td>' +
+                                   '<td class="px-4 py-3 whitespace-normal min-w-[150px] text-gray-700">' + safeDorm + '</td>' +
                                    '<td class="px-4 py-3 whitespace-nowrap text-center">' + lsDisplay + '</td>' +
                                    '<td class="px-4 py-3 whitespace-nowrap text-right pr-6">' + printBtn + disabilityBtn + actionButtons + '</td>';
                     fragment.appendChild(tr);
@@ -2464,7 +2498,7 @@
                 matchedTeachers.sort((a, b) => (b.isLearningSourceHead ? 1 : 0) - (a.isLearningSourceHead ? 1 : 0));
                 
                 let teacherNamesText = matchedTeachers.map(function(t) { 
-                    return t.isLearningSourceHead ? `<span class="text-amber-600 font-bold underline decoration-amber-300 underline-offset-4">${t.name} <i class="fas fa-star text-xs"></i>(หัวหน้า)</span>` : t.name;
+                    return t.isLearningSourceHead ? `<span class="text-amber-600 font-bold underline decoration-amber-300 underline-offset-4">${escapeHtml(t.name)} <i class="fas fa-star text-xs"></i>(หัวหน้า)</span>` : escapeHtml(t.name);
                 }).join(', ');
                 
                 if (teacherNamesText === "") teacherNamesText = "ยังไม่มีข้อมูลครูผู้รับผิดชอบระบุไว้";
@@ -2473,7 +2507,7 @@
                 summaryTr.className = 'bg-school-50 border-t-2 border-school-200';
                 summaryTr.innerHTML = '<td colspan="7" class="px-5 py-4 text-center text-school-800 font-medium">' +
                                       '<i class="fas fa-chalkboard-teacher mr-2 text-school-600 text-lg"></i>' +
-                                      'ครูผู้ดูแลแหล่งเรียนรู้ <span class="font-bold text-school-600">[' + selLearning + ']</span> : ' +
+                                      'ครูผู้ดูแลแหล่งเรียนรู้ <span class="font-bold text-school-600">[' + escapeHtml(selLearning) + ']</span> : ' +
                                       '<span class="text-gray-700 font-bold ml-1">' + teacherNamesText + '</span>' +
                                       '</td>';
                 fragment.appendChild(summaryTr);
@@ -2589,13 +2623,13 @@
                 let matchedTeachers = teachersList.filter(function(t) { return t.learningSource === selLearning; });
                 let teacherCount = matchedTeachers.length;
                 let teacherNamesText = matchedTeachers.map(function(t) { 
-                    return t.isLearningSourceHead ? `${t.name} (หัวหน้า)` : t.name;
+                    return t.isLearningSourceHead ? `${escapeHtml(t.name)} (หัวหน้า)` : escapeHtml(t.name);
                 }).join(', ') || 'ยังไม่มีข้อมูลครูผู้ดูแล';
 
                 learningFilterStatsContainer.innerHTML = `
                     <div class="bg-white rounded-lg shadow-sm p-2 sm:p-3 border-l-4 border-emerald-500 flex justify-between items-center">
                         <div>
-                            <p class="text-[10px] sm:text-xs text-gray-500 font-bold mb-0.5">นักเรียนทั้งหมด (${selLearning})</p>
+                            <p class="text-[10px] sm:text-xs text-gray-500 font-bold mb-0.5">นักเรียนทั้งหมด (${escapeHtml(selLearning)})</p>
                             <h3 class="text-lg sm:text-xl font-bold text-gray-800 leading-none">${totalInLearning} <span class="text-[10px] sm:text-xs font-normal text-gray-500">คน</span></h3>
                         </div>
                         <div class="bg-emerald-50 p-1.5 sm:p-2 rounded-full text-emerald-500"><i class="fas fa-user-graduate text-sm sm:text-base"></i></div>
@@ -2670,15 +2704,15 @@
                                         '<button onclick="deleteTeacher(\'' + safeId + '\')" class="text-red-500 hover:text-red-700 mx-1.5 text-lg transition-transform hover:scale-110 bg-red-100 w-8 h-8 rounded-full" title="ลบ"><i class="fas fa-trash"></i></button>';
                     }
 
-                    let posText = "คนที่ " + (t.teacherPosition || "1");
+                    let posText = "คนที่ " + escapeHtml(t.teacherPosition || "1");
                     let headBadge = t.isLearningSourceHead ? '<span class="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-800 border border-amber-200"><i class="fas fa-star text-[10px] mr-1 text-amber-500"></i>หัวหน้า</span>' : '';
 
                     let tr = document.createElement('tr');
                     tr.className = 'hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-0';
-                    tr.innerHTML = '<td class="px-4 py-3 whitespace-normal text-gray-800 font-bold">' + t.name + '</td>' +
-                                   '<td class="px-4 py-3 whitespace-nowrap text-school-600 font-medium">' + (t.assignedClass || "-") + '</td>' +
+                    tr.innerHTML = '<td class="px-4 py-3 whitespace-normal text-gray-800 font-bold">' + escapeHtml(t.name) + '</td>' +
+                                   '<td class="px-4 py-3 whitespace-nowrap text-school-600 font-medium">' + escapeHtml(t.assignedClass || "-") + '</td>' +
                                    '<td class="px-4 py-3 whitespace-nowrap text-gray-600">' + posText + '</td>' +
-                                   '<td class="px-4 py-3 whitespace-normal text-gray-600">' + (t.learningSource || "-") + headBadge + '</td>' +
+                                   '<td class="px-4 py-3 whitespace-normal text-gray-600">' + escapeHtml(t.learningSource || "-") + headBadge + '</td>' +
                                    '<td class="px-4 py-3 whitespace-nowrap text-right pr-6">' + actionButtons + '</td>';
                     fragment.appendChild(tr);
                 }
@@ -2973,7 +3007,8 @@
             }).then(function(res) { 
                 if (res.isConfirmed) { 
                     if (realtimeInterval) clearInterval(realtimeInterval); 
-                    if (scanInterval) clearInterval(scanInterval);
+                    if (typeof stopFaceDetection === 'function') stopFaceDetection();
+                    else if (scanInterval) clearInterval(scanInterval);
                     if (typeof videoStream !== 'undefined' && videoStream) {
                         videoStream.getTracks().forEach(track => track.stop());
                     }
@@ -3041,8 +3076,18 @@
         }
 
         function saveStudentsToLocalStorage() {
-            localStorage.setItem('sis_students', JSON.stringify(studentsList));
-            updateDashboardStats(); populateClassDropdown();
+            try {
+                // กรองเฉพาะข้อมูลที่จำเป็นต่อการแสดงผล ไม่รวม faceDescriptor ขนาดยักษ์ (ซึ่งเก็บใน IndexedDB อยู่แล้ว)
+                const compactList = studentsList.map(function(st) {
+                    const copy = Object.assign({}, st);
+                    delete copy.faceDescriptor;
+                    return copy;
+                });
+                safeSetLocalStorage('sis_students', JSON.stringify(compactList));
+                safeSetLocalStorage('sis_students_cache', JSON.stringify(compactList));
+            } catch(e) {}
+            updateDashboardStats(); 
+            populateClassDropdown();
         }
 
         let currentViewDisabilityImg = "", currentViewMedicine = "", currentViewDisease = "", currentViewingStudentId = null; 
@@ -4155,9 +4200,23 @@
         let faceMatcher = null;
         let videoStream = null;
         let scanInterval = null;
+        let scanTimeoutId = null;
+        let isDetectingLive = false;
         let currentFacingMode = 'environment'; // 'environment' (กล้องหลัง) หรือ 'user' (กล้องหน้า)
         let currentScanMode = 'snapshot'; // 'snapshot' (ถ่ายภาพสแกน) หรือ 'live' (สแกนสด)
         let countdownTimer = null;
+
+        function stopFaceDetection() {
+            isDetectingLive = false;
+            if (scanTimeoutId) {
+                clearTimeout(scanTimeoutId);
+                scanTimeoutId = null;
+            }
+            if (scanInterval) {
+                clearInterval(scanInterval);
+                scanInterval = null;
+            }
+        }
 
         // =====================================================================
         // สลับโหมดการสแกนใบหน้า (Snapshot Mode & Live Mode)
@@ -4177,7 +4236,7 @@
                 if(btnSnapGroup) btnSnapGroup.classList.remove('hidden');
                 if(btnRetake) btnRetake.classList.add('hidden');
                 
-                if (scanInterval) clearInterval(scanInterval);
+                stopFaceDetection();
                 
                 const canvas = document.getElementById('faceCanvas');
                 if (canvas) {
@@ -4212,7 +4271,7 @@
             const canvas = document.getElementById('faceCanvas');
             if (!video || !canvas || video.paused || video.ended) return;
 
-            if (scanInterval) clearInterval(scanInterval);
+            stopFaceDetection();
 
             const displaySize = { width: video.videoWidth || 640, height: video.videoHeight || 480 };
             faceapi.matchDimensions(canvas, displaySize);
@@ -4541,7 +4600,7 @@
 
         function closeFaceScanner() {
             document.getElementById('faceScannerModal').classList.add('hidden');
-            if (scanInterval) clearInterval(scanInterval);
+            stopFaceDetection();
             if (countdownTimer) clearInterval(countdownTimer);
             
             if (videoStream) {
@@ -4640,63 +4699,81 @@
             const canvas = document.getElementById('faceCanvas');
             if (!canvas || !video) return;
             
+            stopFaceDetection();
+            isDetectingLive = true;
+
             const displaySize = { width: video.videoWidth || 640, height: video.videoHeight || 480 };
             faceapi.matchDimensions(canvas, displaySize);
 
-            if (scanInterval) clearInterval(scanInterval);
+            async function processLiveFrame() {
+                if (!isDetectingLive || video.paused || video.ended) return;
 
-            scanInterval = setInterval(async () => {
-                if(video.paused || video.ended) return;
+                try {
+                    const detections = await faceapi.detectAllFaces(video).withFaceLandmarks().withFaceDescriptors();
+                    if (!isDetectingLive || video.paused || video.ended) return;
 
-                const detections = await faceapi.detectAllFaces(video).withFaceLandmarks().withFaceDescriptors();
-                const resizedDetections = faceapi.resizeResults(detections, displaySize);
-                
-                const ctx = canvas.getContext('2d');
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-                if (resizedDetections.length > 0) {
-                    document.getElementById('scanStatusText').innerText = `พบ ${resizedDetections.length} ใบหน้า... กำลังเปรียบเทียบ`;
+                    const resizedDetections = faceapi.resizeResults(detections, displaySize);
                     
-                    for (const detection of resizedDetections) {
-                        const bestMatch = faceMatcher ? faceMatcher.findBestMatch(detection.descriptor) : { label: 'unknown', distance: 1.0 };
-                        const box = detection.detection.box;
+                    const ctx = canvas.getContext('2d');
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-                        if (bestMatch.label !== 'unknown' && bestMatch.distance < 0.48) {
-                            const matchedStudent = studentsList.find(s => String(s.id) === String(bestMatch.label));
-                            const displayName = matchedStudent ? `${matchedStudent.name}${matchedStudent.nickname ? ' (' + matchedStudent.nickname + ')' : ''}` : bestMatch.label;
-                            const confidencePercent = Math.round((1 - bestMatch.distance) * 100);
-                            
-                            // วาดกรอบสีเขียวพร้อมแสดงชื่อและเปอร์เซ็นต์ความมั่นใจ
-                            const drawBox = new faceapi.draw.DrawBox(box, { 
-                                label: `${displayName} [${confidencePercent}%]`,
-                                boxColor: '#16a34a',
-                                drawLabelOptions: { fontSize: 15, fontColor: '#ffffff', backgroundColor: '#16a34a' }
-                            });
-                            drawBox.draw(canvas);
+                    if (resizedDetections.length > 0) {
+                        const statusEl = document.getElementById('scanStatusText');
+                        if (statusEl) statusEl.innerText = `พบ ${resizedDetections.length} ใบหน้า... กำลังเปรียบเทียบ`;
+                        
+                        for (const detection of resizedDetections) {
+                            const bestMatch = faceMatcher ? faceMatcher.findBestMatch(detection.descriptor) : { label: 'unknown', distance: 1.0 };
+                            const box = detection.detection.box;
 
-                            playSuccessBeep();
-                            clearInterval(scanInterval);
-                            document.getElementById('scanStatusText').innerText = `พบแล้ว: ${displayName}!`;
-                            
-                            setTimeout(() => {
-                                closeFaceScanner();
-                                openStudentViewModal(bestMatch.label); 
-                            }, 600);
-                            return; 
-                        } else {
-                            // วาดกรอบสีน้ำเงินกรณีตรวจจับพบแต่ความมั่นใจยังไม่ถึงเกณฑ์
-                            const drawBox = new faceapi.draw.DrawBox(box, { 
-                                label: 'กำลังตรวจสอบ...', 
-                                boxColor: '#3b82f6',
-                                drawLabelOptions: { fontSize: 13, fontColor: '#ffffff', backgroundColor: '#3b82f6' }
-                            });
-                            drawBox.draw(canvas);
+                            if (bestMatch.label !== 'unknown' && bestMatch.distance < 0.48) {
+                                const matchedStudent = studentsList.find(s => String(s.id) === String(bestMatch.label));
+                                const displayName = matchedStudent ? `${matchedStudent.name}${matchedStudent.nickname ? ' (' + matchedStudent.nickname + ')' : ''}` : bestMatch.label;
+                                const confidencePercent = Math.round((1 - bestMatch.distance) * 100);
+                                
+                                // วาดกรอบสีเขียวพร้อมแสดงชื่อและเปอร์เซ็นต์ความมั่นใจ
+                                const drawBox = new faceapi.draw.DrawBox(box, { 
+                                    label: `${displayName} [${confidencePercent}%]`,
+                                    boxColor: '#16a34a',
+                                    drawLabelOptions: { fontSize: 15, fontColor: '#ffffff', backgroundColor: '#16a34a' }
+                                });
+                                drawBox.draw(canvas);
+
+                                playSuccessBeep();
+                                stopFaceDetection();
+                                const statusEl2 = document.getElementById('scanStatusText');
+                                if (statusEl2) statusEl2.innerText = `พบแล้ว: ${displayName}!`;
+                                
+                                setTimeout(() => {
+                                    closeFaceScanner();
+                                    openStudentViewModal(bestMatch.label); 
+                                }, 600);
+                                return; 
+                            } else {
+                                // วาดกรอบสีน้ำเงินกรณีตรวจจับพบแต่ความมั่นใจยังไม่ถึงเกณฑ์
+                                const drawBox = new faceapi.draw.DrawBox(box, { 
+                                    label: 'กำลังตรวจสอบ...', 
+                                    boxColor: '#3b82f6',
+                                    drawLabelOptions: { fontSize: 13, fontColor: '#ffffff', backgroundColor: '#3b82f6' }
+                                });
+                                drawBox.draw(canvas);
+                            }
                         }
+                    } else {
+                        const statusEl = document.getElementById('scanStatusText');
+                        if (statusEl) statusEl.innerText = 'ไม่พบใบหน้า กรุณามองกล้อง';
                     }
-                } else {
-                    document.getElementById('scanStatusText').innerText = 'ไม่พบใบหน้า กรุณามองกล้อง';
+                } catch (detErr) {
+                    console.warn("Live face detection error:", detErr);
                 }
-            }, 250);
+
+                // รอประมวลผลเฟรมก่อนหน้าจบเรียบร้อย 100% จึงกำหนดเวลาเรียกเฟรมถัดไป (150ms) ป้องกันคิวงานค้างและหน่วยความจำรั่วไหล
+                if (isDetectingLive && !video.paused && !video.ended) {
+                    scanTimeoutId = setTimeout(processLiveFrame, 150);
+                }
+            }
+
+            // เริ่มประมวลผลเฟรมแรก
+            scanTimeoutId = setTimeout(processLiveFrame, 100);
         }
 
         // =====================================================================
@@ -4770,7 +4847,7 @@
 
             const video = document.getElementById('webcamVideo');
             if (video) video.pause();
-            if (scanInterval) clearInterval(scanInterval);
+            stopFaceDetection();
 
             Swal.fire({
                 title: '⚡ กำลังสกัดข้อมูลใบหน้านักเรียน...',

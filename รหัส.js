@@ -347,6 +347,15 @@ function getStudents() {
 }
 
 function saveStudentData(studentObj) {
+  if (!studentObj || typeof studentObj !== 'object') {
+    return JSON.stringify({status: 'error', message: 'ข้อมูลนักเรียนไม่ถูกต้อง'});
+  }
+  const studentId = String(studentObj.studentId || '').trim();
+  if (!studentId) {
+    return JSON.stringify({status: 'error', message: 'กรุณาระบุรหัสนักเรียน'});
+  }
+  studentObj.studentId = studentId;
+
   const lock = LockService.getScriptLock();
   try {
     lock.waitLock(10000);
@@ -355,7 +364,7 @@ function saveStudentData(studentObj) {
     let rowIndex = -1;
     
     for (let i = 1; i < data.length; i++) {
-      if (String(data[i][0]) === String(studentObj.studentId)) {
+      if (String(data[i][0]) === studentId) {
         rowIndex = i + 1;
         break;
       }
@@ -368,10 +377,10 @@ function saveStudentData(studentObj) {
     
     if (rowIndex > -1) {
       sheet.getRange(rowIndex, 1, 1, rowData.length).setValues([rowData]);
-      sendLog('Update Student', 'Updated student ID: ' + studentObj.studentId);
+      sendLog('Update Student', 'Updated student ID: ' + studentId);
     } else {
       sheet.appendRow(rowData);
-      sendLog('Add Student', 'Added student ID: ' + studentObj.studentId);
+      sendLog('Add Student', 'Added student ID: ' + studentId);
     }
     
     return JSON.stringify({status: 'success'});
@@ -383,15 +392,20 @@ function saveStudentData(studentObj) {
 }
 
 function deleteStudentData(id) {
+  const cleanId = String(id || '').trim();
+  if (!cleanId) {
+    return JSON.stringify({status: 'error', message: 'กรุณาระบุรหัสนักเรียนที่ต้องการลบ'});
+  }
+
   const lock = LockService.getScriptLock();
   try {
     lock.waitLock(10000);
     const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('Students');
     const data = sheet.getDataRange().getValues();
     for (let i = 1; i < data.length; i++) {
-      if (String(data[i][0]) === String(id)) {
+      if (String(data[i][0]) === cleanId) {
         sheet.deleteRow(i + 1);
-        sendLog('Delete Student', 'Deleted student ID: ' + id);
+        sendLog('Delete Student', 'Deleted student ID: ' + cleanId);
         return JSON.stringify({status: 'success'});
       }
     }
@@ -480,6 +494,15 @@ function getTeachers() {
 }
 
 function saveTeacherData(teacherObj) {
+  if (!teacherObj || typeof teacherObj !== 'object') {
+    return JSON.stringify({status: 'error', message: 'ข้อมูลครูไม่ถูกต้อง'});
+  }
+  const teacherId = String(teacherObj.teacherId || '').trim();
+  if (!teacherId) {
+    return JSON.stringify({status: 'error', message: 'กรุณาระบุรหัสครู'});
+  }
+  teacherObj.teacherId = teacherId;
+
   const lock = LockService.getScriptLock();
   try {
     lock.waitLock(10000);
@@ -488,7 +511,7 @@ function saveTeacherData(teacherObj) {
     let rowIndex = -1;
     
     for (let i = 1; i < data.length; i++) {
-      if (String(data[i][0]) === String(teacherObj.teacherId)) {
+      if (String(data[i][0]) === teacherId) {
         rowIndex = i + 1;
         break;
       }
@@ -517,15 +540,20 @@ function saveTeacherData(teacherObj) {
 }
 
 function deleteTeacherData(id) {
+  const cleanId = String(id || '').trim();
+  if (!cleanId) {
+    return JSON.stringify({status: 'error', message: 'กรุณาระบุรหัสครูที่ต้องการลบ'});
+  }
+
   const lock = LockService.getScriptLock();
   try {
     lock.waitLock(10000);
     const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('Teachers');
     const data = sheet.getDataRange().getValues();
     for (let i = 1; i < data.length; i++) {
-      if (String(data[i][0]) === String(id)) {
+      if (String(data[i][0]) === cleanId) {
         sheet.deleteRow(i + 1);
-        sendLog('Delete Teacher', 'Deleted teacher ID: ' + id);
+        sendLog('Delete Teacher', 'Deleted teacher ID: ' + cleanId);
         return JSON.stringify({status: 'success'});
       }
     }
