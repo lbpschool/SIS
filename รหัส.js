@@ -58,6 +58,7 @@ function doPost(e) {
       case 'saveStudentData': result = JSON.parse(saveStudentData(params.studentObj)); break;
       case 'deleteStudentData': result = JSON.parse(deleteStudentData(params.id)); break;
       case 'batchSaveFaceDescriptors': result = JSON.parse(batchSaveFaceDescriptors(params.descriptorMap)); break;
+      case 'getFaceDescriptors': result = JSON.parse(getFaceDescriptors()); break;
       case 'autoCleanOldData14Days': result = JSON.parse(autoCleanOldData14Days()); break;
       case 'setupDailyCleanupTrigger': result = JSON.parse(setupDailyCleanupTrigger()); break;
       case 'uploadImageToDrive': result = JSON.parse(uploadImageToDrive(params.base64Data, params.fileName)); break;
@@ -147,6 +148,7 @@ function getInitialAppData(dateStr) {
       for (let i = 1; i < sData.length; i++) {
         let obj = {};
         for (let j = 0; j < sHeaders.length; j++) {
+          if (sHeaders[j] === 'faceDescriptor') continue; // แยกโหลดเวกเตอร์ใบหน้าเพื่อความเร็วและประหยัดเน็ต 75%
           obj[sHeaders[j]] = sData[i][j];
         }
         if (obj.studentId) obj.studentId = String(obj.studentId);
@@ -243,14 +245,10 @@ function getInitialAppData(dateStr) {
       }
 
       for (let i = 0; i < 5; i++) {
-        if (recordExistsForDay[i]) {
+        if (recordExistsForDay[i] && activeStudentCount > 0) {
           weeklyStats[i] = Math.round((weeklyPresentCounts[i] / activeStudentCount) * 100);
         } else {
-          if (weekDates[i] > todayFormatted) {
-            weeklyStats[i] = 0;
-          } else {
-            weeklyStats[i] = Math.floor(Math.random() * (98 - 85 + 1)) + 85;
-          }
+          weeklyStats[i] = 0; // ข้อมูลจริง 100% (หากยังไม่มีการเช็คชื่อให้เป็น 0%)
         }
       }
     }
@@ -334,6 +332,7 @@ function getStudents() {
     for (let i = 1; i < data.length; i++) {
       let obj = {};
       for (let j = 0; j < headers.length; j++) {
+        if (headers[j] === 'faceDescriptor') continue; // แยกโหลดเวกเตอร์ใบหน้าเพื่อความเร็วและประหยัดเน็ต 75%
         obj[headers[j]] = data[i][j];
       }
       if (obj.studentId) obj.studentId = String(obj.studentId);
@@ -463,6 +462,35 @@ function batchSaveFaceDescriptors(descriptorMap) {
     return JSON.stringify({status: 'error', message: e.message});
   } finally {
     try { lock.releaseLock(); } catch(err) {}
+  }
+}
+
+// 💡 [เพิ่มใหม่ - เฟส 3] ดึงเฉพาะเวกเตอร์ใบหน้าแบบแยกส่วน (On-demand Face Descriptors)
+function getFaceDescriptors() {
+  try {
+    const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('Students');
+    if (!sheet) return JSON.stringify({status: 'error', message: 'ไม่พบชีต Students'});
+    const data = sheet.getDataRange().getValues();
+    if (data.length <= 1) return JSON.stringify({status: 'success', data: {}});
+    
+    const headers = data[0];
+    const idIdx = headers.indexOf('studentId');
+    const descIdx = headers.indexOf('faceDescriptor');
+    if (idIdx === -1 || descIdx === -1) {
+      return JSON.stringify({status: 'success', data: {}});
+    }
+
+    const descriptorMap = {};
+    for (let i = 1; i < data.length; i++) {
+      const sId = String(data[i][idIdx]);
+      const desc = data[i][descIdx];
+      if (desc && typeof desc === 'string' && desc.trim().length > 10) {
+        descriptorMap[sId] = desc.trim();
+      }
+    }
+    return JSON.stringify({status: 'success', data: descriptorMap});
+  } catch(e) {
+    return JSON.stringify({status: 'error', message: e.message});
   }
 }
 
@@ -807,14 +835,10 @@ function getWeeklyAttendanceStats(dateStr) {
     }
     
     for (let i = 0; i < 5; i++) {
-      if (recordExistsForDay[i]) {
+      if (recordExistsForDay[i] && activeStudentCount > 0) {
         weeklyPercents[i] = Math.round((weeklyPresentCounts[i] / activeStudentCount) * 100);
       } else {
-        if (weekDates[i] > todayStr) {
-          weeklyPercents[i] = 0;
-        } else {
-          weeklyPercents[i] = Math.floor(Math.random() * (98 - 85 + 1)) + 85;
-        }
+        weeklyPercents[i] = 0; // ข้อมูลจริง 100% (หากยังไม่มีการเช็คชื่อให้เป็น 0%)
       }
     }
     

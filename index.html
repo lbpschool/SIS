@@ -1127,13 +1127,39 @@
     <!-- Application Script Logic -->
     <script>
         // =====================================================================
-        // แก้ไขส่วนนี้: โค้ดเชื่อมต่อ API แบบแก้ไขเรื่อง CORS แล้ว
+        // ⚙️ [Clean Code] รวมศูนย์ค่าคงที่และการตั้งค่าระบบ (Application Configuration)
+        // =====================================================================
+        const SIS_CONFIG = {
+            WEB_APP_URL: 'https://script.google.com/macros/s/AKfycbzKYTsmwlOyVNaOeWfAv2zGuG80lh-Yd0HJXwYHp6iyFD-lcDeHdxN7I34CSiB1rJck/exec',
+            REALTIME_SYNC_INTERVAL: 30000,
+            FACE_SCAN_DELAY_MS: 150,
+            FACE_THRESHOLD: 0.48,
+            IMG_MAX_PROFILE: 1600,
+            IMG_QUALITY_PROFILE: 0.92,
+            IMG_MAX_DOC: 2800,
+            IMG_QUALITY_DOC: 0.95,
+            SESSION_TIMEOUT_HOURS: 24
+        };
+
+        // 🗄️ [Clean Code] รวมศูนย์คีย์สำหรับจัดเก็บข้อมูลในแคช (Storage Keys)
+        const SIS_STORAGE_KEYS = {
+            STUDENTS: 'sis_students_cache',
+            TEACHERS: 'sis_teachers_cache',
+            TODAY_STATS: 'sis_todaystats_cache',
+            WEEKLY_STATS: 'sis_weeklystats_cache',
+            ATTENDANCE: 'sis_attendance',
+            SESSION_USER: 'sis_session_user',
+            SESSION_TIME: 'sis_session_login_time'
+        };
+
+        // =====================================================================
+        // โค้ดเชื่อมต่อ API แบบแก้ไขเรื่อง CORS (รองรับ GitHub Pages & Google Apps Script)
         // =====================================================================
         if (typeof google === 'undefined') {
             window.google = {
                 script: {
                     run: (function() {
-                        const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzKYTsmwlOyVNaOeWfAv2zGuG80lh-Yd0HJXwYHp6iyFD-lcDeHdxN7I34CSiB1rJck/exec';
+                        const WEB_APP_URL = SIS_CONFIG.WEB_APP_URL;
                         
                         function callAPI(action, payload, successHandler, failureHandler) {
                             payload.action = action;
@@ -1195,6 +1221,7 @@
                                 deleteStudentData: function(id) { callAPI('deleteStudentData', {id}, sHandler, fHandler); },
                                 uploadImageToDrive: function(base64Data, fileName) { callAPI('uploadImageToDrive', {base64Data, fileName}, sHandler, fHandler); },
                                 batchSaveFaceDescriptors: function(descriptorMap) { callAPI('batchSaveFaceDescriptors', {descriptorMap}, sHandler, fHandler); },
+                                getFaceDescriptors: function() { callAPI('getFaceDescriptors', {}, sHandler, fHandler); },
                                 autoCleanOldData14Days: function() { callAPI('autoCleanOldData14Days', {}, sHandler, fHandler); },
                                 getInitialAppData: function(dateStr) { callAPI('getInitialAppData', {dateStr}, sHandler, fHandler); }
                             };
@@ -1210,7 +1237,7 @@
         let studentsList = [];
         let teachersList = []; 
         let todayAttendanceStats = {};
-        let attendanceData = JSON.parse(localStorage.getItem('sis_attendance')) || {};
+        let attendanceData = {};
         let isUploadingImage = false;
         let gradeChartInstance = null;
         let dormChartInstance = null;
@@ -1249,12 +1276,37 @@
                 console.warn('LocalStorage quota limit reached for key:', key, e);
                 try {
                     // เคลียร์ข้อมูลแคชสถิติเก่าเพื่อคืนพื้นที่
-                    localStorage.removeItem('sis_todaystats_cache');
-                    localStorage.removeItem('sis_weeklystats_cache');
+                    localStorage.removeItem(SIS_STORAGE_KEYS.TODAY_STATS);
+                    localStorage.removeItem(SIS_STORAGE_KEYS.WEEKLY_STATS);
                     localStorage.setItem(key, value);
                 } catch(err2) {
                     console.error('Failed to set localStorage even after cleanup:', err2);
                 }
+            }
+        }
+
+        // Helper สำหรับอ่านข้อมูลแคชอย่างปลอดภัย รองรับ Legacy Keys อัตโนมัติ
+        function getCachedData(key, fallback = null) {
+            try {
+                let raw = localStorage.getItem(key);
+                if (!raw) {
+                    if (key === SIS_STORAGE_KEYS.STUDENTS) raw = localStorage.getItem('sis_students');
+                    else if (key === SIS_STORAGE_KEYS.TEACHERS) raw = localStorage.getItem('sis_teachers');
+                }
+                return raw ? JSON.parse(raw) : fallback;
+            } catch (e) {
+                console.warn('[Storage] Read error for key:', key, e);
+                return fallback;
+            }
+        }
+
+        // Helper สำหรับบันทึกข้อมูลแคชอย่างปลอดภัย
+        function setCachedData(key, value) {
+            try {
+                const str = typeof value === 'string' ? value : JSON.stringify(value);
+                safeSetLocalStorage(key, str);
+            } catch (e) {
+                console.warn('[Storage] Write error for key:', key, e);
             }
         }
 
@@ -1313,14 +1365,16 @@
 
             // ตรวจสอบการเข้าสู่ระบบค้างไว้เพื่อรองรับการใช้งานหลายเครื่อง/เปิดเว็บซ้ำโดยไม่ต้องพิมพ์รหัสใหม่
             try {
-                const savedSession = localStorage.getItem('sis_session_user');
+                const savedSession = localStorage.getItem(SIS_STORAGE_KEYS.SESSION_USER);
                 if (savedSession) {
                     const userData = JSON.parse(savedSession);
                     if (userData && userData.role) {
                         loginSuccess(userData);
                     }
                 }
-            } catch(e) {}
+            } catch(e) {
+                console.warn('[Session] Error restoring session:', e);
+            }
         });
 
         // ============================
@@ -1568,11 +1622,8 @@
 
                 if (hasRealData && total > 0) {
                     weeklyPct.push(Math.round((present/total)*100));
-                } else if (targetDate > dateStr) {
-                    weeklyPct.push(0);
                 } else {
-                    let dummyPct = Math.floor(Math.random() * (98 - 85 + 1)) + 85;
-                    weeklyPct.push(dummyPct);
+                    weeklyPct.push(0);
                 }
             }
             return weeklyPct;
@@ -1660,9 +1711,11 @@
             
             // บันทึก Session เพื่อรองรับการใช้งานพร้อมกันหลายอุปกรณ์ (Multi-device Session Persistence)
             try {
-                localStorage.setItem('sis_session_user', JSON.stringify(userData));
-                localStorage.setItem('sis_session_login_time', String(Date.now()));
-            } catch(e) {}
+                localStorage.setItem(SIS_STORAGE_KEYS.SESSION_USER, JSON.stringify(userData));
+                localStorage.setItem(SIS_STORAGE_KEYS.SESSION_TIME, String(Date.now()));
+            } catch(e) {
+                console.warn('[Session] Error saving session:', e);
+            }
 
             document.getElementById('loginScreen').style.display = 'none';
             document.getElementById('mainApp').classList.remove('hidden');
@@ -1708,18 +1761,29 @@
         function loadDataFromCache() {
             let hasCache = false;
             try {
-                const cachedStudents = localStorage.getItem('sis_students_cache');
-                if (cachedStudents) { studentsList = JSON.parse(cachedStudents); hasCache = true; }
+                const cachedStudents = getCachedData(SIS_STORAGE_KEYS.STUDENTS);
+                if (cachedStudents && Array.isArray(cachedStudents)) { 
+                    studentsList = cachedStudents; 
+                    hasCache = true; 
+                }
                 
-                const cachedTeachers = localStorage.getItem('sis_teachers_cache');
-                if (cachedTeachers) { teachersList = JSON.parse(cachedTeachers); }
+                const cachedTeachers = getCachedData(SIS_STORAGE_KEYS.TEACHERS);
+                if (cachedTeachers && Array.isArray(cachedTeachers)) { 
+                    teachersList = cachedTeachers; 
+                }
                 
-                const cachedStats = localStorage.getItem('sis_todaystats_cache');
-                if (cachedStats) { todayAttendanceStats = JSON.parse(cachedStats); }
+                const cachedStats = getCachedData(SIS_STORAGE_KEYS.TODAY_STATS);
+                if (cachedStats) { 
+                    todayAttendanceStats = cachedStats; 
+                }
 
-                const cachedWeekly = localStorage.getItem('sis_weeklystats_cache');
-                if (cachedWeekly) { updateWeeklyChart(JSON.parse(cachedWeekly)); }
-            } catch(e) {}
+                const cachedWeekly = getCachedData(SIS_STORAGE_KEYS.WEEKLY_STATS);
+                if (cachedWeekly) { 
+                    updateWeeklyChart(cachedWeekly); 
+                }
+            } catch(e) {
+                console.warn('[Cache] Error loading initial cache:', e);
+            }
             
             // ถ้ามี Cache ให้วาด UI เลย
             if (hasCache) {
@@ -1750,10 +1814,10 @@
                                 todayAttendanceStats = parsed.todayStats;
                                 
                                 // บันทึกลง Cache ไว้ใช้รอบหน้า
-                                localStorage.setItem('sis_students_cache', JSON.stringify(studentsList));
-                                localStorage.setItem('sis_teachers_cache', JSON.stringify(teachersList));
-                                localStorage.setItem('sis_todaystats_cache', JSON.stringify(todayAttendanceStats));
-                                localStorage.setItem('sis_weeklystats_cache', JSON.stringify(parsed.weeklyStats));
+                                setCachedData(SIS_STORAGE_KEYS.STUDENTS, studentsList);
+                                setCachedData(SIS_STORAGE_KEYS.TEACHERS, teachersList);
+                                setCachedData(SIS_STORAGE_KEYS.TODAY_STATS, todayAttendanceStats);
+                                setCachedData(SIS_STORAGE_KEYS.WEEKLY_STATS, parsed.weeklyStats);
 
                                 // วาด UI ใหม่อีกครั้งเพื่ออัปเดตข้อมูลล่าสุดแบบแนบเนียน
                                 populateClassDropdown();
@@ -1762,7 +1826,9 @@
                                 renderTeachers();
                                 updateWeeklyChart(parsed.weeklyStats);
                             }
-                        } catch(e) {}
+                        } catch(e) {
+                            console.warn('[Server] Error parsing initial app data:', e);
+                        }
                     }).getInitialAppData(todayStr);
                 } else {
                     // ระบบสำรอง หากไม่ได้อัปเดตหลังบ้าน
@@ -1772,8 +1838,8 @@
             } else {
                 // สำหรับ Mock Environment
                 setTimeout(() => { 
-                    studentsList = JSON.parse(localStorage.getItem('sis_students')) || initialMockStudents;
-                    teachersList = JSON.parse(localStorage.getItem('sis_teachers')) || [];
+                    studentsList = getCachedData(SIS_STORAGE_KEYS.STUDENTS, initialMockStudents);
+                    teachersList = getCachedData(SIS_STORAGE_KEYS.TEACHERS, []);
                     populateClassDropdown();
                     populateTeacherDatalist();
                     updateDashboardStats(false);
@@ -1806,7 +1872,7 @@
                         } else if (parsed && parsed.status === 'success' && parsed.students) {
                             studentsList = parsed.students.map(formatStudentData);
                         }
-                        localStorage.setItem('sis_students_cache', JSON.stringify(studentsList)); 
+                        setCachedData(SIS_STORAGE_KEYS.STUDENTS, studentsList); 
                         populateClassDropdown();
                         updateDashboardStats(true);
                         renderStudents();
@@ -1816,7 +1882,7 @@
                     console.error("Fetch students error:", err);
                 }).getStudents();
             } else {
-                studentsList = JSON.parse(localStorage.getItem('sis_students_cache')) || JSON.parse(localStorage.getItem('sis_students')) || initialMockStudents;
+                studentsList = getCachedData(SIS_STORAGE_KEYS.STUDENTS, initialMockStudents);
                 populateClassDropdown();
                 updateDashboardStats(false);
                 renderStudents();
@@ -1834,7 +1900,7 @@
                         } else if (parsed && parsed.status === 'success' && parsed.teachers) {
                             teachersList = parsed.teachers.map(formatTeacherData);
                         }
-                        localStorage.setItem('sis_teachers_cache', JSON.stringify(teachersList)); 
+                        setCachedData(SIS_STORAGE_KEYS.TEACHERS, teachersList); 
                         renderTeachers();
                         populateTeacherDatalist();
                         updateLearningCards();
@@ -1844,7 +1910,7 @@
                     console.error("Fetch teachers error:", err);
                 }).getTeachers();
             } else {
-                 teachersList = JSON.parse(localStorage.getItem('sis_teachers_cache')) || JSON.parse(localStorage.getItem('sis_teachers')) || [];
+                 teachersList = getCachedData(SIS_STORAGE_KEYS.TEACHERS, []);
                  renderTeachers();
                  populateTeacherDatalist();
                  updateLearningCards();
@@ -2011,21 +2077,7 @@
                 validData = weeklyData;
             }
 
-            const isAllZero = validData.every(val => val === 0);
-            
-            if (isAllZero) {
-                const now = new Date();
-                const currentDayIndex = now.getDay(); 
-                
-                for (let i = 0; i < 5; i++) {
-                    if ((i + 1) <= currentDayIndex || currentDayIndex === 0 || currentDayIndex === 6) {
-                        validData[i] = Math.floor(Math.random() * (98 - 85 + 1)) + 85;
-                    } else {
-                        validData[i] = 0;
-                    }
-                }
-            }
-
+            // แสดงข้อมูลสถิติตามจริง 100% (ไม่มีการสุ่มสถิติหลอก)
             attendanceChartInstance.data.datasets[0].data = validData;
             attendanceChartInstance.update();
         }
@@ -2942,7 +2994,7 @@
                     const idx = teachersList.findIndex(function(t) { return t.id === editId; });
                     if(idx !== -1) teachersList[idx] = teacherObj;
                 } else { teachersList.push(teacherObj); }
-                localStorage.setItem('sis_teachers', JSON.stringify(teachersList));
+                setCachedData(SIS_STORAGE_KEYS.TEACHERS, teachersList);
                 
                 if (teacherObj.assignedClass && teacherObj.assignedClass.trim() !== "") {
                     let posKey = 'teacher';
@@ -2950,26 +3002,32 @@
                     else if (teacherObj.teacherPosition === "3") posKey = 'coTeacher2';
                     
                     let updated = false;
-                    studentsList.forEach(function(s) {
-                        if (s.grade === teacherObj.assignedClass.trim()) {
+                    for (let s of studentsList) {
+                        if (s.grade === teacherObj.assignedClass) {
                             s[posKey] = teacherObj.name;
                             updated = true;
                         }
-                    });
+                    }
                     if (updated) saveStudentsToLocalStorage();
                 }
 
                 renderTeachers();
                 populateTeacherDatalist();
                 closeTeacherModal();
-                Swal.fire({ icon: 'success', title: 'บันทึกสำเร็จ (โหมดจำลอง)', showConfirmButton: false, timer: 1500 });
+                Swal.fire({ icon: 'success', title: 'บันทึกข้อมูลสำเร็จ', showConfirmButton: false, timer: 1500 });
             }
         }
 
         function deleteTeacher(id) {
             Swal.fire({
-                title: 'ยืนยันการลบ?', text: "ต้องการลบข้อมูลครูรหัส " + id + " ใช่หรือไม่", icon: 'warning',
-                showCancelButton: true, confirmButtonColor: '#d33', cancelButtonColor: '#3085d6', confirmButtonText: 'ลบข้อมูล', cancelButtonText: 'ยกเลิก'
+                title: 'ยืนยันการลบข้อมูลครู?',
+                text: "หากลบแล้วจะไม่สามารถกู้คืนได้!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'ใช่, ลบเลย!',
+                cancelButtonText: 'ยกเลิก'
             }).then(function(result) {
                 if (result.isConfirmed) {
                     if (typeof google !== 'undefined' && google.script) {
@@ -2978,7 +3036,7 @@
                             .withSuccessHandler(function(res) {
                                 let parsed = JSON.parse(res);
                                 if(parsed.status === 'success') {
-                                    Swal.fire('สำเร็จ!', 'ลบข้อมูลแล้ว', 'success');
+                                    Swal.fire({ icon: 'success', title: 'ลบข้อมูลสำเร็จ', showConfirmButton: false, timer: 1500 });
                                     fetchTeachersData();
                                 } else { Swal.fire('เกิดข้อผิดพลาด', parsed.message, 'error'); }
                             })
@@ -2986,7 +3044,7 @@
                             .deleteTeacherData(id);
                     } else {
                         teachersList = teachersList.filter(function(t) { return t.id !== id; });
-                        localStorage.setItem('sis_teachers', JSON.stringify(teachersList));
+                        setCachedData(SIS_STORAGE_KEYS.TEACHERS, teachersList);
                         renderTeachers();
                         populateTeacherDatalist();
                         Swal.fire('สำเร็จ!', 'ลบข้อมูลแล้ว (โหมดจำลอง)', 'success');
@@ -3018,9 +3076,11 @@
                     
                     // ลบเซสชันเฉพาะอุปกรณ์นี้ โดยไม่กระทบอุปกรณ์เครื่องอื่นที่ใช้งานพร้อมกันอยู่
                     try {
-                        localStorage.removeItem('sis_session_user');
-                        localStorage.removeItem('sis_session_login_time');
-                    } catch(e) {}
+                        localStorage.removeItem(SIS_STORAGE_KEYS.SESSION_USER);
+                        localStorage.removeItem(SIS_STORAGE_KEYS.SESSION_TIME);
+                    } catch(e) {
+                        console.warn('[Session] Error clearing session storage:', e);
+                    }
 
                     currentUserRole = '';
 
@@ -3083,9 +3143,10 @@
                     delete copy.faceDescriptor;
                     return copy;
                 });
-                safeSetLocalStorage('sis_students', JSON.stringify(compactList));
-                safeSetLocalStorage('sis_students_cache', JSON.stringify(compactList));
-            } catch(e) {}
+                setCachedData(SIS_STORAGE_KEYS.STUDENTS, compactList);
+            } catch(e) {
+                console.warn('[Storage] Error saving students to localStorage:', e);
+            }
             updateDashboardStats(); 
             populateClassDropdown();
         }
@@ -4309,7 +4370,7 @@
 
                     const box = resizedDetection.detection.box;
 
-                    if (bestMatch && bestMatch.label !== 'unknown' && bestMatch.distance < 0.48) {
+                    if (bestMatch && bestMatch.label !== 'unknown' && bestMatch.distance < SIS_CONFIG.FACE_THRESHOLD) {
                         const matchedStudent = studentsList.find(s => String(s.id) === String(bestMatch.label));
                         const displayName = matchedStudent ? `${matchedStudent.name}${matchedStudent.nickname ? ' (' + matchedStudent.nickname + ')' : ''}` : bestMatch.label;
                         const confidencePercent = Math.round((1 - bestMatch.distance) * 100);
@@ -4725,7 +4786,7 @@
                             const bestMatch = faceMatcher ? faceMatcher.findBestMatch(detection.descriptor) : { label: 'unknown', distance: 1.0 };
                             const box = detection.detection.box;
 
-                            if (bestMatch.label !== 'unknown' && bestMatch.distance < 0.48) {
+                            if (bestMatch.label !== 'unknown' && bestMatch.distance < SIS_CONFIG.FACE_THRESHOLD) {
                                 const matchedStudent = studentsList.find(s => String(s.id) === String(bestMatch.label));
                                 const displayName = matchedStudent ? `${matchedStudent.name}${matchedStudent.nickname ? ' (' + matchedStudent.nickname + ')' : ''}` : bestMatch.label;
                                 const confidencePercent = Math.round((1 - bestMatch.distance) * 100);
@@ -4786,7 +4847,7 @@
             for (let student of studentsList) {
                 if (student.commuteType === 'จบการศึกษา') continue;
                 
-                // 1. ตรวจสอบเวกเตอร์จาก Google Sheets หรือ Memory
+                // 1. ตรวจสอบเวกเตอร์จากหน่วยความจำ
                 if (student.faceDescriptor && typeof student.faceDescriptor === 'string' && student.faceDescriptor.trim().length > 10) {
                     try {
                         const descArray = JSON.parse(student.faceDescriptor);
@@ -4795,10 +4856,12 @@
                             countWithDescriptor++;
                             continue;
                         }
-                    } catch (e) {}
+                    } catch (e) {
+                        console.warn('[Face] Descriptor parse error for student:', student.id, e);
+                    }
                 }
 
-                // 2. หากยังไม่มีใน Sheets ให้ตรวจสอบ IndexedDB แคชในเครื่อง
+                // 2. ตรวจสอบ IndexedDB แคชในเครื่อง
                 if (student.profileImg && student.profileImg.trim() !== '') {
                     const cachedDesc = await getStoredDescriptor(student.id, student.profileImg);
                     if (cachedDesc && cachedDesc.length === 128) {
@@ -4809,10 +4872,52 @@
                 }
             }
 
+            // 3. [เพิ่มในเฟส 3] หากในเครื่องยังไม่มีเวกเตอร์ ให้ดึงเฉพาะเวกเตอร์แบบ On-demand จาก Google Apps Script
+            if (countWithDescriptor === 0 && typeof google !== 'undefined' && google.script && google.script.run) {
+                try {
+                    const statusText = document.getElementById('scanStatusText');
+                    if (statusText) statusText.innerText = 'กำลังซิงค์ข้อมูลใบหน้าจากเซิร์ฟเวอร์...';
+
+                    const res = await new Promise((resolve) => {
+                        google.script.run
+                            .withSuccessHandler(r => resolve(typeof r === 'string' ? JSON.parse(r) : r))
+                            .withFailureHandler(err => {
+                                console.warn('[Face] On-demand face sync failed:', err);
+                                resolve(null);
+                            })
+                            .getFaceDescriptors();
+                    });
+
+                    if (res && res.status === 'success' && res.data) {
+                        const descMap = res.data;
+                        for (let student of studentsList) {
+                            if (student.commuteType === 'จบการศึกษา') continue;
+                            const descStr = descMap[String(student.id)];
+                            if (descStr && descStr.length > 10) {
+                                try {
+                                    const descArray = JSON.parse(descStr);
+                                    if (Array.isArray(descArray) && descArray.length === 128) {
+                                        const f32 = new Float32Array(descArray);
+                                        labeledFaceDescriptors.push(new faceapi.LabeledFaceDescriptors(String(student.id), [f32]));
+                                        student.faceDescriptor = descStr;
+                                        countWithDescriptor++;
+                                        if (student.profileImg) {
+                                            saveStoredDescriptor(student.id, student.profileImg, f32);
+                                        }
+                                    }
+                                } catch (parseErr) {}
+                            }
+                        }
+                    }
+                } catch(e) {
+                    console.warn('[Face] Error during on-demand descriptor load:', e);
+                }
+            }
+
             const badge = document.getElementById('faceCountBadge');
 
             if (labeledFaceDescriptors.length > 0) {
-                faceMatcher = new faceapi.FaceMatcher(labeledFaceDescriptors, 0.48);
+                faceMatcher = new faceapi.FaceMatcher(labeledFaceDescriptors, SIS_CONFIG.FACE_THRESHOLD);
                 if (badge) {
                     badge.innerText = `พร้อมสแกน ${countWithDescriptor} คน`;
                     badge.classList.remove('hidden');
@@ -4934,7 +5039,7 @@
                 } catch(e) {}
             }
             if (newLabeledDescriptors.length > 0) {
-                faceMatcher = new faceapi.FaceMatcher(newLabeledDescriptors, 0.48);
+                faceMatcher = new faceapi.FaceMatcher(newLabeledDescriptors, SIS_CONFIG.FACE_THRESHOLD);
                 const badge = document.getElementById('faceCountBadge');
                 if (badge) {
                     badge.innerText = `พร้อมสแกน ${newLabeledDescriptors.length} คน`;
@@ -5001,12 +5106,10 @@
                 img.onload = function() {
                     const canvas = document.createElement('canvas');
                     
-                    // ปรับค่าความละเอียดและคุณภาพแยกตามประเภทรูปภาพ
-                    // รูปบัตรคนพิการ: ขอบเขตสูงสุด 2800px คุณภาพ 95% (Ultra HD อ่านออก 100% ทุกตัวอักษร)
-                    // รูปโปรไฟล์: ขอบเขตสูงสุด 1600px คุณภาพ 92% (ชัดเจนสำหรับสแกนใบหน้า)
-                    const MAX_WIDTH = type === 'profile' ? 1600 : 2800;
-                    const MAX_HEIGHT = type === 'profile' ? 1600 : 2800;
-                    const quality = type === 'profile' ? 0.92 : 0.95;
+                    // ปรับค่าความละเอียดและคุณภาพแยกตามประเภทรูปภาพผ่าน SIS_CONFIG
+                    const MAX_WIDTH = type === 'profile' ? SIS_CONFIG.IMG_MAX_PROFILE : SIS_CONFIG.IMG_MAX_DOC;
+                    const MAX_HEIGHT = type === 'profile' ? SIS_CONFIG.IMG_MAX_PROFILE : SIS_CONFIG.IMG_MAX_DOC;
+                    const quality = type === 'profile' ? SIS_CONFIG.IMG_QUALITY_PROFILE : SIS_CONFIG.IMG_QUALITY_DOC;
 
                     let width = img.width;
                     let height = img.height;
@@ -5110,8 +5213,8 @@
         function startRealtimeAttendance() { 
             fetchRealtimeData(); 
             if (realtimeInterval) clearInterval(realtimeInterval); 
-            // อัปเดตรอบละ 30 วินาที ช่วยประหยัดโควตาและไม่ทำให้ระบบหน่วง
-            realtimeInterval = setInterval(fetchRealtimeData, 30000); 
+            // อัปเดตตามรอบที่กำหนดใน SIS_CONFIG ช่วยประหยัดโควตาและไม่ทำให้ระบบหน่วง
+            realtimeInterval = setInterval(fetchRealtimeData, SIS_CONFIG.REALTIME_SYNC_INTERVAL); 
         }
 
         // ดักจับเมื่อผู้ใช้สลับแท็บกลับมาใช้งานหน้าเว็บ ให้ดึงข้อมูลล่าสุดทันที 0 วินาที
