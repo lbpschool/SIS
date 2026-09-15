@@ -557,49 +557,41 @@
 
                 <!-- Health Page -->
                 <div id="page-health" class="page-content flex-col flex-1 min-h-0 gap-3 w-full">
-                    <!-- Top Control Card -->
-                    <div class="bg-white p-3 sm:p-4 rounded-xl border border-gray-200 shadow-xs shrink-0 flex flex-col gap-3">
-                        <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3">
-                            <div class="flex items-center gap-2.5">
-                                <div class="bg-emerald-100 text-emerald-700 w-10 h-10 rounded-xl flex items-center justify-center text-xl shadow-xs shrink-0">
-                                    <i class="fas fa-heartbeat"></i>
-                                </div>
-                                <div>
-                                    <h2 class="text-base sm:text-lg font-bold text-gray-800">ระบบบันทึกการตรวจสุขภาพนักเรียนประจำปี</h2>
-                                    <p class="text-xs text-gray-500">บันทึก ติดตาม และพิมพ์แบบบันทึกการตรวจสุขภาพนักเรียน 7 จุดตรวจ</p>
-                                </div>
+                    <!-- Top Filter and Search Bar (Compact UI) -->
+                    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-2.5 sm:p-3 flex flex-col gap-2 shrink-0 w-full">
+                        <!-- แถวที่ 1: ช่องค้นหา + ปุ่มรีเฟรชข้อมูล -->
+                        <div class="flex items-center gap-2 w-full">
+                            <div class="relative flex-1">
+                                <input type="text" id="searchHealthStudent" oninput="renderHealthTable()" placeholder="ค้นหา รหัสนักเรียน, ชื่อ-สกุล หรือชื่อเล่น..." class="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-school-500 focus:ring-1 focus:ring-school-500 text-xs sm:text-sm transition-colors shadow-sm bg-white">
+                                <i class="fas fa-search absolute left-3 top-2.5 sm:top-3 text-gray-400 text-xs sm:text-sm"></i>
                             </div>
-                            <!-- Action buttons -->
-                            <div class="flex items-center gap-2 w-full lg:w-auto">
-                                <button onclick="fetchHealthRecordsFromServer()" class="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs sm:text-sm font-medium transition flex items-center justify-center shadow-xs">
-                                    <i class="fas fa-sync-alt mr-1.5 text-school-600"></i> รีเฟรชข้อมูล
-                                </button>
-                            </div>
+                            <button onclick="fetchHealthRecordsFromServer()" title="รีเฟรชข้อมูล" class="px-2.5 sm:px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs sm:text-sm font-medium transition flex items-center justify-center shrink-0 shadow-sm">
+                                <i class="fas fa-sync-alt sm:mr-1.5 text-school-600"></i> <span class="hidden sm:inline">รีเฟรช</span>
+                            </button>
                         </div>
 
-                        <!-- แถวที่ 1: ตัวกรอง 4 ช่อง -->
-                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1 border-t border-gray-100">
+                        <!-- แถวที่ 2: ตัวกรอง 4 ช่อง (เรียง 4 คอลัมน์) -->
+                        <div class="grid grid-cols-2 min-[480px]:grid-cols-4 gap-1.5 sm:gap-2 w-full shrink-0">
                             <!-- ปีการศึกษา -->
-                            <div>
-                                <label class="text-[11px] font-semibold text-gray-600 mb-1 block">ปีการศึกษา</label>
-                                <select id="filterHealthYear" onchange="onHealthYearChange()" class="w-full border border-gray-200 rounded-lg px-2.5 py-2 outline-none focus:border-emerald-500 text-xs sm:text-sm bg-white shadow-xs">
+                            <div class="relative w-full shrink-0">
+                                <select id="filterHealthYear" onchange="onHealthYearChange()" class="w-full border border-gray-200 rounded-lg pl-2 pr-6 py-2 outline-none focus:border-school-500 focus:ring-1 focus:ring-school-500 text-gray-600 bg-white text-[11px] sm:text-sm appearance-none cursor-pointer transition-colors shadow-sm truncate">
                                     <option value="2568" selected>ปีการศึกษา 2568</option>
                                     <option value="2567">ปีการศึกษา 2567</option>
                                     <option value="2569">ปีการศึกษา 2569</option>
                                     <option value="2570">ปีการศึกษา 2570</option>
                                 </select>
+                                <i class="fas fa-chevron-down absolute right-2 top-3 text-gray-400 pointer-events-none text-[10px]"></i>
                             </div>
                             <!-- ระดับชั้น -->
-                            <div>
-                                <label class="text-[11px] font-semibold text-gray-600 mb-1 block">ระดับชั้น</label>
-                                <select id="filterHealthGrade" onchange="renderHealthTable()" class="w-full border border-gray-200 rounded-lg px-2.5 py-2 outline-none focus:border-emerald-500 text-xs sm:text-sm bg-white shadow-xs">
+                            <div class="relative w-full shrink-0">
+                                <select id="filterHealthGrade" onchange="renderHealthTable()" class="w-full border border-gray-200 rounded-lg pl-2 pr-6 py-2 outline-none focus:border-school-500 focus:ring-1 focus:ring-school-500 text-gray-600 bg-white text-[11px] sm:text-sm appearance-none cursor-pointer transition-colors shadow-sm truncate">
                                     <option value="">ทุกระดับชั้น</option>
                                 </select>
+                                <i class="fas fa-chevron-down absolute right-2 top-3 text-gray-400 pointer-events-none text-[10px]"></i>
                             </div>
                             <!-- เรือนนอน -->
-                            <div>
-                                <label class="text-[11px] font-semibold text-gray-600 mb-1 block">เรือนนอน</label>
-                                <select id="filterHealthDormitory" onchange="renderHealthTable()" class="w-full border border-gray-200 rounded-lg px-2.5 py-2 outline-none focus:border-emerald-500 text-xs sm:text-sm bg-white shadow-xs">
+                            <div class="relative w-full shrink-0">
+                                <select id="filterHealthDormitory" onchange="renderHealthTable()" class="w-full border border-gray-200 rounded-lg pl-2 pr-6 py-2 outline-none focus:border-school-500 focus:ring-1 focus:ring-school-500 text-gray-600 bg-white text-[11px] sm:text-sm appearance-none cursor-pointer transition-colors shadow-sm truncate">
                                     <option value="">ทุกเรือนนอน</option>
                                     <option value="ทานตะวัน">1. เรือนนอนชาย ทานตะวัน</option>
                                     <option value="พุทธรักษา">2. เรือนนอนชาย พุทธรักษา</option>
@@ -610,43 +602,38 @@
                                     <option value="ดอกแก้ว">7. เรือนนอนหญิง ดอกแก้ว</option>
                                     <option value="พิกุล">8. เรือนนอนหญิง พิกุล</option>
                                 </select>
+                                <i class="fas fa-chevron-down absolute right-2 top-3 text-gray-400 pointer-events-none text-[10px]"></i>
                             </div>
                             <!-- สถานะการตรวจ -->
-                            <div>
-                                <label class="text-[11px] font-semibold text-gray-600 mb-1 block">สถานะผลตรวจ</label>
-                                <select id="filterHealthStatus" onchange="renderHealthTable()" class="w-full border border-gray-200 rounded-lg px-2.5 py-2 outline-none focus:border-emerald-500 text-xs sm:text-sm bg-white shadow-xs">
-                                    <option value="">ทั้งหมด</option>
+                            <div class="relative w-full shrink-0">
+                                <select id="filterHealthStatus" onchange="renderHealthTable()" class="w-full border border-gray-200 rounded-lg pl-2 pr-6 py-2 outline-none focus:border-school-500 focus:ring-1 focus:ring-school-500 text-gray-600 bg-white text-[11px] sm:text-sm appearance-none cursor-pointer transition-colors shadow-sm truncate">
+                                    <option value="">ทุกสถานะ</option>
                                     <option value="checked">ตรวจแล้ว (ปกติ)</option>
-                                    <option value="issue">พบอาการผิดปกติ / เฝ้าระวัง</option>
+                                    <option value="issue">พบอาการผิดปกติ</option>
                                     <option value="pending">ยังไม่ได้ตรวจ</option>
                                 </select>
+                                <i class="fas fa-chevron-down absolute right-2 top-3 text-gray-400 pointer-events-none text-[10px]"></i>
                             </div>
-                        </div>
-
-                        <!-- แถวที่ 2: ช่องค้นหา (ล่างช่องปีการศึกษาและตัวกรอง) -->
-                        <div class="relative w-full">
-                            <input type="text" id="searchHealthStudent" oninput="renderHealthTable()" placeholder="ค้นหาด้วย ชื่อ-สกุล, ชื่อเล่น หรือรหัสนักเรียน..." class="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-xs sm:text-sm transition-colors shadow-xs bg-white">
-                            <i class="fas fa-search absolute left-3 top-2.5 sm:top-3 text-gray-400 text-xs sm:text-sm"></i>
                         </div>
                     </div>
 
-                    <!-- Health Stats Cards -->
-                    <div class="grid grid-cols-2 min-[640px]:grid-cols-4 gap-2 sm:gap-3 shrink-0">
-                        <div class="bg-white rounded-xl border border-gray-200 shadow-xs p-2.5 sm:p-3 border-l-4 border-blue-500">
-                            <p class="text-[10px] sm:text-xs text-gray-500 mb-0.5 font-semibold">นักเรียนทั้งหมด</p>
-                            <h3 class="text-lg sm:text-xl font-bold text-blue-600" id="healthStatTotal">0</h3>
+                    <!-- Health Stats Strip (Compact Single Row) -->
+                    <div class="grid grid-cols-4 gap-1.5 sm:gap-2.5 shrink-0">
+                        <div class="bg-white rounded-lg border border-gray-200 shadow-xs px-2 py-1.5 sm:px-3 sm:py-2 border-l-4 border-blue-500 flex flex-col justify-center min-w-0">
+                            <span class="text-[10px] sm:text-xs text-gray-500 font-medium truncate">ทั้งหมด</span>
+                            <span class="text-sm sm:text-base md:text-lg font-bold text-blue-600 leading-tight" id="healthStatTotal">0</span>
                         </div>
-                        <div class="bg-white rounded-xl border border-gray-200 shadow-xs p-2.5 sm:p-3 border-l-4 border-emerald-500">
-                            <p class="text-[10px] sm:text-xs text-gray-500 mb-0.5 font-semibold">ตรวจสุขภาพแล้ว</p>
-                            <h3 class="text-lg sm:text-xl font-bold text-emerald-600" id="healthStatChecked">0</h3>
+                        <div class="bg-white rounded-lg border border-gray-200 shadow-xs px-2 py-1.5 sm:px-3 sm:py-2 border-l-4 border-emerald-500 flex flex-col justify-center min-w-0">
+                            <span class="text-[10px] sm:text-xs text-gray-500 font-medium truncate">ตรวจแล้ว</span>
+                            <span class="text-sm sm:text-base md:text-lg font-bold text-emerald-600 leading-tight" id="healthStatChecked">0</span>
                         </div>
-                        <div class="bg-white rounded-xl border border-gray-200 shadow-xs p-2.5 sm:p-3 border-l-4 border-amber-500">
-                            <p class="text-[10px] sm:text-xs text-gray-500 mb-0.5 font-semibold">ยังไม่ได้ตรวจ</p>
-                            <h3 class="text-lg sm:text-xl font-bold text-amber-600" id="healthStatPending">0</h3>
+                        <div class="bg-white rounded-lg border border-gray-200 shadow-xs px-2 py-1.5 sm:px-3 sm:py-2 border-l-4 border-amber-500 flex flex-col justify-center min-w-0">
+                            <span class="text-[10px] sm:text-xs text-gray-500 font-medium truncate">ยังไม่ตรวจ</span>
+                            <span class="text-sm sm:text-base md:text-lg font-bold text-amber-600 leading-tight" id="healthStatPending">0</span>
                         </div>
-                        <div class="bg-white rounded-xl border border-gray-200 shadow-xs p-2.5 sm:p-3 border-l-4 border-rose-500">
-                            <p class="text-[10px] sm:text-xs text-gray-500 mb-0.5 font-semibold">พบอาการผิดปกติ/เฝ้าระวัง</p>
-                            <h3 class="text-lg sm:text-xl font-bold text-rose-600" id="healthStatIssue">0</h3>
+                        <div class="bg-white rounded-lg border border-gray-200 shadow-xs px-2 py-1.5 sm:px-3 sm:py-2 border-l-4 border-rose-500 flex flex-col justify-center min-w-0">
+                            <span class="text-[10px] sm:text-xs text-gray-500 font-medium truncate">ผิดปกติ</span>
+                            <span class="text-sm sm:text-base md:text-lg font-bold text-rose-600 leading-tight" id="healthStatIssue">0</span>
                         </div>
                     </div>
 
