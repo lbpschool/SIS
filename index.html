@@ -171,6 +171,8 @@
                     <a href="#" onclick="switchPage('attendance')" class="menu-item block px-4 py-2 rounded-md hover:bg-white/10 transition text-school-100" data-page="attendance"><i class="fas fa-calendar-check w-6 text-orange-300"></i> เช็คชื่อนักเรียน</a>
                     <!-- เมนูจัดการข้อมูลครู (เห็นเฉพาะ Admin) -->
                     <a href="#" onclick="switchPage('teachers')" class="menu-item block px-4 py-2 rounded-md hover:bg-white/10 transition text-school-100 admin-only" data-page="teachers"><i class="fas fa-chalkboard-teacher w-6 text-purple-300"></i> ข้อมูลครูประจำชั้น</a>
+                    <!-- เมนูตรวจสุขภาพนักเรียน (เห็นเฉพาะ Admin และ SchoolHealth) -->
+                    <a href="#" onclick="switchPage('health')" class="menu-item block px-4 py-2 rounded-md hover:bg-white/10 transition text-school-100 health-only" data-page="health"><i class="fas fa-heartbeat w-6 text-emerald-300"></i> ตรวจสุขภาพนักเรียน</a>
                 </nav>
             </div>
             <div class="absolute bottom-0 w-full p-4 border-t border-white/10">
@@ -549,6 +551,127 @@
                             <button onclick="saveAttendance()" class="w-full sm:w-auto bg-[#00a651] text-white px-6 py-2.5 rounded-lg hover:bg-[#008f45] shadow-md flex items-center justify-center transition text-sm font-bold">
                                 <i class="fas fa-save mr-2"></i> บันทึกการเช็คชื่อ
                             </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Health Page -->
+                <div id="page-health" class="page-content flex-col flex-1 min-h-0 gap-3 w-full">
+                    <!-- Top Control Card -->
+                    <div class="bg-white p-3 sm:p-4 rounded-xl border border-gray-200 shadow-xs shrink-0 flex flex-col gap-3">
+                        <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3">
+                            <div class="flex items-center gap-2.5">
+                                <div class="bg-emerald-100 text-emerald-700 w-10 h-10 rounded-xl flex items-center justify-center text-xl shadow-xs shrink-0">
+                                    <i class="fas fa-heartbeat"></i>
+                                </div>
+                                <div>
+                                    <h2 class="text-base sm:text-lg font-bold text-gray-800">ระบบบันทึกการตรวจสุขภาพนักเรียนประจำปี</h2>
+                                    <p class="text-xs text-gray-500">บันทึก ติดตาม และพิมพ์แบบบันทึกการตรวจสุขภาพนักเรียน 7 จุดตรวจ</p>
+                                </div>
+                            </div>
+                            <!-- Action buttons -->
+                            <div class="flex items-center gap-2 w-full lg:w-auto">
+                                <button onclick="fetchHealthRecordsFromServer()" class="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs sm:text-sm font-medium transition flex items-center justify-center shadow-xs">
+                                    <i class="fas fa-sync-alt mr-1.5 text-school-600"></i> รีเฟรชข้อมูล
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Filters Row -->
+                        <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-2 pt-1 border-t border-gray-100">
+                            <!-- ปีการศึกษา -->
+                            <div>
+                                <label class="text-[11px] font-semibold text-gray-600 mb-1 block">ปีการศึกษา</label>
+                                <select id="filterHealthYear" onchange="onHealthYearChange()" class="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 outline-none focus:border-emerald-500 text-xs sm:text-sm bg-white shadow-xs">
+                                    <option value="2568" selected>ปีการศึกษา 2568</option>
+                                    <option value="2567">ปีการศึกษา 2567</option>
+                                    <option value="2569">ปีการศึกษา 2569</option>
+                                    <option value="2570">ปีการศึกษา 2570</option>
+                                </select>
+                            </div>
+                            <!-- ระดับชั้น -->
+                            <div>
+                                <label class="text-[11px] font-semibold text-gray-600 mb-1 block">ระดับชั้น</label>
+                                <select id="filterHealthGrade" onchange="renderHealthTable()" class="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 outline-none focus:border-emerald-500 text-xs sm:text-sm bg-white shadow-xs">
+                                    <option value="">ทุกระดับชั้น</option>
+                                </select>
+                            </div>
+                            <!-- เรือนนอน -->
+                            <div>
+                                <label class="text-[11px] font-semibold text-gray-600 mb-1 block">เรือนนอน</label>
+                                <select id="filterHealthDormitory" onchange="renderHealthTable()" class="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 outline-none focus:border-emerald-500 text-xs sm:text-sm bg-white shadow-xs">
+                                    <option value="">ทุกเรือนนอน</option>
+                                    <option value="ทานตะวัน">1. เรือนนอนชาย ทานตะวัน</option>
+                                    <option value="พุทธรักษา">2. เรือนนอนชาย พุทธรักษา</option>
+                                    <option value="ชงโค">3. เรือนนอนชาย ชงโค</option>
+                                    <option value="อัญชัน">4. เรือนนอนชาย อัญชัน</option>
+                                    <option value="พวงคราม">5. เรือนนอนชาย พวงคราม</option>
+                                    <option value="เฟื่องฟ้า">6. เรือนนอนหญิง เฟื่องฟ้า</option>
+                                    <option value="ดอกแก้ว">7. เรือนนอนหญิง ดอกแก้ว</option>
+                                    <option value="พิกุล">8. เรือนนอนหญิง พิกุล</option>
+                                </select>
+                            </div>
+                            <!-- สถานะการตรวจ -->
+                            <div>
+                                <label class="text-[11px] font-semibold text-gray-600 mb-1 block">สถานะ</label>
+                                <select id="filterHealthStatus" onchange="renderHealthTable()" class="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 outline-none focus:border-emerald-500 text-xs sm:text-sm bg-white shadow-xs">
+                                    <option value="">ทั้งหมด</option>
+                                    <option value="checked">ตรวจแล้ว</option>
+                                    <option value="pending">ยังไม่ได้ตรวจ</option>
+                                    <option value="issue">พบภาวะผิดปกติ / เฝ้าระวัง</option>
+                                </select>
+                            </div>
+                            <!-- ค้นหา -->
+                            <div class="col-span-2 sm:col-span-4 lg:col-span-1">
+                                <label class="text-[11px] font-semibold text-gray-600 mb-1 block">ค้นหา</label>
+                                <div class="relative">
+                                    <input type="text" id="searchHealthStudent" oninput="renderHealthTable()" placeholder="ค้นหาชื่อ / รหัส..." class="w-full border border-gray-200 rounded-lg pl-8 pr-3 py-1.5 outline-none focus:border-emerald-500 text-xs sm:text-sm bg-white shadow-xs">
+                                    <i class="fas fa-search absolute left-2.5 top-2 text-gray-400 text-xs"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Health Stats Cards -->
+                    <div class="grid grid-cols-2 min-[640px]:grid-cols-4 gap-2 sm:gap-3 shrink-0">
+                        <div class="bg-white rounded-xl border border-gray-200 shadow-xs p-2.5 sm:p-3 border-l-4 border-blue-500">
+                            <p class="text-[10px] sm:text-xs text-gray-500 mb-0.5 font-semibold">นักเรียนทั้งหมด</p>
+                            <h3 class="text-lg sm:text-xl font-bold text-blue-600" id="healthStatTotal">0</h3>
+                        </div>
+                        <div class="bg-white rounded-xl border border-gray-200 shadow-xs p-2.5 sm:p-3 border-l-4 border-emerald-500">
+                            <p class="text-[10px] sm:text-xs text-gray-500 mb-0.5 font-semibold">ตรวจสุขภาพแล้ว</p>
+                            <h3 class="text-lg sm:text-xl font-bold text-emerald-600" id="healthStatChecked">0</h3>
+                        </div>
+                        <div class="bg-white rounded-xl border border-gray-200 shadow-xs p-2.5 sm:p-3 border-l-4 border-amber-500">
+                            <p class="text-[10px] sm:text-xs text-gray-500 mb-0.5 font-semibold">ยังไม่ได้ตรวจ</p>
+                            <h3 class="text-lg sm:text-xl font-bold text-amber-600" id="healthStatPending">0</h3>
+                        </div>
+                        <div class="bg-white rounded-xl border border-gray-200 shadow-xs p-2.5 sm:p-3 border-l-4 border-rose-500">
+                            <p class="text-[10px] sm:text-xs text-gray-500 mb-0.5 font-semibold">พบอาการผิดปกติ/เฝ้าระวัง</p>
+                            <h3 class="text-lg sm:text-xl font-bold text-rose-600" id="healthStatIssue">0</h3>
+                        </div>
+                    </div>
+
+                    <!-- Health Table Container -->
+                    <div class="bg-white rounded-xl border border-gray-200 shadow-xs flex-1 flex flex-col min-h-0 overflow-hidden relative w-full">
+                        <div class="flex-1 w-full overflow-x-auto overflow-y-auto custom-scrollbar">
+                            <table class="w-full text-sm text-left text-gray-600 min-w-[920px]">
+                                <thead class="bg-gray-50 text-gray-700 sticky top-0 z-10 shadow-xs">
+                                    <tr>
+                                        <th class="px-3 py-3 font-semibold whitespace-nowrap text-center w-14 bg-gray-50 border-b border-gray-200">รูปภาพ</th>
+                                        <th class="px-4 py-3 font-semibold whitespace-nowrap min-w-[180px] bg-gray-50 border-b border-gray-200">รหัส / ชื่อ-สกุล</th>
+                                        <th class="px-3 py-3 font-semibold whitespace-nowrap text-center bg-gray-50 border-b border-gray-200">ชั้น</th>
+                                        <th class="px-3 py-3 font-semibold whitespace-nowrap bg-gray-50 border-b border-gray-200">เรือนนอน</th>
+                                        <th class="px-3 py-3 font-semibold whitespace-nowrap text-center bg-gray-50 border-b border-gray-200">วันที่ตรวจ</th>
+                                        <th class="px-3 py-3 font-semibold whitespace-nowrap bg-gray-50 border-b border-gray-200">สัญญาณชีพ & เจริญเติบโต</th>
+                                        <th class="px-3 py-3 font-semibold whitespace-nowrap text-center bg-gray-50 border-b border-gray-200">สถานะผลตรวจ</th>
+                                        <th class="px-4 py-3 font-semibold whitespace-nowrap text-right pr-6 bg-gray-50 border-b border-gray-200">จัดการ</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="healthTableBody" class="divide-y divide-gray-100">
+                                    <tr><td colspan="8" class="text-center py-10 text-gray-500">กำลังโหลดข้อมูลสุขภาพ...</td></tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
@@ -945,6 +1068,19 @@
                             </div>
                         </div>
 
+                        <!-- ส่วนแสดงข้อมูลการตรวจสุขภาพประจำปี -->
+                        <div>
+                            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b-2 border-emerald-100 pb-2 mb-4 gap-2">
+                                <h3 class="text-lg font-bold text-school-700 flex items-center"><i class="fas fa-file-medical-alt text-emerald-500 mr-2"></i>ประวัติการตรวจสุขภาพประจำปี</h3>
+                                <button id="btn-health-download-pdf" onclick="downloadCurrentStudentHealthPDF()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center shadow-xs cursor-pointer">
+                                    <i class="fas fa-file-pdf mr-1.5"></i> โหลดแบบบันทึก PDF
+                                </button>
+                            </div>
+                            <div id="view-health-summary-container" class="bg-emerald-50/50 p-4 rounded-xl border border-emerald-100 text-sm">
+                                <p class="text-gray-500 text-center py-2"><i class="fas fa-spinner fa-spin mr-2"></i>กำลังดึงข้อมูลการตรวจสุขภาพ...</p>
+                            </div>
+                        </div>
+
                         <div>
                             <h3 class="text-lg font-bold text-school-700 border-b-2 border-blue-100 pb-2 mb-4 flex items-center"><i class="fas fa-users text-blue-400 mr-2"></i>ข้อมูลครอบครัว</h3>
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-6 text-sm">
@@ -1124,6 +1260,516 @@
         </div>
     </div>
 
+    <!-- Health Record Form Modal -->
+    <div id="healthRecordModal" class="fixed inset-0 bg-black bg-opacity-50 z-[65] hidden flex justify-center items-center p-2 sm:p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl relative max-h-[96vh] flex flex-col overflow-hidden border border-gray-100">
+            <!-- Modal Header -->
+            <div class="px-5 py-4 bg-gradient-to-r from-emerald-600 via-emerald-700 to-green-800 text-white flex justify-between items-center shrink-0">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-xs flex items-center justify-center text-xl shadow-xs">
+                        <i class="fas fa-heartbeat"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-lg sm:text-xl font-bold leading-tight" id="healthModalTitle">บันทึกการตรวจสุขภาพนักเรียน</h2>
+                        <p class="text-xs text-emerald-100 opacity-90" id="healthModalSubtitle">โรงเรียนลพบุรีปัญญานุกูล</p>
+                    </div>
+                </div>
+                <button onclick="closeHealthRecordModal()" class="text-white/80 hover:text-white hover:bg-white/20 w-8 h-8 rounded-lg flex items-center justify-center transition focus:outline-none">
+                    <i class="fas fa-times text-lg"></i>
+                </button>
+            </div>
+
+            <!-- Student Profile Strip (Auto-filled) -->
+            <div class="px-5 py-2.5 bg-emerald-50 border-b border-emerald-100 flex flex-wrap items-center justify-between gap-3 text-xs sm:text-sm shrink-0">
+                <div class="flex items-center gap-3">
+                    <img id="hm-student-img" src="" alt="รูปนักเรียน" class="w-10 h-12 rounded-md object-cover object-top border border-emerald-300 shadow-xs">
+                    <div>
+                        <div class="font-bold text-gray-800" id="hm-student-name">-</div>
+                        <div class="text-gray-500 text-xs">
+                            รหัส: <span id="hm-student-id" class="font-semibold text-emerald-700">-</span> |
+                            ชั้น: <span id="hm-student-grade" class="font-semibold text-gray-700">-</span> |
+                            อายุ: <span id="hm-student-age" class="font-semibold text-gray-700">-</span> ปี
+                        </div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button type="button" onclick="quickSetAllHealthNormal()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition shadow-xs flex items-center cursor-pointer" title="ตั้งค่าทุกจุดตรวจให้เป็น 'ปกติ' ทั้งหมดอัตโนมัติ">
+                        <i class="fas fa-magic mr-1.5"></i> ⚡ ปกติทั้งหมด (Quick Normal)
+                    </button>
+                </div>
+            </div>
+
+            <!-- Form Body -->
+            <form id="healthRecordForm" onsubmit="handleHealthRecordSubmit(event)" class="overflow-y-auto custom-scrollbar flex-1 p-4 sm:p-6 space-y-6">
+                <input type="hidden" id="hm-record-id" value="">
+                <input type="hidden" id="hm-target-student-id" value="">
+
+                <!-- Section: ข้อมูลทั่วไป -->
+                <div class="bg-gray-50 p-4 rounded-xl border border-gray-200">
+                    <h3 class="text-sm font-bold text-gray-700 mb-3 flex items-center"><i class="fas fa-info-circle text-emerald-600 mr-2"></i>ข้อมูลการตรวจ</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs sm:text-sm">
+                        <div>
+                            <label class="font-semibold text-gray-600 mb-1 block">ปีการศึกษา <span class="text-red-500">*</span></label>
+                            <input type="text" id="hm-academic-year" class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white font-medium" readonly>
+                        </div>
+                        <div>
+                            <label class="font-semibold text-gray-600 mb-1 block">วันที่ตรวจสุขภาพ <span class="text-red-500">*</span></label>
+                            <input type="date" id="hm-check-date" required class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white">
+                        </div>
+                        <div>
+                            <label class="font-semibold text-gray-600 mb-1 block">เรือนนอน <span class="text-emerald-600 font-normal">(ดึงอัตโนมัติ)</span></label>
+                            <select id="hm-dormitory" class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white">
+                                <option value="1.เรือนนอนชาย ทานตะวัน">1.เรือนนอนชาย ทานตะวัน</option>
+                                <option value="2.เรือนนอนชาย พุทธรักษา">2.เรือนนอนชาย พุทธรักษา</option>
+                                <option value="3.เรือนนอนชาย ชงโค">3.เรือนนอนชาย ชงโค</option>
+                                <option value="4.เรือนนอนชาย อัญชัน">4.เรือนนอนชาย อัญชัน</option>
+                                <option value="5.เรือนนอนชาย พวงคราม">5.เรือนนอนชาย พวงคราม</option>
+                                <option value="6.เรือนนอนหญิง เฟื่องฟ้า">6.เรือนนอนหญิง เฟื่องฟ้า</option>
+                                <option value="7.เรือนนอนหญิง ดอกแก้ว">7.เรือนนอนหญิง ดอกแก้ว</option>
+                                <option value="8.เรือนนอนหญิง พิกุล">8.เรือนนอนหญิง พิกุล</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section: จุดที่ 1 แบบประเมินสัญญาณชีพ -->
+                <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-2xs">
+                    <div class="flex justify-between items-center border-b border-gray-100 pb-2 mb-3">
+                        <h3 class="text-sm font-bold text-gray-800 flex items-center">
+                            <span class="w-6 h-6 rounded-full bg-blue-100 text-blue-700 inline-flex items-center justify-center text-xs mr-2 font-black">1</span>
+                            จุดที่ 1 แบบประเมินสัญญาณชีพ (Vital Signs)
+                        </h3>
+                    </div>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs sm:text-sm">
+                        <div>
+                            <label class="text-gray-600 mb-1 block font-medium">อุณหภูมิ (°C)</label>
+                            <input type="number" step="0.1" id="hm-p1-temp" placeholder="เช่น 36.5" class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white outline-none focus:ring-2 focus:ring-emerald-400">
+                        </div>
+                        <div>
+                            <label class="text-gray-600 mb-1 block font-medium">ความดันโลหิต (mmHg)</label>
+                            <input type="text" id="hm-p1-bp" placeholder="เช่น 110/70" class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white outline-none focus:ring-2 focus:ring-emerald-400">
+                        </div>
+                        <div>
+                            <label class="text-gray-600 mb-1 block font-medium">ชีพจร (ครั้ง/นาที)</label>
+                            <input type="number" id="hm-p1-pulse" placeholder="เช่น 78" class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white outline-none focus:ring-2 focus:ring-emerald-400">
+                        </div>
+                        <div>
+                            <label class="text-gray-600 mb-1 block font-medium">ความเข้มออกซิเจน SpO2 (%)</label>
+                            <input type="number" id="hm-p1-spo2" placeholder="เช่น 98" class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white outline-none focus:ring-2 focus:ring-emerald-400">
+                        </div>
+                        <div class="col-span-2 sm:col-span-4 pt-1">
+                            <label class="text-gray-600 mb-1 block font-medium">ลงชื่อเจ้าหน้าที่ผู้ตรวจ จุดที่ 1</label>
+                            <input type="text" id="hm-p1-officer" placeholder="ระบุชื่อเจ้าหน้าที่..." class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white outline-none focus:ring-2 focus:ring-emerald-400">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section: จุดที่ 2 แบบประเมินการเจริญเติบโต -->
+                <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-2xs">
+                    <div class="flex justify-between items-center border-b border-gray-100 pb-2 mb-3">
+                        <h3 class="text-sm font-bold text-gray-800 flex items-center">
+                            <span class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 inline-flex items-center justify-center text-xs mr-2 font-black">2</span>
+                            จุดที่ 2 แบบประเมินการเจริญเติบโต
+                        </h3>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs sm:text-sm">
+                        <div>
+                            <label class="text-gray-600 mb-1 block font-medium">น้ำหนัก (กิโลกรัม)</label>
+                            <input type="number" step="0.1" id="hm-p2-weight" oninput="autoCalculateGrowthAssessment()" placeholder="เช่น 45.5" class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white outline-none focus:ring-2 focus:ring-emerald-400">
+                        </div>
+                        <div>
+                            <label class="text-gray-600 mb-1 block font-medium">ส่วนสูง (เซนติเมตร)</label>
+                            <input type="number" step="0.1" id="hm-p2-height" oninput="autoCalculateGrowthAssessment()" placeholder="เช่น 152" class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white outline-none focus:ring-2 focus:ring-emerald-400">
+                        </div>
+
+                        <!-- ผลน้ำหนักตามเกณฑ์ส่วนสูง -->
+                        <div class="sm:col-span-2 bg-gray-50 p-3 rounded-lg border border-gray-200">
+                            <label class="font-semibold text-gray-700 mb-2 block">ผลภาวะการณ์เจริญเติบโตน้ำหนักตามเกณฑ์ส่วนสูง:</label>
+                            <div class="grid grid-cols-2 sm:grid-cols-6 gap-2">
+                                <label class="flex items-center p-2 rounded-lg border bg-white cursor-pointer hover:bg-emerald-50"><input type="radio" name="p2_weightForHeight" value="ผอม" class="mr-1.5 text-emerald-600"> ผอม</label>
+                                <label class="flex items-center p-2 rounded-lg border bg-white cursor-pointer hover:bg-emerald-50"><input type="radio" name="p2_weightForHeight" value="ค่อนข้างผอม" class="mr-1.5 text-emerald-600"> ค่อนข้างผอม</label>
+                                <label class="flex items-center p-2 rounded-lg border bg-white cursor-pointer hover:bg-emerald-50"><input type="radio" name="p2_weightForHeight" value="สมส่วน" class="mr-1.5 text-emerald-600"> สมส่วน</label>
+                                <label class="flex items-center p-2 rounded-lg border bg-white cursor-pointer hover:bg-emerald-50"><input type="radio" name="p2_weightForHeight" value="ท้วม" class="mr-1.5 text-emerald-600"> ท้วม</label>
+                                <label class="flex items-center p-2 rounded-lg border bg-white cursor-pointer hover:bg-emerald-50"><input type="radio" name="p2_weightForHeight" value="เริ่มอ้วน" class="mr-1.5 text-emerald-600"> เริ่มอ้วน</label>
+                                <label class="flex items-center p-2 rounded-lg border bg-white cursor-pointer hover:bg-emerald-50"><input type="radio" name="p2_weightForHeight" value="อ้วน" class="mr-1.5 text-emerald-600"> อ้วน</label>
+                            </div>
+                        </div>
+
+                        <!-- ผลส่วนสูงตามเกณฑ์อายุ -->
+                        <div class="sm:col-span-2 bg-gray-50 p-3 rounded-lg border border-gray-200">
+                            <label class="font-semibold text-gray-700 mb-2 block">ผลภาวะการณ์เจริญเติบโตส่วนสูงตามเกณฑ์อายุ:</label>
+                            <div class="grid grid-cols-2 sm:grid-cols-6 gap-2">
+                                <label class="flex items-center p-2 rounded-lg border bg-white cursor-pointer hover:bg-emerald-50"><input type="radio" name="p2_heightForAge" value="เตี้ย" class="mr-1.5 text-emerald-600"> เตี้ย</label>
+                                <label class="flex items-center p-2 rounded-lg border bg-white cursor-pointer hover:bg-emerald-50"><input type="radio" name="p2_heightForAge" value="ค่อนข้างแคระ" class="mr-1.5 text-emerald-600"> ค่อนข้างแคระ</label>
+                                <label class="flex items-center p-2 rounded-lg border bg-white cursor-pointer hover:bg-emerald-50"><input type="radio" name="p2_heightForAge" value="สมส่วน" class="mr-1.5 text-emerald-600"> สมส่วน</label>
+                                <label class="flex items-center p-2 rounded-lg border bg-white cursor-pointer hover:bg-emerald-50"><input type="radio" name="p2_heightForAge" value="สูงตามเกณฑ์" class="mr-1.5 text-emerald-600"> สูงตามเกณฑ์</label>
+                                <label class="flex items-center p-2 rounded-lg border bg-white cursor-pointer hover:bg-emerald-50"><input type="radio" name="p2_heightForAge" value="ค่อนข้างสูง" class="mr-1.5 text-emerald-600"> ค่อนข้างสูง</label>
+                                <label class="flex items-center p-2 rounded-lg border bg-white cursor-pointer hover:bg-emerald-50"><input type="radio" name="p2_heightForAge" value="สูง" class="mr-1.5 text-emerald-600"> สูง</label>
+                            </div>
+                        </div>
+
+                        <div class="sm:col-span-2 pt-1">
+                            <label class="text-gray-600 mb-1 block font-medium">ลงชื่อเจ้าหน้าที่ผู้ตรวจ จุดที่ 2</label>
+                            <input type="text" id="hm-p2-officer" placeholder="ระบุชื่อเจ้าหน้าที่..." class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white outline-none focus:ring-2 focus:ring-emerald-400">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section: จุดที่ 3 การตรวจสุขภาพร่างกาย -->
+                <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-2xs">
+                    <div class="flex flex-wrap justify-between items-center border-b border-gray-100 pb-2 mb-3 gap-2">
+                        <h3 class="text-sm font-bold text-gray-800 flex items-center">
+                            <span class="w-6 h-6 rounded-full bg-amber-100 text-amber-700 inline-flex items-center justify-center text-xs mr-2 font-black">3</span>
+                            จุดที่ 3 การตรวจสุขภาพร่างกาย
+                        </h3>
+                        <button type="button" onclick="quickSetStation3Normal()" class="text-xs bg-amber-50 hover:bg-amber-100 text-amber-700 px-2.5 py-1 rounded-md border border-amber-200 transition font-medium">
+                            ⚡ ปกติทุกรายการในจุดที่ 3
+                        </button>
+                    </div>
+                    <div class="space-y-3 text-xs sm:text-sm">
+                        <!-- 1. ศีรษะ -->
+                        <div class="p-2.5 rounded-lg border border-gray-200 bg-gray-50/50">
+                            <div class="flex items-center justify-between">
+                                <span class="font-bold text-gray-700">1. ศีรษะ</span>
+                                <div class="flex items-center gap-3">
+                                    <label class="flex items-center cursor-pointer"><input type="radio" name="p3_head" value="ปกติ" checked onchange="toggleNoteInput('p3-head-note-wrap', false)" class="mr-1 text-emerald-600"> ปกติ</label>
+                                    <label class="flex items-center cursor-pointer"><input type="radio" name="p3_head" value="ผิดปกติ" onchange="toggleNoteInput('p3-head-note-wrap', true)" class="mr-1 text-red-600"> ผิดปกติ</label>
+                                </div>
+                            </div>
+                            <div id="p3-head-note-wrap" class="hidden mt-2 pt-2 border-t border-gray-200">
+                                <div class="flex flex-wrap gap-1.5 mb-1.5">
+                                    <button type="button" onclick="appendTag('hm-p3-head-note', 'เชื้อรา')" class="px-2 py-0.5 bg-gray-200 hover:bg-gray-300 rounded text-[11px] text-gray-700">+ เชื้อรา</button>
+                                    <button type="button" onclick="appendTag('hm-p3-head-note', 'ชันตุ')" class="px-2 py-0.5 bg-gray-200 hover:bg-gray-300 rounded text-[11px] text-gray-700">+ ชันตุ</button>
+                                    <button type="button" onclick="appendTag('hm-p3-head-note', 'รังแค')" class="px-2 py-0.5 bg-gray-200 hover:bg-gray-300 rounded text-[11px] text-gray-700">+ รังแค</button>
+                                </div>
+                                <input type="text" id="hm-p3-head-note" placeholder="ระบุอาการผิดปกติ..." class="w-full border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs bg-white">
+                            </div>
+                        </div>
+
+                        <!-- 2. ผม -->
+                        <div class="p-2.5 rounded-lg border border-gray-200 bg-gray-50/50">
+                            <div class="flex items-center justify-between">
+                                <span class="font-bold text-gray-700">2. ผม</span>
+                                <div class="flex items-center gap-3">
+                                    <label class="flex items-center cursor-pointer"><input type="radio" name="p3_hair" value="ปกติ" checked onchange="toggleNoteInput('p3-hair-note-wrap', false)" class="mr-1 text-emerald-600"> ปกติ</label>
+                                    <label class="flex items-center cursor-pointer"><input type="radio" name="p3_hair" value="ผิดปกติ" onchange="toggleNoteInput('p3-hair-note-wrap', true)" class="mr-1 text-red-600"> ผิดปกติ</label>
+                                </div>
+                            </div>
+                            <div id="p3-hair-note-wrap" class="hidden mt-2 pt-2 border-t border-gray-200">
+                                <div class="flex flex-wrap gap-1.5 mb-1.5">
+                                    <button type="button" onclick="appendTag('hm-p3-hair-note', 'ผมยาว')" class="px-2 py-0.5 bg-gray-200 hover:bg-gray-300 rounded text-[11px] text-gray-700">+ ผมยาว</button>
+                                    <button type="button" onclick="appendTag('hm-p3-hair-note', 'ไข่เหา(ไม่มีตัวเหา)')" class="px-2 py-0.5 bg-gray-200 hover:bg-gray-300 rounded text-[11px] text-gray-700">+ ไข่เหา(ไม่มีตัวเหา)</button>
+                                    <button type="button" onclick="appendTag('hm-p3-hair-note', 'เหา')" class="px-2 py-0.5 bg-gray-200 hover:bg-gray-300 rounded text-[11px] text-gray-700">+ เหา</button>
+                                </div>
+                                <input type="text" id="hm-p3-hair-note" placeholder="ระบุอาการผิดปกติ..." class="w-full border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs bg-white">
+                            </div>
+                        </div>
+
+                        <!-- 3. หู -->
+                        <div class="p-2.5 rounded-lg border border-gray-200 bg-gray-50/50">
+                            <div class="flex items-center justify-between">
+                                <span class="font-bold text-gray-700">3. หู</span>
+                                <div class="flex items-center gap-3">
+                                    <label class="flex items-center cursor-pointer"><input type="radio" name="p3_ear" value="ปกติ" checked onchange="toggleNoteInput('p3-ear-note-wrap', false)" class="mr-1 text-emerald-600"> ปกติ</label>
+                                    <label class="flex items-center cursor-pointer"><input type="radio" name="p3_ear" value="ผิดปกติ" onchange="toggleNoteInput('p3-ear-note-wrap', true)" class="mr-1 text-red-600"> ผิดปกติ</label>
+                                </div>
+                            </div>
+                            <div id="p3-ear-note-wrap" class="hidden mt-2 pt-2 border-t border-gray-200">
+                                <div class="flex flex-wrap gap-1.5 mb-1.5">
+                                    <button type="button" onclick="appendTag('hm-p3-ear-note', 'ขี้หู')" class="px-2 py-0.5 bg-gray-200 hover:bg-gray-300 rounded text-[11px] text-gray-700">+ ขี้หู</button>
+                                    <button type="button" onclick="appendTag('hm-p3-ear-note', 'หูน้ำหนวก')" class="px-2 py-0.5 bg-gray-200 hover:bg-gray-300 rounded text-[11px] text-gray-700">+ หูน้ำหนวก</button>
+                                </div>
+                                <input type="text" id="hm-p3-ear-note" placeholder="ระบุอาการผิดปกติ..." class="w-full border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs bg-white">
+                            </div>
+                        </div>
+
+                        <!-- 4. ตา -->
+                        <div class="p-2.5 rounded-lg border border-gray-200 bg-gray-50/50">
+                            <div class="flex items-center justify-between">
+                                <span class="font-bold text-gray-700">4. ตา</span>
+                                <div class="flex items-center gap-3">
+                                    <label class="flex items-center cursor-pointer"><input type="radio" name="p3_eye" value="ปกติ" checked onchange="toggleNoteInput('p3-eye-note-wrap', false)" class="mr-1 text-emerald-600"> ปกติ</label>
+                                    <label class="flex items-center cursor-pointer"><input type="radio" name="p3_eye" value="ผิดปกติ" onchange="toggleNoteInput('p3-eye-note-wrap', true)" class="mr-1 text-red-600"> ผิดปกติ</label>
+                                </div>
+                            </div>
+                            <div id="p3-eye-note-wrap" class="hidden mt-2 pt-2 border-t border-gray-200">
+                                <div class="flex flex-wrap gap-1.5 mb-1.5">
+                                    <button type="button" onclick="appendTag('hm-p3-eye-note', 'ตาแดง')" class="px-2 py-0.5 bg-gray-200 hover:bg-gray-300 rounded text-[11px] text-gray-700">+ ตาแดง</button>
+                                    <button type="button" onclick="appendTag('hm-p3-eye-note', 'ตาอักเสบ')" class="px-2 py-0.5 bg-gray-200 hover:bg-gray-300 rounded text-[11px] text-gray-700">+ ตาอักเสบ</button>
+                                </div>
+                                <input type="text" id="hm-p3-eye-note" placeholder="ระบุอาการผิดปกติ..." class="w-full border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs bg-white">
+                            </div>
+                        </div>
+
+                        <!-- 5. จมูก -->
+                        <div class="p-2.5 rounded-lg border border-gray-200 bg-gray-50/50">
+                            <div class="flex items-center justify-between">
+                                <span class="font-bold text-gray-700">5. จมูก</span>
+                                <div class="flex items-center gap-3">
+                                    <label class="flex items-center cursor-pointer"><input type="radio" name="p3_nose" value="ปกติ" checked onchange="toggleNoteInput('p3-nose-note-wrap', false)" class="mr-1 text-emerald-600"> ปกติ</label>
+                                    <label class="flex items-center cursor-pointer"><input type="radio" name="p3_nose" value="ผิดปกติ" onchange="toggleNoteInput('p3-nose-note-wrap', true)" class="mr-1 text-red-600"> ผิดปกติ</label>
+                                </div>
+                            </div>
+                            <div id="p3-nose-note-wrap" class="hidden mt-2 pt-2 border-t border-gray-200">
+                                <div class="flex flex-wrap gap-1.5 mb-1.5">
+                                    <button type="button" onclick="appendTag('hm-p3-nose-note', 'น้ำมูกไหล')" class="px-2 py-0.5 bg-gray-200 hover:bg-gray-300 rounded text-[11px] text-gray-700">+ น้ำมูกไหล</button>
+                                    <button type="button" onclick="appendTag('hm-p3-nose-note', 'คัดจมูก')" class="px-2 py-0.5 bg-gray-200 hover:bg-gray-300 rounded text-[11px] text-gray-700">+ คัดจมูก</button>
+                                </div>
+                                <input type="text" id="hm-p3-nose-note" placeholder="ระบุอาการผิดปกติ..." class="w-full border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs bg-white">
+                            </div>
+                        </div>
+
+                        <!-- 6. เล็บ -->
+                        <div class="p-2.5 rounded-lg border border-gray-200 bg-gray-50/50">
+                            <div class="flex items-center justify-between">
+                                <span class="font-bold text-gray-700">6. เล็บ</span>
+                                <div class="flex items-center gap-3">
+                                    <label class="flex items-center cursor-pointer"><input type="radio" name="p3_nail" value="ปกติ" checked onchange="toggleNoteInput('p3-nail-note-wrap', false)" class="mr-1 text-emerald-600"> ปกติ</label>
+                                    <label class="flex items-center cursor-pointer"><input type="radio" name="p3_nail" value="ผิดปกติ" onchange="toggleNoteInput('p3-nail-note-wrap', true)" class="mr-1 text-red-600"> ผิดปกติ</label>
+                                </div>
+                            </div>
+                            <div id="p3-nail-note-wrap" class="hidden mt-2 pt-2 border-t border-gray-200">
+                                <div class="flex flex-wrap gap-1.5 mb-1.5">
+                                    <button type="button" onclick="appendTag('hm-p3-nail-note', 'เล็บยาว')" class="px-2 py-0.5 bg-gray-200 hover:bg-gray-300 rounded text-[11px] text-gray-700">+ เล็บยาว</button>
+                                    <button type="button" onclick="appendTag('hm-p3-nail-note', 'เล็บขบ')" class="px-2 py-0.5 bg-gray-200 hover:bg-gray-300 rounded text-[11px] text-gray-700">+ เล็บขบ</button>
+                                </div>
+                                <input type="text" id="hm-p3-nail-note" placeholder="ระบุอาการผิดปกติ..." class="w-full border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs bg-white">
+                            </div>
+                        </div>
+
+                        <!-- 7. ผิวหนัง -->
+                        <div class="p-2.5 rounded-lg border border-gray-200 bg-gray-50/50">
+                            <div class="flex items-center justify-between">
+                                <span class="font-bold text-gray-700">7. ผิวหนัง</span>
+                                <div class="flex items-center gap-3">
+                                    <label class="flex items-center cursor-pointer"><input type="radio" name="p3_skin" value="ปกติ" checked onchange="toggleNoteInput('p3-skin-note-wrap', false)" class="mr-1 text-emerald-600"> ปกติ</label>
+                                    <label class="flex items-center cursor-pointer"><input type="radio" name="p3_skin" value="ผิดปกติ" onchange="toggleNoteInput('p3-skin-note-wrap', true)" class="mr-1 text-red-600"> ผิดปกติ</label>
+                                </div>
+                            </div>
+                            <div id="p3-skin-note-wrap" class="hidden mt-2 pt-2 border-t border-gray-200">
+                                <div class="flex flex-wrap gap-1.5 mb-1.5">
+                                    <button type="button" onclick="appendTag('hm-p3-skin-note', 'กลาก')" class="px-2 py-0.5 bg-gray-200 hover:bg-gray-300 rounded text-[11px] text-gray-700">+ กลาก</button>
+                                    <button type="button" onclick="appendTag('hm-p3-skin-note', 'เกลื้อน')" class="px-2 py-0.5 bg-gray-200 hover:bg-gray-300 rounded text-[11px] text-gray-700">+ เกลื้อน</button>
+                                </div>
+                                <input type="text" id="hm-p3-skin-note" placeholder="ระบุอาการผิดปกติ..." class="w-full border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs bg-white">
+                            </div>
+                        </div>
+
+                        <div class="pt-1">
+                            <label class="text-gray-600 mb-1 block font-medium">ลงชื่อเจ้าหน้าที่ผู้ตรวจ จุดที่ 3</label>
+                            <input type="text" id="hm-p3-officer" placeholder="ระบุชื่อเจ้าหน้าที่..." class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white outline-none focus:ring-2 focus:ring-emerald-400">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section: จุดที่ 4 ตรวจการมองเห็น -->
+                <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-2xs">
+                    <div class="flex justify-between items-center border-b border-gray-100 pb-2 mb-3">
+                        <h3 class="text-sm font-bold text-gray-800 flex items-center">
+                            <span class="w-6 h-6 rounded-full bg-cyan-100 text-cyan-700 inline-flex items-center justify-center text-xs mr-2 font-black">4</span>
+                            จุดที่ 4 ตรวจการมองเห็น
+                        </h3>
+                    </div>
+                    <div class="space-y-3 text-xs sm:text-sm">
+                        <div class="flex flex-wrap gap-4">
+                            <label class="flex items-center cursor-pointer"><input type="radio" name="p4_vision" value="ปกติ" checked class="mr-1.5 text-emerald-600"> ปกติ</label>
+                            <label class="flex items-center cursor-pointer"><input type="radio" name="p4_vision" value="ผิดปกติ" class="mr-1.5 text-red-600"> ผิดปกติ</label>
+                            <label class="flex items-center cursor-pointer"><input type="radio" name="p4_vision" value="ประเมินไม่ได้" class="mr-1.5 text-amber-600"> ประเมินไม่ได้</label>
+                        </div>
+                        <div>
+                            <label class="text-gray-600 mb-1 block">ระบุรายละเอียดเพิ่มเติม</label>
+                            <input type="text" id="hm-p4-vision-note" placeholder="ระบุอาการ (ถ้ามี)..." class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white">
+                        </div>
+                        <div>
+                            <label class="text-gray-600 mb-1 block font-medium">ลงชื่อเจ้าหน้าที่ผู้ตรวจ จุดที่ 4</label>
+                            <input type="text" id="hm-p4-officer" placeholder="ระบุชื่อเจ้าหน้าที่..." class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white outline-none focus:ring-2 focus:ring-emerald-400">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section: จุดที่ 5 ตรวจการได้ยิน -->
+                <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-2xs">
+                    <div class="flex justify-between items-center border-b border-gray-100 pb-2 mb-3">
+                        <h3 class="text-sm font-bold text-gray-800 flex items-center">
+                            <span class="w-6 h-6 rounded-full bg-indigo-100 text-indigo-700 inline-flex items-center justify-center text-xs mr-2 font-black">5</span>
+                            จุดที่ 5 ตรวจการได้ยิน
+                        </h3>
+                    </div>
+                    <div class="space-y-3 text-xs sm:text-sm">
+                        <div class="flex flex-wrap gap-4">
+                            <label class="flex items-center cursor-pointer"><input type="radio" name="p5_hearing" value="ปกติ" checked onchange="toggleNoteInput('p5-hearing-note-wrap', false)" class="mr-1.5 text-emerald-600"> ปกติ</label>
+                            <label class="flex items-center cursor-pointer"><input type="radio" name="p5_hearing" value="ผิดปกติ" onchange="toggleNoteInput('p5-hearing-note-wrap', true)" class="mr-1.5 text-red-600"> ผิดปกติ</label>
+                        </div>
+                        <div id="p5-hearing-note-wrap" class="hidden">
+                            <div class="flex flex-wrap gap-1.5 mb-1.5">
+                                <button type="button" onclick="appendTag('hm-p5-hearing-note', 'ไม่ได้ยิน')" class="px-2 py-0.5 bg-gray-200 hover:bg-gray-300 rounded text-[11px] text-gray-700">+ ไม่ได้ยิน</button>
+                                <button type="button" onclick="appendTag('hm-p5-hearing-note', 'ได้ยินเสียงกระซิบเบาๆ')" class="px-2 py-0.5 bg-gray-200 hover:bg-gray-300 rounded text-[11px] text-gray-700">+ ได้ยินเสียงกระซิบเบาๆ</button>
+                            </div>
+                            <input type="text" id="hm-p5-hearing-note" placeholder="ระบุรายละเอียด..." class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white">
+                        </div>
+                        <div>
+                            <label class="text-gray-600 mb-1 block font-medium">ลงชื่อเจ้าหน้าที่ผู้ตรวจ จุดที่ 5</label>
+                            <input type="text" id="hm-p5-officer" placeholder="ระบุชื่อเจ้าหน้าที่..." class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white outline-none focus:ring-2 focus:ring-emerald-400">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section: จุดที่ 6 ตรวจช่องปากและฟัน -->
+                <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-2xs">
+                    <div class="flex justify-between items-center border-b border-gray-100 pb-2 mb-3">
+                        <h3 class="text-sm font-bold text-gray-800 flex items-center">
+                            <span class="w-6 h-6 rounded-full bg-teal-100 text-teal-700 inline-flex items-center justify-center text-xs mr-2 font-black">6</span>
+                            จุดที่ 6 ตรวจช่องปากและฟัน
+                        </h3>
+                    </div>
+                    <div class="space-y-3 text-xs sm:text-sm">
+                        <div class="flex flex-wrap gap-4">
+                            <label class="flex items-center cursor-pointer"><input type="radio" name="p6_dental" value="ปกติ" checked onchange="toggleNoteInput('p6-dental-note-wrap', false)" class="mr-1.5 text-emerald-600"> ปกติ</label>
+                            <label class="flex items-center cursor-pointer"><input type="radio" name="p6_dental" value="ผิดปกติ" onchange="toggleNoteInput('p6-dental-note-wrap', true)" class="mr-1.5 text-red-600"> ผิดปกติ</label>
+                        </div>
+                        <div id="p6-dental-note-wrap" class="hidden p-3 bg-gray-50 rounded-lg border border-gray-200 space-y-3">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div>
+                                    <label class="text-gray-600 mb-1 block">ฟันผุ (ซี่)</label>
+                                    <input type="number" id="hm-p6-cavity" min="0" placeholder="0" class="w-full border border-gray-300 rounded-lg px-3 py-1.5 bg-white">
+                                </div>
+                                <div>
+                                    <label class="text-gray-600 mb-1 block">ฟันเหลือง (ซี่)</label>
+                                    <input type="number" id="hm-p6-yellow" min="0" placeholder="0" class="w-full border border-gray-300 rounded-lg px-3 py-1.5 bg-white">
+                                </div>
+                            </div>
+                            <div class="flex flex-wrap gap-4 pt-1">
+                                <label class="flex items-center cursor-pointer font-medium text-gray-700"><input type="checkbox" id="hm-p6-tartar" class="mr-1.5 text-emerald-600 rounded"> คราบหินปูน</label>
+                                <label class="flex items-center cursor-pointer font-medium text-gray-700"><input type="checkbox" id="hm-p6-gingivitis" class="mr-1.5 text-emerald-600 rounded"> เหงือกอักเสบ</label>
+                            </div>
+                            <div>
+                                <label class="text-gray-600 mb-1 block">อื่น ๆ โปรดระบุ</label>
+                                <input type="text" id="hm-p6-note" placeholder="ระบุเพิ่มเติม..." class="w-full border border-gray-300 rounded-lg px-3 py-1.5 bg-white">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="text-gray-600 mb-1 block font-medium">ลงชื่อเจ้าหน้าที่ผู้ตรวจ จุดที่ 6</label>
+                            <input type="text" id="hm-p6-officer" placeholder="ระบุชื่อเจ้าหน้าที่..." class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white outline-none focus:ring-2 focus:ring-emerald-400">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section: จุดที่ 7 ตรวจกายภาพบำบัด -->
+                <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-2xs">
+                    <div class="flex flex-wrap justify-between items-center border-b border-gray-100 pb-2 mb-3 gap-2">
+                        <h3 class="text-sm font-bold text-gray-800 flex items-center">
+                            <span class="w-6 h-6 rounded-full bg-purple-100 text-purple-700 inline-flex items-center justify-center text-xs mr-2 font-black">7</span>
+                            จุดที่ 7 ตรวจกายภาพบำบัด
+                        </h3>
+                        <button type="button" onclick="quickSetStation7Normal()" class="text-xs bg-purple-50 hover:bg-purple-100 text-purple-700 px-2.5 py-1 rounded-md border border-purple-200 transition font-medium">
+                            ⚡ ปกติทุกรายการในจุดที่ 7
+                        </button>
+                    </div>
+                    <div class="space-y-3 text-xs sm:text-sm">
+                        <!-- 1. ลักษณะทั่วไป -->
+                        <div class="p-2.5 rounded-lg border border-gray-200 bg-gray-50/50">
+                            <div class="flex items-center justify-between">
+                                <span class="font-bold text-gray-700">1. ลักษณะทั่วไป</span>
+                                <div class="flex items-center gap-3">
+                                    <label class="flex items-center cursor-pointer"><input type="radio" name="p7_general" value="ปกติ" checked onchange="toggleNoteInput('p7-general-note-wrap', false)" class="mr-1 text-emerald-600"> ปกติ</label>
+                                    <label class="flex items-center cursor-pointer"><input type="radio" name="p7_general" value="ผิดปกติ" onchange="toggleNoteInput('p7-general-note-wrap', true)" class="mr-1 text-red-600"> ผิดปกติ</label>
+                                </div>
+                            </div>
+                            <div id="p7-general-note-wrap" class="hidden mt-2 pt-2 border-t border-gray-200">
+                                <input type="text" id="hm-p7-general-note" placeholder="โปรดระบุอาการ..." class="w-full border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs bg-white">
+                            </div>
+                        </div>
+
+                        <!-- 2. ศีรษะและคอ -->
+                        <div class="p-2.5 rounded-lg border border-gray-200 bg-gray-50/50">
+                            <div class="flex items-center justify-between">
+                                <span class="font-bold text-gray-700">2. ศีรษะและคอ</span>
+                                <div class="flex items-center gap-3">
+                                    <label class="flex items-center cursor-pointer"><input type="radio" name="p7_headneck" value="ปกติ" checked onchange="toggleNoteInput('p7-headneck-note-wrap', false)" class="mr-1 text-emerald-600"> ปกติ</label>
+                                    <label class="flex items-center cursor-pointer"><input type="radio" name="p7_headneck" value="ผิดปกติ" onchange="toggleNoteInput('p7-headneck-note-wrap', true)" class="mr-1 text-red-600"> ผิดปกติ</label>
+                                </div>
+                            </div>
+                            <div id="p7-headneck-note-wrap" class="hidden mt-2 pt-2 border-t border-gray-200">
+                                <input type="text" id="hm-p7-headneck-note" placeholder="โปรดระบุอาการ..." class="w-full border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs bg-white">
+                            </div>
+                        </div>
+
+                        <!-- 3. ระบบหัวใจและหลอดเลือด -->
+                        <div class="p-2.5 rounded-lg border border-gray-200 bg-gray-50/50">
+                            <div class="flex items-center justify-between">
+                                <span class="font-bold text-gray-700">3. ระบบหัวใจและหลอดเลือด</span>
+                                <div class="flex items-center gap-3">
+                                    <label class="flex items-center cursor-pointer"><input type="radio" name="p7_heart" value="ปกติ" checked onchange="toggleNoteInput('p7-heart-note-wrap', false)" class="mr-1 text-emerald-600"> ปกติ</label>
+                                    <label class="flex items-center cursor-pointer"><input type="radio" name="p7_heart" value="ผิดปกติ" onchange="toggleNoteInput('p7-heart-note-wrap', true)" class="mr-1 text-red-600"> ผิดปกติ</label>
+                                </div>
+                            </div>
+                            <div id="p7-heart-note-wrap" class="hidden mt-2 pt-2 border-t border-gray-200">
+                                <input type="text" id="hm-p7-heart-note" placeholder="โปรดระบุอาการ..." class="w-full border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs bg-white">
+                            </div>
+                        </div>
+
+                        <!-- 4. การตรวจช่องท้อง -->
+                        <div class="p-2.5 rounded-lg border border-gray-200 bg-gray-50/50">
+                            <div class="flex items-center justify-between">
+                                <span class="font-bold text-gray-700">4. การตรวจช่องท้อง</span>
+                                <div class="flex items-center gap-3">
+                                    <label class="flex items-center cursor-pointer"><input type="radio" name="p7_abdomen" value="ปกติ" checked onchange="toggleNoteInput('p7-abdomen-note-wrap', false)" class="mr-1 text-emerald-600"> ปกติ</label>
+                                    <label class="flex items-center cursor-pointer"><input type="radio" name="p7_abdomen" value="ผิดปกติ" onchange="toggleNoteInput('p7-abdomen-note-wrap', true)" class="mr-1 text-red-600"> ผิดปกติ</label>
+                                </div>
+                            </div>
+                            <div id="p7-abdomen-note-wrap" class="hidden mt-2 pt-2 border-t border-gray-200">
+                                <input type="text" id="hm-p7-abdomen-note" placeholder="โปรดระบุอาการ..." class="w-full border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs bg-white">
+                            </div>
+                        </div>
+
+                        <!-- 5. ลำตัวและแขนขา -->
+                        <div class="p-2.5 rounded-lg border border-gray-200 bg-gray-50/50">
+                            <div class="flex items-center justify-between">
+                                <span class="font-bold text-gray-700">5. ลำตัวและแขนขา</span>
+                                <div class="flex items-center gap-3">
+                                    <label class="flex items-center cursor-pointer"><input type="radio" name="p7_limbs" value="ปกติ" checked onchange="toggleNoteInput('p7-limbs-note-wrap', false)" class="mr-1 text-emerald-600"> ปกติ</label>
+                                    <label class="flex items-center cursor-pointer"><input type="radio" name="p7_limbs" value="ผิดปกติ" onchange="toggleNoteInput('p7-limbs-note-wrap', true)" class="mr-1 text-red-600"> ผิดปกติ</label>
+                                </div>
+                            </div>
+                            <div id="p7-limbs-note-wrap" class="hidden mt-2 pt-2 border-t border-gray-200">
+                                <input type="text" id="hm-p7-limbs-note" placeholder="โปรดระบุอาการ..." class="w-full border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs bg-white">
+                            </div>
+                        </div>
+
+                        <!-- 6. ระบบประสาท -->
+                        <div class="p-2.5 rounded-lg border border-gray-200 bg-gray-50/50">
+                            <div class="flex items-center justify-between">
+                                <span class="font-bold text-gray-700">6. ระบบประสาท</span>
+                                <div class="flex items-center gap-3">
+                                    <label class="flex items-center cursor-pointer"><input type="radio" name="p7_neuro" value="ปกติ" checked onchange="toggleNoteInput('p7-neuro-note-wrap', false)" class="mr-1 text-emerald-600"> ปกติ</label>
+                                    <label class="flex items-center cursor-pointer"><input type="radio" name="p7_neuro" value="ผิดปกติ" onchange="toggleNoteInput('p7-neuro-note-wrap', true)" class="mr-1 text-red-600"> ผิดปกติ</label>
+                                </div>
+                            </div>
+                            <div id="p7-neuro-note-wrap" class="hidden mt-2 pt-2 border-t border-gray-200">
+                                <input type="text" id="hm-p7-neuro-note" placeholder="โปรดระบุอาการ..." class="w-full border border-gray-300 rounded-lg px-2.5 py-1.5 text-xs bg-white">
+                            </div>
+                        </div>
+
+                        <div class="pt-1">
+                            <label class="text-gray-600 mb-1 block font-medium">ลงชื่อเจ้าหน้าที่ผู้ตรวจ จุดที่ 7</label>
+                            <input type="text" id="hm-p7-officer" placeholder="ระบุชื่อเจ้าหน้าที่..." class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white outline-none focus:ring-2 focus:ring-emerald-400">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit Buttons -->
+                <div class="flex flex-col sm:flex-row justify-end gap-3 pt-3 border-t border-gray-200 shrink-0">
+                    <button type="button" onclick="closeHealthRecordModal()" class="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium transition text-sm">
+                        ยกเลิก
+                    </button>
+                    <button type="submit" id="btnSaveHealthRecord" class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold transition text-sm shadow-md flex items-center justify-center">
+                        <i class="fas fa-save mr-2"></i> บันทึกผลการตรวจสุขภาพ
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Application Script Logic -->
     <script>
         // =====================================================================
@@ -1149,7 +1795,8 @@
             WEEKLY_STATS: 'sis_weeklystats_cache',
             ATTENDANCE: 'sis_attendance',
             SESSION_USER: 'sis_session_user',
-            SESSION_TIME: 'sis_session_login_time'
+            SESSION_TIME: 'sis_session_login_time',
+            HEALTH_RECORDS: 'sis_health_records_cache'
         };
 
         // =====================================================================
@@ -1215,15 +1862,18 @@
                                 saveAttendanceData: function(dateStr, grade, records) { callAPI('saveAttendanceData', {dateStr, grade, records}, sHandler, fHandler); },
                                 getCheckedClassesForDate: function(dateStr) { callAPI('getCheckedClassesForDate', {dateStr}, sHandler, fHandler); },
                                 saveTeacherData: function(teacherObj) { callAPI('saveTeacherData', {teacherObj}, sHandler, fHandler); },
-                                deleteTeacherData: function(id) { callAPI('deleteTeacherData', {id}, sHandler, fHandler); },
+                                deleteTeacherData: function(id, role) { callAPI('deleteTeacherData', {id, role: role || currentUserRole}, sHandler, fHandler); },
                                 verifyLogin: function(user, pass) { callAPI('verifyLogin', {username: user, password: pass}, sHandler, fHandler); },
                                 saveStudentData: function(studentObj) { callAPI('saveStudentData', {studentObj}, sHandler, fHandler); },
-                                deleteStudentData: function(id) { callAPI('deleteStudentData', {id}, sHandler, fHandler); },
+                                deleteStudentData: function(id, role) { callAPI('deleteStudentData', {id, role: role || currentUserRole}, sHandler, fHandler); },
                                 uploadImageToDrive: function(base64Data, fileName) { callAPI('uploadImageToDrive', {base64Data, fileName}, sHandler, fHandler); },
                                 batchSaveFaceDescriptors: function(descriptorMap) { callAPI('batchSaveFaceDescriptors', {descriptorMap}, sHandler, fHandler); },
                                 getFaceDescriptors: function() { callAPI('getFaceDescriptors', {}, sHandler, fHandler); },
                                 autoCleanOldData14Days: function() { callAPI('autoCleanOldData14Days', {}, sHandler, fHandler); },
-                                getInitialAppData: function(dateStr) { callAPI('getInitialAppData', {dateStr}, sHandler, fHandler); }
+                                getInitialAppData: function(dateStr) { callAPI('getInitialAppData', {dateStr}, sHandler, fHandler); },
+                                getStudentHealthRecords: function(academicYear) { callAPI('getStudentHealthRecords', {academicYear}, sHandler, fHandler); },
+                                saveStudentHealthRecord: function(recordObj) { callAPI('saveStudentHealthRecord', {recordObj}, sHandler, fHandler); },
+                                deleteStudentHealthRecord: function(id, role) { callAPI('deleteStudentHealthRecord', {id, role: role || currentUserRole}, sHandler, fHandler); }
                             };
                         }
                     })()
@@ -1727,6 +2377,13 @@
             } else {
                 const adminEls = document.querySelectorAll('.admin-only');
                 for(let i=0; i<adminEls.length; i++) { adminEls[i].style.display = ''; } 
+            }
+
+            // จัดการสิทธิ์เมนูและส่วนตรวจสุขภาพ (admin และ schoolhealth เท่านั้น)
+            const isHealthAuthorized = (currentUserRole === 'admin' || currentUserRole === 'schoolhealth');
+            const healthEls = document.querySelectorAll('.health-only');
+            for(let i=0; i<healthEls.length; i++) {
+                healthEls[i].style.display = isHealthAuthorized ? '' : 'none';
             }
 
             const btnCheckStatus = document.getElementById('btnCheckStatus');
@@ -2513,6 +3170,8 @@
                     if (currentUserRole === 'admin') {
                         actionButtons = '<button onclick="event.stopPropagation(); openStudentModal(\'' + safeId + '\')" class="text-blue-600 hover:text-blue-800 mx-1 text-lg transition-transform hover:scale-110 bg-blue-100 w-8 h-8 rounded-full inline-flex items-center justify-center shadow-sm" title="แก้ไขข้อมูล"><i class="fas fa-edit"></i></button>' +
                                         '<button onclick="event.stopPropagation(); deleteStudent(\'' + safeId + '\')" class="text-red-500 hover:text-red-700 mx-1 text-lg transition-transform hover:scale-110 bg-red-100 w-8 h-8 rounded-full inline-flex items-center justify-center shadow-sm" title="ลบ"><i class="fas fa-trash"></i></button>';
+                    } else if (currentUserRole === 'schoolhealth') {
+                        actionButtons = '<button onclick="event.stopPropagation(); openStudentModal(\'' + safeId + '\')" class="text-blue-600 hover:text-blue-800 mx-1 text-lg transition-transform hover:scale-110 bg-blue-100 w-8 h-8 rounded-full inline-flex items-center justify-center shadow-sm" title="แก้ไขข้อมูล"><i class="fas fa-edit"></i></button>';
                     }
 
                     let lsDisplay = '';
@@ -3122,6 +3781,9 @@
                     document.getElementById('pageTitle').innerText = item.innerText;
                 }
             }
+            if(pageId === 'health') {
+                initHealthPage();
+            }
             if(window.innerWidth < 768) toggleSidebar();
         }
 
@@ -3527,6 +4189,9 @@
             } else {
                 document.getElementById('view-disability-type').innerText = "ไม่มี"; disImgContainer.classList.add('hidden'); currentViewDisabilityImg = "";
             }
+
+            // โหลดและแสดงประวัติการตรวจสุขภาพประจำปีของนักเรียนคนนี้
+            loadStudentHealthHistoryInViewModal(id);
 
             document.getElementById('studentViewModal').classList.remove('hidden');
         }
@@ -5340,6 +6005,1236 @@
             }
             
             document.body.removeChild(textArea);
+        }
+
+        // =========================================================================
+        // 🩺 ระบบบันทึกการตรวจสุขภาพนักเรียนประจำปี (Student Health Examination System)
+        // =========================================================================
+        let healthRecordsList = [];
+        let healthLoadedYears = new Set();
+        let currentHealthAcademicYear = '2568';
+        let currentEditingHealthRecord = null;
+        let currentEditingHealthStudent = null;
+
+        function findMatchingDormitoryOption(rawDorm) {
+            if (!rawDorm || rawDorm === '-' || rawDorm === 'รอจัดสรร') return '1.เรือนนอนชาย ทานตะวัน';
+            const dormOptions = [
+                '1.เรือนนอนชาย ทานตะวัน',
+                '2.เรือนนอนชาย พุทธรักษา',
+                '3.เรือนนอนชาย ชงโค',
+                '4.เรือนนอนชาย อัญชัน',
+                '5.เรือนนอนชาย พวงคราม',
+                '6.เรือนนอนหญิง เฟื่องฟ้า',
+                '7.เรือนนอนหญิง ดอกแก้ว',
+                '8.เรือนนอนหญิง พิกุล'
+            ];
+            const str = String(rawDorm).trim();
+            for (let opt of dormOptions) {
+                if (str === opt) return opt;
+            }
+            const keywords = ['ทานตะวัน', 'พุทธรักษา', 'ชงโค', 'อัญชัน', 'พวงคราม', 'เฟื่องฟ้า', 'ดอกแก้ว', 'พิกุล'];
+            for (let kw of keywords) {
+                if (str.includes(kw)) {
+                    const match = dormOptions.find(o => o.includes(kw));
+                    if (match) return match;
+                }
+            }
+            return dormOptions[0];
+        }
+
+        function getHealthRadioVal(name) {
+            const el = document.querySelector(`input[name="${name}"]:checked`);
+            return el ? el.value : '';
+        }
+
+        function setHealthRadioVal(name, val) {
+            const radios = document.querySelectorAll(`input[name="${name}"]`);
+            radios.forEach(r => {
+                r.checked = (r.value === val);
+            });
+        }
+
+        function quickSetAllHealthNormal() {
+            // จุดที่ 1: เติมค่ามาตรฐานเริ่มต้น
+            const tEl = document.getElementById('hm-p1-temp');
+            if (tEl && !tEl.value) tEl.value = '36.5';
+            const bpEl = document.getElementById('hm-p1-bp');
+            if (bpEl && !bpEl.value) bpEl.value = '110/70';
+            const pEl = document.getElementById('hm-p1-pulse');
+            if (pEl && !pEl.value) pEl.value = '76';
+            const sEl = document.getElementById('hm-p1-spo2');
+            if (sEl && !sEl.value) sEl.value = '98';
+
+            // จุดที่ 2: ตั้งค่าภาวะการเจริญเติบโตสมส่วน
+            const wfh = getHealthRadioVal('hm-p2-wfh');
+            if (!wfh) setHealthRadioVal('hm-p2-wfh', 'สมส่วน');
+            const hfa = getHealthRadioVal('hm-p2-hfa');
+            if (!hfa) setHealthRadioVal('hm-p2-hfa', 'สูงตามเกณฑ์');
+
+            // จุดที่ 3
+            quickSetStation3Normal();
+
+            // จุดที่ 4
+            setHealthRadioVal('hm-p4-vision', 'ปกติ');
+            const p4Note = document.getElementById('hm-p4-vision-note');
+            if (p4Note) p4Note.value = '';
+
+            // จุดที่ 5
+            setHealthRadioVal('hm-p5-hearing', 'ปกติ');
+            setHealthRadioVal('hm-p5-whisper', 'ได้ยิน');
+            const p5Note = document.getElementById('hm-p5-hearing-note');
+            if (p5Note) p5Note.value = '';
+
+            // จุดที่ 6
+            const cEl = document.getElementById('hm-p6-cavity');
+            if (cEl) cEl.value = '0';
+            const yEl = document.getElementById('hm-p6-yellow');
+            if (yEl) yEl.value = '0';
+            const tarEl = document.getElementById('hm-p6-tartar');
+            if (tarEl) tarEl.checked = false;
+            const ginEl = document.getElementById('hm-p6-gingivitis');
+            if (ginEl) ginEl.checked = false;
+            const n6El = document.getElementById('hm-p6-note');
+            if (n6El) n6El.value = '';
+
+            // จุดที่ 7
+            quickSetStation7Normal();
+
+            Swal.fire({
+                icon: 'success',
+                title: 'ตั้งค่าปกติทุกจุดตรวจแล้ว',
+                timer: 1100,
+                showConfirmButton: false
+            });
+        }
+
+        function quickSetStation3Normal() {
+            ['hm-p3-head', 'hm-p3-hair', 'hm-p3-ear', 'hm-p3-eye', 'hm-p3-nose', 'hm-p3-nail', 'hm-p3-skin'].forEach(name => {
+                setHealthRadioVal(name, 'ปกติ');
+            });
+            ['hm-p3-head-note', 'hm-p3-hair-note', 'hm-p3-ear-note', 'hm-p3-eye-note', 'hm-p3-nose-note', 'hm-p3-nail-note', 'hm-p3-skin-note'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.value = '';
+                toggleNoteInput(id, false);
+            });
+            for (let i = 1; i <= 7; i++) {
+                const cb = document.getElementById(`hm-p3-skin-cb-${i}`);
+                if (cb) cb.checked = false;
+            }
+        }
+
+        function quickSetStation7Normal() {
+            ['hm-p7-general', 'hm-p7-headneck', 'hm-p7-heart', 'hm-p7-abdomen', 'hm-p7-limbs', 'hm-p7-neuro'].forEach(name => {
+                setHealthRadioVal(name, 'ปกติ');
+            });
+            ['hm-p7-general-note', 'hm-p7-headneck-note', 'hm-p7-heart-note', 'hm-p7-abdomen-note', 'hm-p7-limbs-note', 'hm-p7-neuro-note'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.value = '';
+                toggleNoteInput(id, false);
+            });
+        }
+
+        function toggleNoteInput(id, isShow) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            const parent = el.closest('.health-note-container') || el.parentElement;
+            if (parent) {
+                if (isShow) parent.classList.remove('hidden');
+                else parent.classList.add('hidden');
+            }
+        }
+
+        function appendTag(inputId, text) {
+            const input = document.getElementById(inputId);
+            if (!input) return;
+            const current = input.value.trim();
+            if (!current) {
+                input.value = text;
+            } else if (!current.includes(text)) {
+                input.value = current + ', ' + text;
+            }
+            toggleNoteInput(inputId, true);
+        }
+
+        function autoCalculateGrowthAssessment() {
+            const wEl = document.getElementById('hm-p2-weight');
+            const hEl = document.getElementById('hm-p2-height');
+            if (!wEl || !hEl) return;
+            const w = parseFloat(wEl.value);
+            const h = parseFloat(hEl.value);
+            if (!w || !h || w <= 0 || h <= 0) return;
+
+            const hm = h / 100;
+            const bmi = w / (hm * hm);
+
+            // ประเมินน้ำหนักตามเกณฑ์ส่วนสูงตามค่าดัชนีมวลกาย (BMI)
+            if (bmi < 15.0) {
+                setHealthRadioVal('hm-p2-wfh', 'ผอม');
+            } else if (bmi < 16.5) {
+                setHealthRadioVal('hm-p2-wfh', 'ค่อนข้างผอม');
+            } else if (bmi < 22.0) {
+                setHealthRadioVal('hm-p2-wfh', 'สมส่วน');
+            } else if (bmi < 24.5) {
+                setHealthRadioVal('hm-p2-wfh', 'ท้วม');
+            } else if (bmi < 27.5) {
+                setHealthRadioVal('hm-p2-wfh', 'เริ่มอ้วน');
+            } else {
+                setHealthRadioVal('hm-p2-wfh', 'อ้วน');
+            }
+
+            // ประเมินส่วนสูงตามเกณฑ์อายุ
+            if (h < 130) {
+                setHealthRadioVal('hm-p2-hfa', 'เตี้ย');
+            } else if (h < 145) {
+                setHealthRadioVal('hm-p2-hfa', 'ค่อนข้างเตี้ย');
+            } else if (h <= 170) {
+                setHealthRadioVal('hm-p2-hfa', 'สูงตามเกณฑ์');
+            } else if (h <= 178) {
+                setHealthRadioVal('hm-p2-hfa', 'ค่อนข้างสูง');
+            } else {
+                setHealthRadioVal('hm-p2-hfa', 'สูง');
+            }
+        }
+
+        function initHealthPage() {
+            const yearEl = document.getElementById('healthFilterYear');
+            if (yearEl) {
+                currentHealthAcademicYear = yearEl.value || '2568';
+            }
+            
+            const dormSelect = document.getElementById('healthFilterDorm');
+            if (dormSelect && dormSelect.options.length <= 1) {
+                const dorms = [
+                    '1.เรือนนอนชาย ทานตะวัน',
+                    '2.เรือนนอนชาย พุทธรักษา',
+                    '3.เรือนนอนชาย ชงโค',
+                    '4.เรือนนอนชาย อัญชัน',
+                    '5.เรือนนอนชาย พวงคราม',
+                    '6.เรือนนอนหญิง เฟื่องฟ้า',
+                    '7.เรือนนอนหญิง ดอกแก้ว',
+                    '8.เรือนนอนหญิง พิกุล'
+                ];
+                dorms.forEach(d => {
+                    const opt = document.createElement('option');
+                    opt.value = d;
+                    opt.textContent = d;
+                    dormSelect.appendChild(opt);
+                });
+            }
+
+            loadHealthRecordsFromCache(currentHealthAcademicYear);
+            renderHealthTable();
+            fetchHealthRecordsFromServer(currentHealthAcademicYear);
+        }
+
+        function onHealthYearChange() {
+            const yearEl = document.getElementById('healthFilterYear');
+            if (!yearEl) return;
+            currentHealthAcademicYear = yearEl.value;
+            loadHealthRecordsFromCache(currentHealthAcademicYear);
+            renderHealthTable();
+            fetchHealthRecordsFromServer(currentHealthAcademicYear);
+        }
+
+        function onHealthFilterChange() {
+            renderHealthTable();
+        }
+
+        function loadHealthRecordsFromCache(year) {
+            try {
+                const cached = getCachedData(SIS_STORAGE_KEYS.HEALTH_RECORDS + '_' + year);
+                if (cached && Array.isArray(cached)) {
+                    healthRecordsList = healthRecordsList.filter(r => String(r.academicYear) !== String(year)).concat(cached);
+                }
+            } catch(e) {
+                console.warn('[Health Cache] Error reading cache:', e);
+            }
+        }
+
+        function saveHealthRecordsToCache(year, records) {
+            try {
+                setCachedData(SIS_STORAGE_KEYS.HEALTH_RECORDS + '_' + year, records);
+            } catch(e) {
+                console.warn('[Health Cache] Error saving cache:', e);
+            }
+        }
+
+        function fetchHealthRecordsFromServer(year, callback) {
+            if (typeof google !== 'undefined' && google.script && google.script.run) {
+                google.script.run
+                    .withSuccessHandler(function(res) {
+                        try {
+                            const parsed = (typeof res === 'string') ? JSON.parse(res) : res;
+                            if (parsed && parsed.status === 'success' && Array.isArray(parsed.data)) {
+                                healthRecordsList = healthRecordsList.filter(r => String(r.academicYear) !== String(year)).concat(parsed.data);
+                                saveHealthRecordsToCache(year, parsed.data);
+                                healthLoadedYears.add(String(year));
+                                renderHealthTable();
+                                if (callback) callback(parsed.data);
+                            } else if (callback) {
+                                callback([]);
+                            }
+                        } catch(e) {
+                            console.warn('[Health API] Parse error:', e);
+                            if (callback) callback([]);
+                        }
+                    })
+                    .withFailureHandler(function(err) {
+                        console.warn('[Health API] Fetch error:', err);
+                        if (callback) callback([]);
+                    })
+                    .getStudentHealthRecords(year);
+            } else if (callback) {
+                callback([]);
+            }
+        }
+
+        function renderHealthTable() {
+            const tbody = document.getElementById('healthTableBody');
+            if (!tbody) return;
+
+            const filterGrade = (document.getElementById('healthFilterGrade')?.value || '').trim();
+            const filterDorm = (document.getElementById('healthFilterDorm')?.value || '').trim();
+            const filterStatus = (document.getElementById('healthFilterStatus')?.value || 'all').trim();
+            const searchStr = (document.getElementById('healthSearch')?.value || '').toLowerCase().trim();
+
+            let totalCount = 0;
+            let examinedCount = 0;
+            let normalCount = 0;
+            let abnormalCount = 0;
+
+            const fragment = document.createDocumentFragment();
+            const targetYear = String(currentHealthAcademicYear);
+
+            const filteredStudents = studentsList.filter(st => {
+                if (filterGrade && st.grade !== filterGrade) return false;
+                if (filterDorm && st.dormitory !== filterDorm && !findMatchingDormitoryOption(st.dormitory).includes(filterDorm)) return false;
+                if (searchStr) {
+                    const matchName = (st.name || '').toLowerCase().includes(searchStr);
+                    const matchId = (st.id || '').toLowerCase().includes(searchStr);
+                    const matchNick = (st.nickname || '').toLowerCase().includes(searchStr);
+                    if (!matchName && !matchId && !matchNick) return false;
+                }
+                return true;
+            });
+
+            filteredStudents.forEach(st => {
+                totalCount++;
+                const record = healthRecordsList.find(r => String(r.studentId) === String(st.id) && String(r.academicYear) === targetYear);
+                const isExamined = !!record;
+
+                let isAbnormal = false;
+                let summaryText = '-';
+
+                if (isExamined) {
+                    examinedCount++;
+                    const hasAbnormalStation = (
+                        record.p3_head === 'ผิดปกติ' || record.p3_hair === 'ผิดปกติ' ||
+                        record.p3_ear === 'ผิดปกติ' || record.p3_eye === 'ผิดปกติ' ||
+                        record.p3_nose === 'ผิดปกติ' || record.p3_nail === 'ผิดปกติ' ||
+                        record.p3_skin === 'ผิดปกติ' || record.p4_vision === 'ผิดปกติ' ||
+                        record.p5_hearing === 'ผิดปกติ' || record.p6_dental === 'ผิดปกติ' ||
+                        parseInt(record.p6_cavity || '0') > 0 ||
+                        record.p7_general === 'ผิดปกติ' || record.p7_headneck === 'ผิดปกติ' ||
+                        record.p7_heart === 'ผิดปกติ' || record.p7_abdomen === 'ผิดปกติ' ||
+                        record.p7_limbs === 'ผิดปกติ' || record.p7_neuro === 'ผิดปกติ'
+                    );
+
+                    if (hasAbnormalStation) {
+                        isAbnormal = true;
+                        abnormalCount++;
+                        const abnormals = [];
+                        if (record.p6_dental === 'ผิดปกติ' || parseInt(record.p6_cavity || '0') > 0) abnormals.push(`ฟันผุ ${record.p6_cavity || 0} ซี่`);
+                        if (record.p4_vision === 'ผิดปกติ') abnormals.push('สายตาผิดปกติ');
+                        if (record.p5_hearing === 'ผิดปกติ') abnormals.push('การได้ยินผิดปกติ');
+                        if (record.p3_skin === 'ผิดปกติ') abnormals.push(record.p3_skin_note || 'ผิวหนังผิดปกติ');
+                        if (record.p3_hair === 'ผิดปกติ') abnormals.push(record.p3_hair_note || 'ผมผิดปกติ');
+                        summaryText = abnormals.length > 0 ? abnormals.join(', ') : 'พบอาการผิดปกติ';
+                    } else {
+                        normalCount++;
+                        summaryText = `ปกติ (BT: ${record.p1_temp || '-'}°C, น้ำหนัก: ${record.p2_weight || '-'} กก.)`;
+                    }
+                }
+
+                if (filterStatus === 'examined' && !isExamined) return;
+                if (filterStatus === 'unexamined' && isExamined) return;
+                if (filterStatus === 'normal' && (!isExamined || isAbnormal)) return;
+                if (filterStatus === 'abnormal' && (!isExamined || !isAbnormal)) return;
+
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-gray-50 transition border-b border-gray-100 last:border-0';
+
+                const dormDisplay = st.dormitory ? escapeHtml(st.dormitory) : '<span class="text-gray-400">-</span>';
+
+                let statusBadge = '';
+                if (!isExamined) {
+                    statusBadge = '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-600 border border-gray-200"><i class="fas fa-clock mr-1.5 text-gray-400"></i>ยังไม่ได้ตรวจ</span>';
+                } else if (isAbnormal) {
+                    statusBadge = '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-50 text-red-700 border border-red-200"><i class="fas fa-exclamation-triangle mr-1.5 text-red-500"></i>พบผิดปกติ</span>';
+                } else {
+                    statusBadge = '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200"><i class="fas fa-check-circle mr-1.5 text-emerald-500"></i>ปกติ</span>';
+                }
+
+                const safeId = String(st.id).replace(/'/g, "\\'");
+                const safeName = escapeHtml(st.name);
+                const safeNickname = st.nickname ? ` <span class="text-gray-400 font-normal">(${escapeHtml(st.nickname)})</span>` : '';
+
+                let actions = `
+                    <button onclick="openHealthRecordModal('${safeId}', '${targetYear}')" class="inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-md shadow-2xs transition ${isExamined ? 'bg-sky-50 text-sky-700 hover:bg-sky-100 border border-sky-200' : 'bg-emerald-600 text-white hover:bg-emerald-700'}" title="${isExamined ? 'แก้ไขผลการตรวจ' : 'บันทึกการตรวจ'}">
+                        <i class="fas ${isExamined ? 'fa-edit' : 'fa-plus-circle'} mr-1"></i> ${isExamined ? 'แก้ไข' : 'บันทึก'}
+                    </button>
+                    <button onclick="printStudentHealthPDF('${safeId}', '${targetYear}')" class="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-md shadow-2xs bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 ml-1 transition" title="พิมพ์หรือดาวน์โหลด PDF เอกสาร A4">
+                        <i class="fas fa-file-pdf mr-1 text-indigo-600"></i> PDF
+                    </button>
+                `;
+
+                if (isExamined && currentUserRole === 'admin') {
+                    const safeRecordId = String(record.recordId).replace(/'/g, "\\'");
+                    actions += `
+                        <button onclick="deleteHealthRecord('${safeRecordId}')" class="inline-flex items-center p-1 text-xs text-red-500 hover:text-red-700 hover:bg-red-50 rounded ml-1 transition" title="ลบผลการตรวจ">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    `;
+                }
+
+                tr.innerHTML = `
+                    <td class="px-3 py-3 text-center text-xs font-mono font-medium text-gray-500">${escapeHtml(st.id)}</td>
+                    <td class="px-4 py-3 font-semibold text-gray-800 text-sm whitespace-nowrap">${safeName}${safeNickname}</td>
+                    <td class="px-3 py-3 text-xs text-gray-600 whitespace-nowrap">${escapeHtml(st.grade || '-')}</td>
+                    <td class="px-3 py-3 text-xs text-gray-600 whitespace-nowrap">${dormDisplay}</td>
+                    <td class="px-3 py-3 text-center whitespace-nowrap">${statusBadge}</td>
+                    <td class="px-4 py-3 text-xs text-gray-600 max-w-xs truncate" title="${escapeHtml(summaryText)}">${escapeHtml(summaryText)}</td>
+                    <td class="px-3 py-3 text-right whitespace-nowrap">${actions}</td>
+                `;
+                fragment.appendChild(tr);
+            });
+
+            tbody.innerHTML = '';
+            if (fragment.children.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="text-center py-10 text-gray-400">
+                            <i class="fas fa-search text-3xl mb-2 text-gray-300 block"></i>
+                            ไม่พบข้อมูลนักเรียนตามเงื่อนไขที่เลือก
+                        </td>
+                    </tr>
+                `;
+            } else {
+                tbody.appendChild(fragment);
+            }
+
+            const elTotal = document.getElementById('health-stat-total');
+            if (elTotal) elTotal.innerText = totalCount;
+            const elDone = document.getElementById('health-stat-done');
+            if (elDone) elDone.innerText = examinedCount;
+            const elNormal = document.getElementById('health-stat-normal');
+            if (elNormal) elNormal.innerText = normalCount;
+            const elAbnormal = document.getElementById('health-stat-abnormal');
+            if (elAbnormal) elAbnormal.innerText = abnormalCount;
+        }
+
+        function openHealthRecordModal(studentId, year) {
+            year = year || currentHealthAcademicYear || '2568';
+            const st = studentsList.find(s => String(s.id) === String(studentId));
+            if (!st) {
+                Swal.fire('ข้อผิดพลาด', 'ไม่พบข้อมูลนักเรียนรหัส ' + studentId, 'error');
+                return;
+            }
+
+            currentEditingHealthStudent = st;
+            currentHealthStudentId = studentId;
+
+            const form = document.getElementById('healthRecordForm');
+            if (form) form.reset();
+
+            document.getElementById('hm-student-id').value = st.id;
+            document.getElementById('hm-academic-year').value = year;
+            document.getElementById('hm-modal-title-year').innerText = year;
+            document.getElementById('hm-student-name').innerText = st.name + (st.nickname ? ' (' + st.nickname + ')' : '');
+            document.getElementById('hm-student-code').innerText = st.id;
+            document.getElementById('hm-student-grade').innerText = st.grade || '-';
+            document.getElementById('hm-student-dob').innerText = formatDateAndAge(st.dob);
+
+            let genderText = st.gender || '';
+            if (!genderText) {
+                if ((st.name || '').startsWith('นาย') || (st.name || '').startsWith('เด็กชาย') || (st.name || '').startsWith('ด.ช.')) genderText = 'ชาย';
+                else if ((st.name || '').startsWith('นางสาว') || (st.name || '').startsWith('เด็กหญิง') || (st.name || '').startsWith('ด.ญ.')) genderText = 'หญิง';
+                else genderText = 'ชาย';
+            }
+            document.getElementById('hm-student-gender').innerText = genderText;
+
+            // ตรวจสอบและเลือกเรือนนอนให้อัตโนมัติ (รองรับทั้งนักเรียนอยู่ประจำ และ ไป-กลับ ที่มีเรือนนอน)
+            const dormSelect = document.getElementById('hm-dormitory');
+            if (dormSelect) {
+                dormSelect.value = findMatchingDormitoryOption(st.dormitory);
+            }
+
+            const today = new Date();
+            const yThai = today.getFullYear() > 2400 ? today.getFullYear() : today.getFullYear() + 543;
+            const mStr = String(today.getMonth() + 1).padStart(2, '0');
+            const dStr = String(today.getDate()).padStart(2, '0');
+            document.getElementById('hm-check-date').value = `${dStr}/${mStr}/${yThai}`;
+
+            const record = healthRecordsList.find(r => String(r.studentId) === String(studentId) && String(r.academicYear) === String(year));
+            currentEditingHealthRecord = record || null;
+
+            if (record) {
+                document.getElementById('hm-record-id').value = record.recordId || '';
+                if (record.checkDate) document.getElementById('hm-check-date').value = record.checkDate;
+                if (record.dormitory && dormSelect) dormSelect.value = record.dormitory;
+
+                // จุดที่ 1 สัญญาณชีพ
+                document.getElementById('hm-p1-temp').value = record.p1_temp || '';
+                document.getElementById('hm-p1-bp').value = record.p1_bp || '';
+                document.getElementById('hm-p1-pulse').value = record.p1_pulse || '';
+                document.getElementById('hm-p1-spo2').value = record.p1_spo2 || '';
+                document.getElementById('hm-p1-officer').value = record.p1_officer || '';
+
+                // จุดที่ 2 การเจริญเติบโต
+                document.getElementById('hm-p2-weight').value = record.p2_weight || '';
+                document.getElementById('hm-p2-height').value = record.p2_height || '';
+                setHealthRadioVal('hm-p2-wfh', record.p2_weightForHeight || '');
+                setHealthRadioVal('hm-p2-hfa', record.p2_heightForAge || '');
+                document.getElementById('hm-p2-officer').value = record.p2_officer || '';
+
+                // จุดที่ 3 ตรวจร่างกาย
+                ['head', 'hair', 'ear', 'eye', 'nose', 'nail', 'skin'].forEach(part => {
+                    const val = record['p3_' + part] || 'ปกติ';
+                    setHealthRadioVal('hm-p3-' + part, val);
+                    const note = record['p3_' + part + '_note'] || '';
+                    const noteEl = document.getElementById('hm-p3-' + part + '-note');
+                    if (noteEl) noteEl.value = note;
+                    toggleNoteInput('hm-p3-' + part + '-note', val === 'ผิดปกติ');
+                });
+                const skinNote = record.p3_skin_note || '';
+                const skinCbs = [
+                    { id: 'hm-p3-skin-cb-1', kw: 'ผื่นแพ้' },
+                    { id: 'hm-p3-skin-cb-2', kw: 'ลมพิษ' },
+                    { id: 'hm-p3-skin-cb-3', kw: 'แผลเรื้อรัง' },
+                    { id: 'hm-p3-skin-cb-4', kw: 'หิด' },
+                    { id: 'hm-p3-skin-cb-5', kw: 'เหา' },
+                    { id: 'hm-p3-skin-cb-6', kw: 'กลาก' },
+                    { id: 'hm-p3-skin-cb-7', kw: 'ชันนะตุ' }
+                ];
+                skinCbs.forEach(cb => {
+                    const el = document.getElementById(cb.id);
+                    if (el) el.checked = skinNote.includes(cb.kw);
+                });
+                document.getElementById('hm-p3-officer').value = record.p3_officer || '';
+
+                // จุดที่ 4 การมองเห็น
+                setHealthRadioVal('hm-p4-vision', record.p4_vision || 'ปกติ');
+                document.getElementById('hm-p4-vision-note').value = record.p4_vision_note || '';
+                document.getElementById('hm-p4-officer').value = record.p4_officer || '';
+
+                // จุดที่ 5 การได้ยิน
+                setHealthRadioVal('hm-p5-hearing', record.p5_hearing || 'ปกติ');
+                const hNote = record.p5_hearing_note || '';
+                if (hNote.includes('ไม่ได้ยิน')) setHealthRadioVal('hm-p5-whisper', 'ไม่ได้ยิน');
+                else setHealthRadioVal('hm-p5-whisper', 'ได้ยิน');
+                document.getElementById('hm-p5-hearing-note').value = hNote.replace('ไม่ได้ยินเสียงกระซิบ', '').replace('ไม่ได้ยิน', '').replace('ได้ยิน', '').replace(/^[,\s]+/, '');
+                document.getElementById('hm-p5-officer').value = record.p5_officer || '';
+
+                // จุดที่ 6 ฟันและช่องปาก
+                document.getElementById('hm-p6-cavity').value = record.p6_cavity || '0';
+                document.getElementById('hm-p6-yellow').value = record.p6_yellow || '0';
+                document.getElementById('hm-p6-tartar').checked = (record.p6_tartar === 'มี' || record.p6_tartar === true || record.p6_tartar === 'true');
+                document.getElementById('hm-p6-gingivitis').checked = (record.p6_gingivitis === 'มี' || record.p6_gingivitis === true || record.p6_gingivitis === 'true');
+                document.getElementById('hm-p6-note').value = record.p6_note || '';
+                document.getElementById('hm-p6-officer').value = record.p6_officer || '';
+
+                // จุดที่ 7 กายภาพบำบัด
+                ['general', 'headneck', 'heart', 'abdomen', 'limbs', 'neuro'].forEach(part => {
+                    const val = record['p7_' + part] || 'ปกติ';
+                    setHealthRadioVal('hm-p7-' + part, val);
+                    const note = record['p7_' + part + '_note'] || '';
+                    const noteEl = document.getElementById('hm-p7-' + part + '-note');
+                    if (noteEl) noteEl.value = note;
+                    toggleNoteInput('hm-p7-' + part + '-note', val === 'ผิดปกติ');
+                });
+                document.getElementById('hm-p7-officer').value = record.p7_officer || '';
+            } else {
+                document.getElementById('hm-record-id').value = '';
+                quickSetStation3Normal();
+                setHealthRadioVal('hm-p4-vision', 'ปกติ');
+                setHealthRadioVal('hm-p5-hearing', 'ปกติ');
+                setHealthRadioVal('hm-p5-whisper', 'ได้ยิน');
+                document.getElementById('hm-p6-cavity').value = '0';
+                document.getElementById('hm-p6-yellow').value = '0';
+                document.getElementById('hm-p6-tartar').checked = false;
+                document.getElementById('hm-p6-gingivitis').checked = false;
+                document.getElementById('hm-p6-note').value = '';
+                quickSetStation7Normal();
+            }
+
+            document.getElementById('healthRecordModal').classList.remove('hidden');
+        }
+
+        function closeHealthRecordModal() {
+            const modal = document.getElementById('healthRecordModal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        function saveHealthRecord() {
+            const studentId = document.getElementById('hm-student-id').value;
+            const academicYear = document.getElementById('hm-academic-year').value || currentHealthAcademicYear || '2568';
+            if (!studentId) {
+                Swal.fire('ข้อผิดพลาด', 'กรุณาระบุนักเรียน', 'warning');
+                return;
+            }
+
+            const skinCbs = [
+                { id: 'hm-p3-skin-cb-1', text: 'ผื่นแพ้' },
+                { id: 'hm-p3-skin-cb-2', text: 'ลมพิษ' },
+                { id: 'hm-p3-skin-cb-3', text: 'แผลเรื้อรัง' },
+                { id: 'hm-p3-skin-cb-4', text: 'หิด' },
+                { id: 'hm-p3-skin-cb-5', text: 'เหา' },
+                { id: 'hm-p3-skin-cb-6', text: 'กลาก' },
+                { id: 'hm-p3-skin-cb-7', text: 'ชันนะตุ' }
+            ];
+            const checkedSkins = skinCbs.filter(c => document.getElementById(c.id)?.checked).map(c => c.text);
+            const extraSkinNote = (document.getElementById('hm-p3-skin-note')?.value || '').trim();
+            if (extraSkinNote) checkedSkins.push(extraSkinNote);
+            const combinedSkinNote = checkedSkins.join(', ');
+
+            const whisperVal = getHealthRadioVal('hm-p5-whisper');
+            const extraHearingNote = (document.getElementById('hm-p5-hearing-note')?.value || '').trim();
+            let combinedHearingNote = '';
+            if (whisperVal === 'ไม่ได้ยิน') combinedHearingNote = 'ไม่ได้ยินเสียงกระซิบ';
+            if (extraHearingNote) combinedHearingNote = (combinedHearingNote ? combinedHearingNote + ', ' : '') + extraHearingNote;
+
+            const cavityNum = parseInt(document.getElementById('hm-p6-cavity')?.value || '0', 10);
+            const yellowNum = parseInt(document.getElementById('hm-p6-yellow')?.value || '0', 10);
+            const hasTartar = document.getElementById('hm-p6-tartar')?.checked;
+            const hasGingivitis = document.getElementById('hm-p6-gingivitis')?.checked;
+            const isDentalAbnormal = (cavityNum > 0 || yellowNum > 0 || hasTartar || hasGingivitis);
+
+            const recordObj = {
+                recordId: document.getElementById('hm-record-id').value || ('HLTH_' + studentId + '_' + academicYear),
+                studentId: studentId,
+                academicYear: academicYear,
+                checkDate: document.getElementById('hm-check-date')?.value || '',
+                dormitory: document.getElementById('hm-dormitory')?.value || '',
+                // จุดที่ 1
+                p1_temp: document.getElementById('hm-p1-temp')?.value.trim() || '',
+                p1_bp: document.getElementById('hm-p1-bp')?.value.trim() || '',
+                p1_pulse: document.getElementById('hm-p1-pulse')?.value.trim() || '',
+                p1_spo2: document.getElementById('hm-p1-spo2')?.value.trim() || '',
+                p1_officer: document.getElementById('hm-p1-officer')?.value.trim() || '',
+                // จุดที่ 2
+                p2_weight: document.getElementById('hm-p2-weight')?.value.trim() || '',
+                p2_height: document.getElementById('hm-p2-height')?.value.trim() || '',
+                p2_weightForHeight: getHealthRadioVal('hm-p2-wfh'),
+                p2_heightForAge: getHealthRadioVal('hm-p2-hfa'),
+                p2_officer: document.getElementById('hm-p2-officer')?.value.trim() || '',
+                // จุดที่ 3
+                p3_head: getHealthRadioVal('hm-p3-head') || 'ปกติ',
+                p3_head_note: document.getElementById('hm-p3-head-note')?.value.trim() || '',
+                p3_hair: getHealthRadioVal('hm-p3-hair') || 'ปกติ',
+                p3_hair_note: document.getElementById('hm-p3-hair-note')?.value.trim() || '',
+                p3_ear: getHealthRadioVal('hm-p3-ear') || 'ปกติ',
+                p3_ear_note: document.getElementById('hm-p3-ear-note')?.value.trim() || '',
+                p3_eye: getHealthRadioVal('hm-p3-eye') || 'ปกติ',
+                p3_eye_note: document.getElementById('hm-p3-eye-note')?.value.trim() || '',
+                p3_nose: getHealthRadioVal('hm-p3-nose') || 'ปกติ',
+                p3_nose_note: document.getElementById('hm-p3-nose-note')?.value.trim() || '',
+                p3_nail: getHealthRadioVal('hm-p3-nail') || 'ปกติ',
+                p3_nail_note: document.getElementById('hm-p3-nail-note')?.value.trim() || '',
+                p3_skin: getHealthRadioVal('hm-p3-skin') || 'ปกติ',
+                p3_skin_note: combinedSkinNote,
+                p3_officer: document.getElementById('hm-p3-officer')?.value.trim() || '',
+                // จุดที่ 4
+                p4_vision: getHealthRadioVal('hm-p4-vision') || 'ปกติ',
+                p4_vision_note: document.getElementById('hm-p4-vision-note')?.value.trim() || '',
+                p4_officer: document.getElementById('hm-p4-officer')?.value.trim() || '',
+                // จุดที่ 5
+                p5_hearing: getHealthRadioVal('hm-p5-hearing') || 'ปกติ',
+                p5_hearing_note: combinedHearingNote,
+                p5_officer: document.getElementById('hm-p5-officer')?.value.trim() || '',
+                // จุดที่ 6
+                p6_dental: isDentalAbnormal ? 'ผิดปกติ' : 'ปกติ',
+                p6_cavity: String(cavityNum),
+                p6_yellow: String(yellowNum),
+                p6_tartar: hasTartar ? 'มี' : 'ไม่มี',
+                p6_gingivitis: hasGingivitis ? 'มี' : 'ไม่มี',
+                p6_note: document.getElementById('hm-p6-note')?.value.trim() || '',
+                p6_officer: document.getElementById('hm-p6-officer')?.value.trim() || '',
+                // จุดที่ 7
+                p7_general: getHealthRadioVal('hm-p7-general') || 'ปกติ',
+                p7_general_note: document.getElementById('hm-p7-general-note')?.value.trim() || '',
+                p7_headneck: getHealthRadioVal('hm-p7-headneck') || 'ปกติ',
+                p7_headneck_note: document.getElementById('hm-p7-headneck-note')?.value.trim() || '',
+                p7_heart: getHealthRadioVal('hm-p7-heart') || 'ปกติ',
+                p7_heart_note: document.getElementById('hm-p7-heart-note')?.value.trim() || '',
+                p7_abdomen: getHealthRadioVal('hm-p7-abdomen') || 'ปกติ',
+                p7_abdomen_note: document.getElementById('hm-p7-abdomen-note')?.value.trim() || '',
+                p7_limbs: getHealthRadioVal('hm-p7-limbs') || 'ปกติ',
+                p7_limbs_note: document.getElementById('hm-p7-limbs-note')?.value.trim() || '',
+                p7_neuro: getHealthRadioVal('hm-p7-neuro') || 'ปกติ',
+                p7_neuro_note: document.getElementById('hm-p7-neuro-note')?.value.trim() || '',
+                p7_officer: document.getElementById('hm-p7-officer')?.value.trim() || '',
+                // ข้อมูลระบบ
+                updatedAt: new Date().toISOString(),
+                recordedBy: currentUserRole || 'SchoolHealth'
+            };
+
+            Swal.fire({
+                title: 'กำลังบันทึกข้อมูล...',
+                text: 'กรุณารอสักครู่',
+                allowOutsideClick: false,
+                didOpen: () => { Swal.showLoading(); }
+            });
+
+            if (typeof google !== 'undefined' && google.script && google.script.run) {
+                google.script.run
+                    .withSuccessHandler(function(res) {
+                        try {
+                            const parsed = (typeof res === 'string') ? JSON.parse(res) : res;
+                            if (parsed && parsed.status === 'success') {
+                                const idx = healthRecordsList.findIndex(r => String(r.studentId) === String(studentId) && String(r.academicYear) === String(academicYear));
+                                if (idx >= 0) healthRecordsList[idx] = recordObj;
+                                else healthRecordsList.push(recordObj);
+
+                                saveHealthRecordsToCache(academicYear, healthRecordsList.filter(r => String(r.academicYear) === String(academicYear)));
+                                renderHealthTable();
+                                closeHealthRecordModal();
+
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'บันทึกสำเร็จ!',
+                                    text: 'บันทึกผลการตรวจสุขภาพเรียบร้อยแล้ว',
+                                    confirmButtonColor: '#00a651'
+                                });
+                            } else {
+                                Swal.fire('เกิดข้อผิดพลาด', parsed.message || 'ไม่สามารถบันทึกข้อมูลได้', 'error');
+                            }
+                        } catch(e) {
+                            Swal.fire('เกิดข้อผิดพลาด', 'การประมวลผลล้มเหลว', 'error');
+                        }
+                    })
+                    .withFailureHandler(function(err) {
+                        Swal.fire('เกิดข้อผิดพลาด', err.message || 'เชื่อมต่อเซิร์ฟเวอร์ไม่สำเร็จ', 'error');
+                    })
+                    .saveStudentHealthRecord(recordObj);
+            } else {
+                const idx = healthRecordsList.findIndex(r => String(r.studentId) === String(studentId) && String(r.academicYear) === String(academicYear));
+                if (idx >= 0) healthRecordsList[idx] = recordObj;
+                else healthRecordsList.push(recordObj);
+                renderHealthTable();
+                closeHealthRecordModal();
+                Swal.fire('สำเร็จ', 'บันทึกข้อมูลในโหมดออฟไลน์เรียบร้อย', 'success');
+            }
+        }
+
+        function deleteHealthRecord(recordId) {
+            if (currentUserRole !== 'admin') {
+                Swal.fire('สิทธิ์ไม่ถูกต้อง', 'เฉพาะผู้ดูแลระบบ (Admin) เท่านั้นที่สามารถลบข้อมูลได้', 'warning');
+                return;
+            }
+
+            Swal.fire({
+                title: 'ยืนยันการลบผลการตรวจสุขภาพ?',
+                text: 'เมื่อลบแล้วจะไม่สามารถกู้คืนได้',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'ใช่, ลบเลย',
+                cancelButtonText: 'ยกเลิก'
+            }).then(result => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'กำลังลบข้อมูล...',
+                        allowOutsideClick: false,
+                        didOpen: () => { Swal.showLoading(); }
+                    });
+
+                    if (typeof google !== 'undefined' && google.script && google.script.run) {
+                        google.script.run
+                            .withSuccessHandler(function(res) {
+                                const parsed = (typeof res === 'string') ? JSON.parse(res) : res;
+                                if (parsed && parsed.status === 'success') {
+                                    healthRecordsList = healthRecordsList.filter(r => String(r.recordId) !== String(recordId));
+                                    saveHealthRecordsToCache(currentHealthAcademicYear, healthRecordsList.filter(r => String(r.academicYear) === String(currentHealthAcademicYear)));
+                                    renderHealthTable();
+                                    Swal.fire('ลบสำเร็จ', 'ลบข้อมูลการตรวจสุขภาพเรียบร้อยแล้ว', 'success');
+                                } else {
+                                    Swal.fire('เกิดข้อผิดพลาด', parsed.message || 'ไม่สามารถลบข้อมูลได้', 'error');
+                                }
+                            })
+                            .withFailureHandler(function(err) {
+                                Swal.fire('เกิดข้อผิดพลาด', err.message || 'ไม่สามารถเชื่อมต่อได้', 'error');
+                            })
+                            .deleteStudentHealthRecord(recordId, currentUserRole);
+                    }
+                }
+            });
+        }
+
+        function loadStudentHealthHistoryInViewModal(studentId) {
+            const container = document.getElementById('view-health-summary-container');
+            const pdfBtn = document.getElementById('btn-health-download-pdf');
+            if (!container) return;
+
+            const records = healthRecordsList.filter(r => String(r.studentId) === String(studentId));
+
+            if (records.length === 0) {
+                if (pdfBtn) pdfBtn.classList.add('opacity-50', 'pointer-events-none');
+                container.innerHTML = `
+                    <div class="text-center py-4 text-gray-500">
+                        <i class="fas fa-heartbeat text-3xl text-gray-300 mb-2 block"></i>
+                        <p class="font-medium text-gray-600">ยังไม่มีข้อมูลบันทึกการตรวจสุขภาพประจำปีสำหรับนักเรียนคนนี้</p>
+                        ${(currentUserRole === 'admin' || currentUserRole === 'schoolhealth') ? `
+                            <button onclick="closeStudentViewModal(); openHealthRecordModal('${String(studentId).replace(/'/g, "\\'")}', '${currentHealthAcademicYear}');" class="mt-3 bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-3.5 py-1.5 rounded-lg font-semibold shadow-2xs transition inline-flex items-center">
+                                <i class="fas fa-plus-circle mr-1.5"></i> บันทึกการตรวจสุขภาพปีนี้
+                            </button>
+                        ` : ''}
+                    </div>
+                `;
+                return;
+            }
+
+            if (pdfBtn) pdfBtn.classList.remove('opacity-50', 'pointer-events-none');
+
+            records.sort((a, b) => parseInt(b.academicYear || '0') - parseInt(a.academicYear || '0'));
+            const latest = records[0];
+
+            let html = `
+                <div class="space-y-3">
+                    <div class="flex flex-wrap items-center justify-between gap-2 border-b border-emerald-200 pb-2">
+                        <div class="font-bold text-gray-800 flex items-center">
+                            <span class="bg-emerald-600 text-white text-xs px-2.5 py-0.5 rounded-full mr-2">ปีการศึกษา ${escapeHtml(latest.academicYear)}</span>
+                            <span class="text-xs text-gray-500">ตรวจเมื่อ: ${escapeHtml(latest.checkDate || '-')}</span>
+                        </div>
+                        <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full ${latest.p6_dental === 'ผิดปกติ' || latest.p4_vision === 'ผิดปกติ' ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-800'}">
+                            ${latest.p6_dental === 'ผิดปกติ' || latest.p4_vision === 'ผิดปกติ' ? 'ตรวจแล้ว (พบอาการที่ต้องติดตาม)' : 'ตรวจแล้ว (สุขภาพปกติ)'}
+                        </span>
+                    </div>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                        <div class="bg-white p-2 rounded-lg border border-emerald-100"><span class="text-gray-500 block">อุณหภูมิ</span><span class="font-bold text-gray-800">${escapeHtml(latest.p1_temp || '-')} °C</span></div>
+                        <div class="bg-white p-2 rounded-lg border border-emerald-100"><span class="text-gray-500 block">ความดันโลหิต</span><span class="font-bold text-gray-800">${escapeHtml(latest.p1_bp || '-')} mmHg</span></div>
+                        <div class="bg-white p-2 rounded-lg border border-emerald-100"><span class="text-gray-500 block">ชีพจร</span><span class="font-bold text-gray-800">${escapeHtml(latest.p1_pulse || '-')} ครั้ง/นาที</span></div>
+                        <div class="bg-white p-2 rounded-lg border border-emerald-100"><span class="text-gray-500 block">SpO2</span><span class="font-bold text-gray-800">${escapeHtml(latest.p1_spo2 || '-')} %</span></div>
+                    </div>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
+                        <div class="bg-white p-2 rounded-lg border border-emerald-100"><span class="text-gray-500 block">น้ำหนัก/ส่วนสูง</span><span class="font-bold text-gray-800">${escapeHtml(latest.p2_weight || '-')} กก. / ${escapeHtml(latest.p2_height || '-')} ซม.</span></div>
+                        <div class="bg-white p-2 rounded-lg border border-emerald-100"><span class="text-gray-500 block">น้ำหนักตามเกณฑ์ส่วนสูง</span><span class="font-bold text-gray-800">${escapeHtml(latest.p2_weightForHeight || '-')}</span></div>
+                        <div class="bg-white p-2 rounded-lg border border-emerald-100"><span class="text-gray-500 block">ส่วนสูงตามเกณฑ์อายุ</span><span class="font-bold text-gray-800">${escapeHtml(latest.p2_heightForAge || '-')}</span></div>
+                    </div>
+                    <div class="bg-white p-2.5 rounded-lg border border-emerald-100 text-xs text-gray-700 flex flex-wrap gap-x-4 gap-y-1">
+                        <div><span class="font-semibold text-gray-500">สายตา:</span> ${escapeHtml(latest.p4_vision || 'ปกติ')} ${latest.p4_vision_note ? '(' + escapeHtml(latest.p4_vision_note) + ')' : ''}</div>
+                        <div><span class="font-semibold text-gray-500">การได้ยิน:</span> ${escapeHtml(latest.p5_hearing || 'ปกติ')}</div>
+                        <div><span class="font-semibold text-gray-500">ฟันผุ:</span> ${escapeHtml(latest.p6_cavity || '0')} ซี่ ${parseInt(latest.p6_yellow || '0') > 0 ? `, ฟันเหลือง ${escapeHtml(latest.p6_yellow)} ซี่` : ''}</div>
+                    </div>
+                </div>
+            `;
+            container.innerHTML = html;
+        }
+
+        function downloadCurrentStudentHealthPDF() {
+            if (currentViewingStudentId) {
+                printStudentHealthPDF(currentViewingStudentId, currentHealthAcademicYear || '2568', true);
+            }
+        }
+
+        function printStudentHealthPDF(studentId, year, isSavePdf = false) {
+            year = year || currentHealthAcademicYear || '2568';
+            const st = studentsList.find(s => String(s.id) === String(studentId));
+            if (!st) {
+                Swal.fire('ข้อผิดพลาด', 'ไม่พบข้อมูลนักเรียน', 'error');
+                return;
+            }
+
+            const rec = healthRecordsList.find(r => String(r.studentId) === String(studentId) && String(r.academicYear) === String(year)) || {};
+
+            let dobDay = '……', dobMonth = '………………', dobYear = '………', age = '……';
+            if (st.dob) {
+                const parts = String(st.dob).split('-');
+                if (parts.length === 3) {
+                    dobDay = parseInt(parts[2], 10);
+                    const thaiMonths = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
+                    dobMonth = thaiMonths[parseInt(parts[1], 10) - 1] || '………………';
+                    const y = parseInt(parts[0], 10);
+                    dobYear = y > 2400 ? y : (y + 543);
+                    const birthYear = y > 2400 ? (y - 543) : y;
+                    age = new Date().getFullYear() - birthYear;
+                }
+            }
+
+            let isMale = false, isFemale = false;
+            if (st.gender === 'ชาย' || (st.name || '').startsWith('นาย') || (st.name || '').startsWith('เด็กชาย') || (st.name || '').startsWith('ด.ช.')) {
+                isMale = true;
+            } else if (st.gender === 'หญิง' || (st.name || '').startsWith('นางสาว') || (st.name || '').startsWith('เด็กหญิง') || (st.name || '').startsWith('ด.ญ.')) {
+                isFemale = true;
+            }
+
+            const dorm = rec.dormitory || findMatchingDormitoryOption(st.dormitory);
+            function chkDorm(kw) {
+                return (dorm && dorm.includes(kw)) ? '<span class="chk-box-checked">☑</span>' : '<span class="chk-box">☐</span>';
+            }
+
+            function chk(val, target) {
+                return (String(val).trim() === String(target).trim()) ? '<span class="chk-box-checked">☑</span>' : '<span class="chk-box">☐</span>';
+            }
+
+            function dotOrVal(val, defaultDots = '……………………') {
+                return (val && String(val).trim()) ? `<span class="val-underline">${escapeHtml(val)}</span>` : defaultDots;
+            }
+
+            let printWindow = window.open('', '_blank', 'width=1000,height=1000');
+            if (!printWindow) {
+                Swal.fire('แจ้งเตือน', 'กรุณาอนุญาต Pop-up บนเบราว์เซอร์เพื่อเปิดดูเอกสาร PDF', 'warning');
+                return;
+            }
+
+            const html = `<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <title>แบบบันทึกการตรวจสุขภาพนักเรียน - ${escapeHtml(st.name)}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <` + `script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"><` + `/script>
+    <style>
+        @page {
+            size: A4 portrait;
+            margin: 8mm 12mm 8mm 12mm;
+        }
+        * {
+            box-sizing: border-box;
+            font-family: 'Sarabun', 'TH Sarabun New', sans-serif;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            background: #fff;
+            color: #000;
+            font-size: 11.5pt;
+            line-height: 1.42;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        .page-container {
+            width: 100%;
+            max-width: 190mm;
+            margin: 0 auto;
+            padding: 2px 4px;
+            background: #fff;
+        }
+        .doc-header {
+            text-align: center;
+            margin-bottom: 6px;
+        }
+        .school-logo {
+            height: 48px;
+            width: auto;
+            display: block;
+            margin: 0 auto 3px auto;
+        }
+        .doc-title {
+            font-size: 15pt;
+            font-weight: 700;
+            margin: 0;
+            line-height: 1.25;
+        }
+        .doc-sub {
+            font-size: 13pt;
+            font-weight: 700;
+            margin: 1px 0 6px 0;
+        }
+        .info-row {
+            font-size: 11pt;
+            line-height: 1.45;
+            margin-bottom: 2px;
+        }
+        .dorm-row {
+            font-size: 10pt;
+            line-height: 1.4;
+            margin-bottom: 2px;
+        }
+        .chk-box {
+            font-size: 12pt;
+            font-family: Arial, sans-serif;
+            margin-right: 2px;
+            color: #333;
+        }
+        .chk-box-checked {
+            font-size: 12pt;
+            font-family: Arial, sans-serif;
+            margin-right: 2px;
+            font-weight: bold;
+            color: #000;
+        }
+        .station-header {
+            font-size: 11.5pt;
+            font-weight: 700;
+            margin-top: 5px;
+            margin-bottom: 2px;
+            color: #000;
+        }
+        .station-body {
+            font-size: 10.5pt;
+            line-height: 1.4;
+            padding-left: 2px;
+        }
+        .officer-row {
+            text-align: right;
+            font-size: 10pt;
+            margin-top: 1px;
+            margin-bottom: 3px;
+        }
+        .val-underline {
+            font-weight: 600;
+            padding: 0 4px;
+            border-bottom: 1px dotted #333;
+            color: #000;
+        }
+        .label-bold {
+            font-weight: 600;
+        }
+        @media print {
+            .no-print { display: none !important; }
+            body { background: transparent; }
+            .page-container { padding: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="no-print" style="position: fixed; top: 12px; right: 12px; z-index: 9999; background: #ffffff; padding: 10px 16px; border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.25); border: 1px solid #cbd5e1; display: flex; align-items: center; gap: 8px;">
+        <button onclick="downloadPDF()" style="background: #2563eb; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 10pt; display: flex; align-items: center; gap: 5px;">💾 บันทึกเป็น PDF (A4)</button>
+        <button onclick="window.print()" style="background: #00a651; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 10pt; display: flex; align-items: center; gap: 5px;">🖨️ พิมพ์เอกสาร A4</button>
+        <button onclick="window.close()" style="background: #ef4444; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 10pt;">ปิด</button>
+    </div>
+
+    <div class="page-container" id="health-pdf-document">
+        <div class="doc-header">
+            <img src="https://lbpschool.github.io/SIS/school_logo.png?v=3" class="school-logo" alt="ตราโรงเรียน">
+            <div class="doc-title">แบบบันทึกการตรวจสุขภาพนักเรียน</div>
+            <div class="doc-sub">โรงเรียนลพบุรีปัญญานุกูล  จังหวัดลพบุรี ปีการศึกษา ${escapeHtml(year)}</div>
+        </div>
+
+        <!-- บรรทัดข้อมูลนักเรียน -->
+        <div class="info-row">
+            ชื่อ-สกุล <span class="val-underline">${escapeHtml(st.name)}</span>
+            ระดับชั้น <span class="val-underline">${escapeHtml(st.grade || '-')}</span>
+            เกิดวันที่ <span class="val-underline">${dobDay}</span>
+            เดือน <span class="val-underline">${dobMonth}</span>
+            พ.ศ. <span class="val-underline">${dobYear}</span>
+            อายุ <span class="val-underline">${age}</span> ปี
+        </div>
+
+        <!-- รายการเรือนนอนตามต้นฉบับเป๊ะ -->
+        <div class="dorm-row">
+            ${chkDorm('ทานตะวัน')} เรือนนอนชาย 1 ทานตะวัน &nbsp;
+            ${chkDorm('พุทธรักษา')} เรือนนอนชาย 2 พุทธรักษา &nbsp;
+            ${chkDorm('ชงโค')} เรือนนอนชาย 3 ชงโค &nbsp;
+            ${chkDorm('อัญชัน')} เรือนนอนชาย 4 อัญชัน &nbsp;
+            ${chkDorm('พวงคราม')} เรือนนอนชาย 5 พวงคราม
+        </div>
+        <div class="dorm-row" style="margin-bottom: 5px;">
+            ${chkDorm('เฟื่องฟ้า')} เรือนนอนหญิง 2 เฟื่องฟ้า &nbsp;&nbsp;&nbsp;&nbsp;
+            ${chkDorm('ดอกแก้ว')} เรือนนอนหญิง 2 ดอกแก้ว &nbsp;&nbsp;&nbsp;&nbsp;
+            ${chkDorm('พิกุล')} เรือนนอนหญิง 3 พิกุล
+        </div>
+
+        <!-- จุดที่ 1 แบบประเมินสัญญาณชีพ -->
+        <div class="station-header">จุดที่ 1 แบบประเมินสัญญาณชีพ</div>
+        <div class="station-body">
+            อุณหภูมิร่างกาย <span class="val-underline">${dotOrVal(rec.p1_temp, '……..…')}</span> °C &nbsp;&nbsp;&nbsp;&nbsp;
+            ความดันโลหิต <span class="val-underline">${dotOrVal(rec.p1_bp, '……..…')}</span> mmHg. &nbsp;&nbsp;&nbsp;&nbsp;
+            ค่าชีพจร <span class="val-underline">${dotOrVal(rec.p1_pulse, '……..…')}</span> ครั้ง/นาที &nbsp;&nbsp;&nbsp;&nbsp;
+            ความเข้มของออกซิเจนในเลือด <span class="val-underline">${dotOrVal(rec.p1_spo2, '……..…')}</span> %
+        </div>
+        <div class="officer-row">
+            ลงชื่อ <span class="val-underline">${dotOrVal(rec.p1_officer, '.....................................')}</span> เจ้าหน้าที่
+        </div>
+
+        <!-- จุดที่ 2 แบบประเมินการเจริญเติบโต -->
+        <div class="station-header">จุดที่ 2 แบบประเมินการเจริญเติบโต</div>
+        <div class="station-body">
+            น้ำหนัก <span class="val-underline">${dotOrVal(rec.p2_weight, '………..')}</span> กิโลกรัม &nbsp;&nbsp;&nbsp;&nbsp;
+            ส่วนสูง <span class="val-underline">${dotOrVal(rec.p2_height, '………..')}</span> เซนติเมตร &nbsp;&nbsp;&nbsp;&nbsp;
+            เพศ &nbsp;${isMale ? '<span class="chk-box-checked">☑</span>' : '<span class="chk-box">☐</span>'} ชาย &nbsp;&nbsp;
+            ${isFemale ? '<span class="chk-box-checked">☑</span>' : '<span class="chk-box">☐</span>'} หญิง
+            <div style="margin-top: 2px;">
+                <span class="label-bold">ผลภาวะการณ์เจริญเติบโตน้ำหนักตามเกณฑ์ส่วนสูง</span><br>
+                ${chk(rec.p2_weightForHeight, 'ผอม')} ผอม &nbsp;&nbsp;&nbsp;&nbsp;
+                ${chk(rec.p2_weightForHeight, 'ค่อนข้างผอม')} ค่อนข้างผอม &nbsp;&nbsp;&nbsp;&nbsp;
+                ${chk(rec.p2_weightForHeight, 'สมส่วน')} สมส่วน &nbsp;&nbsp;&nbsp;&nbsp;
+                ${chk(rec.p2_weightForHeight, 'ท้วม')} ท้วม &nbsp;&nbsp;&nbsp;&nbsp;
+                ${chk(rec.p2_weightForHeight, 'เริ่มอ้วน')} เริ่มอ้วน &nbsp;&nbsp;&nbsp;&nbsp;
+                ${chk(rec.p2_weightForHeight, 'อ้วน')} อ้วน
+            </div>
+            <div style="margin-top: 2px;">
+                <span class="label-bold">ผลภาวะการณ์เจริญเติบโตส่วนสูงตามเกณฑ์อายุ</span><br>
+                ${chk(rec.p2_heightForAge, 'เตี้ย')} เตี้ย &nbsp;&nbsp;&nbsp;&nbsp;
+                ${(rec.p2_heightForAge === 'ค่อนข้างเตี้ย' || rec.p2_heightForAge === 'ค่อนข้างแคระ') ? '<span class="chk-box-checked">☑</span>' : '<span class="chk-box">☐</span>'} ค่อนข้างแคระ &nbsp;&nbsp;&nbsp;&nbsp;
+                ${chk(rec.p2_heightForAge, 'สมส่วน')} สมส่วน &nbsp;&nbsp;&nbsp;&nbsp;
+                ${chk(rec.p2_heightForAge, 'สูงตามเกณฑ์')} สูงตามเกณฑ์ &nbsp;&nbsp;&nbsp;&nbsp;
+                ${chk(rec.p2_heightForAge, 'ค่อนข้างสูง')} ค่อนข้างสูง &nbsp;&nbsp;&nbsp;&nbsp;
+                ${chk(rec.p2_heightForAge, 'สูง')} สูง
+            </div>
+        </div>
+        <div class="officer-row">
+            ลงชื่อ <span class="val-underline">${dotOrVal(rec.p2_officer, '.....................................')}</span> เจ้าหน้าที่
+        </div>
+
+        <!-- จุดที่ 3 การตรวจสุขภาพร่างกาย -->
+        <div class="station-header">จุดที่ 3 การตรวจสุขภาพร่างกาย</div>
+        <div class="station-body">
+            <div>
+                ศีรษะ &nbsp;&nbsp;&nbsp;&nbsp;
+                ${chk(rec.p3_head, 'ปกติ')} ปกติ &nbsp;&nbsp;&nbsp;&nbsp;
+                ${chk(rec.p3_head, 'ผิดปกติ')} ผิดปกติ &nbsp;&nbsp;
+                เชื้อรา / ชันตุ / รังแค / อื่น ๆ โปรดระบุ <span class="val-underline">${dotOrVal(rec.p3_head_note, '…………………………………')}</span>
+            </div>
+            <div>
+                ผม &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                ${chk(rec.p3_hair, 'ปกติ')} ปกติ &nbsp;&nbsp;&nbsp;&nbsp;
+                ${chk(rec.p3_hair, 'ผิดปกติ')} ผิดปกติ &nbsp;&nbsp;
+                ผมยาว / ไข่เหา(ไม่มีตัวเหา) / เหา / อื่น ๆ โปรดระบุ <span class="val-underline">${dotOrVal(rec.p3_hair_note, '…………………………')}</span>
+            </div>
+            <div>
+                หู &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                ${chk(rec.p3_ear, 'ปกติ')} ปกติ &nbsp;&nbsp;&nbsp;&nbsp;
+                ${chk(rec.p3_ear, 'ผิดปกติ')} ผิดปกติ &nbsp;&nbsp;
+                ขี้หู / หูน้ำหนวก / อื่น ๆ โปรดระบุ <span class="val-underline">${dotOrVal(rec.p3_ear_note, '…………………………………')}</span>
+            </div>
+            <div>
+                ตา &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                ${chk(rec.p3_eye, 'ปกติ')} ปกติ &nbsp;&nbsp;&nbsp;&nbsp;
+                ${chk(rec.p3_eye, 'ผิดปกติ')} ผิดปกติ &nbsp;&nbsp;
+                ตาแดง / ตาอักเสบ / อื่น ๆ โปรดระบุ <span class="val-underline">${dotOrVal(rec.p3_eye_note, '…………………………………')}</span>
+            </div>
+            <div>
+                จมูก &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                ${chk(rec.p3_nose, 'ปกติ')} ปกติ &nbsp;&nbsp;&nbsp;&nbsp;
+                ${chk(rec.p3_nose, 'ผิดปกติ')} ผิดปกติ &nbsp;&nbsp;
+                น้ำมูกไหล / คัดจมูก / อื่น ๆ โปรดระบุ <span class="val-underline">${dotOrVal(rec.p3_nose_note, '…………………………………')}</span>
+            </div>
+            <div>
+                เล็บ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                ${chk(rec.p3_nail, 'ปกติ')} ปกติ &nbsp;&nbsp;&nbsp;&nbsp;
+                ${chk(rec.p3_nail, 'ผิดปกติ')} ผิดปกติ &nbsp;&nbsp;
+                เล็บยาว / เล็บขบ / อื่น ๆ โปรดระบุ <span class="val-underline">${dotOrVal(rec.p3_nail_note, '…………………………………')}</span>
+            </div>
+            <div>
+                ผิวหนัง &nbsp;&nbsp;&nbsp;
+                ${chk(rec.p3_skin, 'ปกติ')} ปกติ &nbsp;&nbsp;&nbsp;&nbsp;
+                ${chk(rec.p3_skin, 'ผิดปกติ')} ผิดปกติ &nbsp;&nbsp;
+                กลาก / เกลื้อน / อื่น ๆ โปรดระบุ <span class="val-underline">${dotOrVal(rec.p3_skin_note, '…………………………………')}</span>
+            </div>
+        </div>
+        <div class="officer-row">
+            ลงชื่อ <span class="val-underline">${dotOrVal(rec.p3_officer, '.....................................')}</span> เจ้าหน้าที่
+        </div>
+
+        <!-- จุดที่ 4 ตรวจการมองเห็น -->
+        <div class="station-header">จุดที่ 4 ตรวจการมองเห็น</div>
+        <div class="station-body">
+            ${chk(rec.p4_vision, 'ปกติ')} ปกติ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            ${chk(rec.p4_vision, 'ผิดปกติ')} ผิดปกติ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            ${chk(rec.p4_vision, 'ประเมินไม่ได้')} ประเมินไม่ได้ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            ระบุ <span class="val-underline">${dotOrVal(rec.p4_vision_note, '…………………………………')}</span>
+        </div>
+        <div class="officer-row">
+            ลงชื่อ <span class="val-underline">${dotOrVal(rec.p4_officer, '.....................................')}</span> เจ้าหน้าที่
+        </div>
+
+        <!-- จุดที่ 5 ตรวจการได้ยิน -->
+        <div class="station-header">จุดที่ 5 ตรวจการได้ยิน</div>
+        <div class="station-body">
+            ${chk(rec.p5_hearing, 'ปกติ')} ปกติ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            ${chk(rec.p5_hearing, 'ผิดปกติ')} ผิดปกติ &nbsp;&nbsp;&nbsp;&nbsp;
+            ไม่ได้ยิน / ได้ยินเสียงกระซิบเบาๆ / อื่น ๆ โปรดระบุ <span class="val-underline">${dotOrVal(rec.p5_hearing_note, '…………………………………')}</span>
+        </div>
+        <div class="officer-row">
+            ลงชื่อ <span class="val-underline">${dotOrVal(rec.p5_officer, '.....................................')}</span> เจ้าหน้าที่
+        </div>
+
+        <!-- จุดที่ 6 ตรวจช่องปากและฟัน -->
+        <div class="station-header">จุดที่ 6 ตรวจช่องปากและฟัน</div>
+        <div class="station-body">
+            ${chk(rec.p6_dental || 'ปกติ', 'ปกติ')} ปกติ &nbsp;&nbsp;&nbsp;&nbsp;
+            ${chk(rec.p6_dental, 'ผิดปกติ')} ผิดปกติ &nbsp;&nbsp;
+            ฟันผุ <span class="val-underline">${dotOrVal(rec.p6_cavity, '……')}</span> ซี่ &nbsp;&nbsp;/&nbsp;&nbsp;
+            ฟันเหลือง <span class="val-underline">${dotOrVal(rec.p6_yellow, '……')}</span> ซี่ &nbsp;&nbsp;/&nbsp;&nbsp;
+            ${(rec.p6_tartar === 'มี' || rec.p6_tartar === true || rec.p6_tartar === 'true') ? '<span class="chk-box-checked">☑</span>' : '<span class="chk-box">☐</span>'} คราบหินปูน &nbsp;&nbsp;/&nbsp;&nbsp;
+            ${(rec.p6_gingivitis === 'มี' || rec.p6_gingivitis === true || rec.p6_gingivitis === 'true') ? '<span class="chk-box-checked">☑</span>' : '<span class="chk-box">☐</span>'} เหงือกอักเสบ &nbsp;&nbsp;/&nbsp;&nbsp;
+            อื่น ๆ โปรดระบุ <span class="val-underline">${dotOrVal(rec.p6_note, '…………………………………')}</span>
+        </div>
+        <div class="officer-row">
+            ลงชื่อ <span class="val-underline">${dotOrVal(rec.p6_officer, '.....................................')}</span> เจ้าหน้าที่
+        </div>
+
+        <!-- จุดที่ 7 ตรวจกายภาพบำบัด -->
+        <div class="station-header">จุดที่ 7 ตรวจกายภาพบำบัด</div>
+        <div class="station-body">
+            <div>
+                ลักษณะทั่วไป &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                ${chk(rec.p7_general, 'ปกติ')} ปกติ &nbsp;&nbsp;&nbsp;&nbsp;
+                ${chk(rec.p7_general, 'ผิดปกติ')} ผิดปกติ &nbsp;&nbsp;&nbsp;&nbsp;
+                โปรดระบุ <span class="val-underline">${dotOrVal(rec.p7_general_note, '…………………………………')}</span>
+            </div>
+            <div>
+                ศีรษะและคอ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                ${chk(rec.p7_headneck, 'ปกติ')} ปกติ &nbsp;&nbsp;&nbsp;&nbsp;
+                ${chk(rec.p7_headneck, 'ผิดปกติ')} ผิดปกติ &nbsp;&nbsp;&nbsp;&nbsp;
+                โปรดระบุ <span class="val-underline">${dotOrVal(rec.p7_headneck_note, '…………………………………')}</span>
+            </div>
+            <div>
+                ระบบหัวใจและหลอดเลือด &nbsp;&nbsp;
+                ${chk(rec.p7_heart, 'ปกติ')} ปกติ &nbsp;&nbsp;&nbsp;&nbsp;
+                ${chk(rec.p7_heart, 'ผิดปกติ')} ผิดปกติ &nbsp;&nbsp;&nbsp;&nbsp;
+                โปรดระบุ <span class="val-underline">${dotOrVal(rec.p7_heart_note, '…………………………………')}</span>
+            </div>
+            <div>
+                การตรวจช่องท้อง &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                ${chk(rec.p7_abdomen, 'ปกติ')} ปกติ &nbsp;&nbsp;&nbsp;&nbsp;
+                ${chk(rec.p7_abdomen, 'ผิดปกติ')} ผิดปกติ &nbsp;&nbsp;&nbsp;&nbsp;
+                โปรดระบุ <span class="val-underline">${dotOrVal(rec.p7_abdomen_note, '…………………………………')}</span>
+            </div>
+            <div>
+                ลำตัวและแขนขา &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                ${chk(rec.p7_limbs, 'ปกติ')} ปกติ &nbsp;&nbsp;&nbsp;&nbsp;
+                ${chk(rec.p7_limbs, 'ผิดปกติ')} ผิดปกติ &nbsp;&nbsp;&nbsp;&nbsp;
+                โปรดระบุ <span class="val-underline">${dotOrVal(rec.p7_limbs_note, '…………………………………')}</span>
+            </div>
+            <div>
+                ระบบประสาท &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                ${chk(rec.p7_neuro, 'ปกติ')} ปกติ &nbsp;&nbsp;&nbsp;&nbsp;
+                ${chk(rec.p7_neuro, 'ผิดปกติ')} ผิดปกติ &nbsp;&nbsp;&nbsp;&nbsp;
+                โปรดระบุ <span class="val-underline">${dotOrVal(rec.p7_neuro_note, '…………………………………')}</span>
+            </div>
+        </div>
+        <div class="officer-row">
+            ลงชื่อ <span class="val-underline">${dotOrVal(rec.p7_officer, '.....................................')}</span> เจ้าหน้าที่
+        </div>
+    </div>
+
+    <` + `script>
+        function downloadPDF() {
+            const element = document.getElementById('health-pdf-document');
+            const opt = {
+                margin: [8, 10, 8, 10],
+                filename: 'แบบบันทึกตรวจสุขภาพ_${escapeHtml(st.name)}_ปี${escapeHtml(year)}.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true, logging: false },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(element).save();
+        }
+
+        window.onload = function() {
+            if (${isSavePdf ? 'true' : 'false'}) {
+                setTimeout(downloadPDF, 600);
+            }
+        };
+    <` + `/script>
+</body>
+</html>`;
+
+            printWindow.document.write(html);
+            printWindow.document.close();
         }
 
         const appManifest = {

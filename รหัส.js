@@ -22,6 +22,31 @@ const TEACHER_HEADERS = [
   'teacherId', 'name', 'assignedClass', 'teacherPosition', 'learningSource', 'isLearningSourceHead'
 ];
 
+// กำหนดหัวคอลัมน์สำหรับการตรวจสุขภาพนักเรียนประจำปี (7 จุดตรวจ)
+const HEALTH_HEADERS = [
+  'recordId', 'studentId', 'academicYear', 'checkDate', 'dormitory',
+  // จุดที่ 1 สัญญาณชีพ
+  'p1_temp', 'p1_bp', 'p1_pulse', 'p1_spo2', 'p1_officer',
+  // จุดที่ 2 การเจริญเติบโต
+  'p2_weight', 'p2_height', 'p2_weightForHeight', 'p2_heightForAge', 'p2_officer',
+  // จุดที่ 3 ตรวจร่างกาย
+  'p3_head', 'p3_head_note', 'p3_hair', 'p3_hair_note', 'p3_ear', 'p3_ear_note',
+  'p3_eye', 'p3_eye_note', 'p3_nose', 'p3_nose_note', 'p3_nail', 'p3_nail_note',
+  'p3_skin', 'p3_skin_note', 'p3_officer',
+  // จุดที่ 4 ตรวจการมองเห็น
+  'p4_vision', 'p4_vision_note', 'p4_officer',
+  // จุดที่ 5 ตรวจการได้ยิน
+  'p5_hearing', 'p5_hearing_note', 'p5_officer',
+  // จุดที่ 6 ตรวจช่องปากและฟัน
+  'p6_dental', 'p6_cavity', 'p6_yellow', 'p6_tartar', 'p6_gingivitis', 'p6_note', 'p6_officer',
+  // จุดที่ 7 ตรวจกายภาพบำบัด
+  'p7_general', 'p7_general_note', 'p7_headneck', 'p7_headneck_note',
+  'p7_heart', 'p7_heart_note', 'p7_abdomen', 'p7_abdomen_note',
+  'p7_limbs', 'p7_limbs_note', 'p7_neuro', 'p7_neuro_note', 'p7_officer',
+  // บันทึกระบบ
+  'updatedAt', 'recordedBy'
+];
+
 // =========================================================================
 // Web App Setup (เพิ่ม doPost สำหรับแก้ปัญหา CORS บน GitHub)
 // =========================================================================
@@ -56,9 +81,12 @@ function doPost(e) {
       case 'saveTeacherData': result = JSON.parse(saveTeacherData(params.teacherObj)); break;
       case 'deleteTeacherData': result = JSON.parse(deleteTeacherData(params.id)); break;
       case 'saveStudentData': result = JSON.parse(saveStudentData(params.studentObj)); break;
-      case 'deleteStudentData': result = JSON.parse(deleteStudentData(params.id)); break;
+      case 'deleteStudentData': result = JSON.parse(deleteStudentData(params.id, params.role)); break;
       case 'batchSaveFaceDescriptors': result = JSON.parse(batchSaveFaceDescriptors(params.descriptorMap)); break;
       case 'getFaceDescriptors': result = JSON.parse(getFaceDescriptors()); break;
+      case 'getStudentHealthRecords': result = JSON.parse(getStudentHealthRecords(params.academicYear)); break;
+      case 'saveStudentHealthRecord': result = JSON.parse(saveStudentHealthRecord(params.recordObj)); break;
+      case 'deleteStudentHealthRecord': result = JSON.parse(deleteStudentHealthRecord(params.id, params.role)); break;
       case 'autoCleanOldData14Days': result = JSON.parse(autoCleanOldData14Days()); break;
       case 'setupDailyCleanupTrigger': result = JSON.parse(setupDailyCleanupTrigger()); break;
       case 'uploadImageToDrive': result = JSON.parse(uploadImageToDrive(params.base64Data, params.fileName)); break;
@@ -116,6 +144,15 @@ function setupSheets() {
     usersSheet.appendRow(['admin', '1234', 'admin', 'ผู้ดูแลระบบสูงสุด']);
     usersSheet.appendRow(['teacher', '1234', 'teacher', 'คุณครูทั่วไป']);
     usersSheet.appendRow(['headteacher', '1234', 'headteacher', 'หัวหน้าครู (ดูสถานะได้)']);
+    usersSheet.appendRow(['health', '1234', 'SchoolHealth', 'เจ้าหน้าที่อนามัยโรงเรียน']);
+  }
+
+  let healthSheet = ss.getSheetByName('StudentHealth');
+  if (!healthSheet) {
+    healthSheet = ss.insertSheet('StudentHealth');
+    healthSheet.appendRow(HEALTH_HEADERS);
+  } else {
+    healthSheet.getRange(1, 1, 1, HEALTH_HEADERS.length).setValues([HEALTH_HEADERS]);
   }
 }
 
@@ -390,7 +427,10 @@ function saveStudentData(studentObj) {
   }
 }
 
-function deleteStudentData(id) {
+function deleteStudentData(id, role) {
+  if (role && String(role).toLowerCase() !== 'admin') {
+    return JSON.stringify({status: 'error', message: 'เฉพาะผู้ดูแลระบบ (Admin) เท่านั้นที่สามารถลบข้อมูลได้'});
+  }
   const cleanId = String(id || '').trim();
   if (!cleanId) {
     return JSON.stringify({status: 'error', message: 'กรุณาระบุรหัสนักเรียนที่ต้องการลบ'});
@@ -567,7 +607,10 @@ function saveTeacherData(teacherObj) {
   }
 }
 
-function deleteTeacherData(id) {
+function deleteTeacherData(id, role) {
+  if (role && String(role).toLowerCase() !== 'admin') {
+    return JSON.stringify({status: 'error', message: 'เฉพาะผู้ดูแลระบบ (Admin) เท่านั้นที่สามารถลบข้อมูลได้'});
+  }
   const cleanId = String(id || '').trim();
   if (!cleanId) {
     return JSON.stringify({status: 'error', message: 'กรุณาระบุรหัสครูที่ต้องการลบ'});
@@ -1009,4 +1052,144 @@ function setupDailyCleanupTrigger() {
     .create();
     
   return JSON.stringify({ status: 'success', message: 'ตั้งค่าระบบเคลียร์ข้อมูลอัตโนมัติทุกวันเรียบร้อยแล้ว' });
+}
+
+// =========================================================================
+// โมดูลการตรวจสุขภาพนักเรียนประจำปี (Student Health Examination Module)
+// =========================================================================
+
+function getStudentHealthRecords(academicYear) {
+  try {
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    let sheet = ss.getSheetByName('StudentHealth');
+    if (!sheet) {
+      sheet = ss.insertSheet('StudentHealth');
+      sheet.appendRow(HEALTH_HEADERS);
+      return JSON.stringify([]);
+    }
+    
+    const data = sheet.getDataRange().getValues();
+    if (data.length <= 1) return JSON.stringify([]);
+    
+    const headers = data[0];
+    const records = [];
+    const yearFilter = academicYear ? String(academicYear).trim() : '';
+    const sIdIdx = headers.indexOf('studentId');
+    const yearIdx = headers.indexOf('academicYear');
+    
+    for (let i = 1; i < data.length; i++) {
+      let row = data[i];
+      let rowYear = yearIdx > -1 ? String(row[yearIdx] || '').trim() : '';
+      if (yearFilter && rowYear !== yearFilter) {
+        continue;
+      }
+      let obj = {};
+      for (let j = 0; j < headers.length; j++) {
+        let val = row[j];
+        if (val instanceof Date) {
+          obj[headers[j]] = Utilities.formatDate(val, Session.getScriptTimeZone(), 'yyyy-MM-dd');
+        } else {
+          obj[headers[j]] = val !== undefined && val !== null ? String(val) : '';
+        }
+      }
+      records.push(obj);
+    }
+    
+    return JSON.stringify(records);
+  } catch(e) {
+    console.warn('[Health] getStudentHealthRecords error:', e);
+    return JSON.stringify([]);
+  }
+}
+
+function saveStudentHealthRecord(recordObj) {
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(15000);
+    if (!recordObj || !recordObj.studentId || !recordObj.academicYear) {
+      return JSON.stringify({ status: 'error', message: 'กรุณาระบุรหัสนักเรียนและปีการศึกษา' });
+    }
+    
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    let sheet = ss.getSheetByName('StudentHealth');
+    if (!sheet) {
+      sheet = ss.insertSheet('StudentHealth');
+      sheet.appendRow(HEALTH_HEADERS);
+    }
+    
+    const data = sheet.getDataRange().getValues();
+    const headers = data[0];
+    const sIdIdx = headers.indexOf('studentId');
+    const yearIdx = headers.indexOf('academicYear');
+    
+    const targetStudentId = String(recordObj.studentId).trim();
+    const targetYear = String(recordObj.academicYear).trim();
+    
+    let rowIndex = -1;
+    for (let i = 1; i < data.length; i++) {
+      let rSid = sIdIdx > -1 ? String(data[i][sIdIdx]).trim() : '';
+      let rYear = yearIdx > -1 ? String(data[i][yearIdx]).trim() : '';
+      if (rSid === targetStudentId && rYear === targetYear) {
+        rowIndex = i + 1; // 1-indexed for Sheet Range
+        break;
+      }
+    }
+    
+    recordObj.recordId = recordObj.recordId || ('HL-' + targetYear + '-' + targetStudentId);
+    recordObj.updatedAt = new Date().toISOString();
+    
+    const rowValues = HEALTH_HEADERS.map(function(h) {
+      return recordObj[h] !== undefined && recordObj[h] !== null ? recordObj[h] : '';
+    });
+    
+    if (rowIndex > 0) {
+      sheet.getRange(rowIndex, 1, 1, HEALTH_HEADERS.length).setValues([rowValues]);
+      sendLog('Update Health Record', 'Updated health record for student: ' + targetStudentId + ' (ปี ' + targetYear + ')');
+    } else {
+      sheet.appendRow(rowValues);
+      sendLog('Add Health Record', 'Added health record for student: ' + targetStudentId + ' (ปี ' + targetYear + ')');
+    }
+    
+    return JSON.stringify({ status: 'success', record: recordObj });
+  } catch(e) {
+    console.warn('[Health] saveStudentHealthRecord error:', e);
+    return JSON.stringify({ status: 'error', message: e.message || e.toString() });
+  } finally {
+    try { lock.releaseLock(); } catch(err) {}
+  }
+}
+
+function deleteStudentHealthRecord(id, role) {
+  if (role && String(role).toLowerCase() !== 'admin') {
+    return JSON.stringify({ status: 'error', message: 'เฉพาะผู้ดูแลระบบ (Admin) เท่านั้นที่สามารถลบข้อมูลได้' });
+  }
+  const cleanId = String(id || '').trim();
+  if (!cleanId) {
+    return JSON.stringify({ status: 'error', message: 'กรุณาระบุรหัสบันทึกที่ต้องการลบ' });
+  }
+  
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(10000);
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const sheet = ss.getSheetByName('StudentHealth');
+    if (!sheet) return JSON.stringify({ status: 'error', message: 'ไม่พบชีตข้อมูลสุขภาพ' });
+    
+    const data = sheet.getDataRange().getValues();
+    const headers = data[0];
+    const idIdx = headers.indexOf('recordId');
+    
+    for (let i = 1; i < data.length; i++) {
+      if (String(data[i][idIdx]).trim() === cleanId) {
+        sheet.deleteRow(i + 1);
+        sendLog('Delete Health Record', 'Deleted health record ID: ' + cleanId);
+        return JSON.stringify({ status: 'success' });
+      }
+    }
+    return JSON.stringify({ status: 'error', message: 'ไม่พบข้อมูลบันทึกรหัสนี้' });
+  } catch(e) {
+    return JSON.stringify({ status: 'error', message: e.message });
+  } finally {
+    try { lock.releaseLock(); } catch(err) {}
+  }
 }
