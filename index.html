@@ -1312,7 +1312,7 @@
                         </div>
                         <div>
                             <label class="font-semibold text-gray-600 mb-1 block">วันที่ตรวจสุขภาพ <span class="text-red-500">*</span></label>
-                            <input type="date" id="hm-check-date" required class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white">
+                            <input type="text" id="hm-check-date" required placeholder="วว/ดด/ปปปป" class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white outline-none focus:ring-2 focus:ring-emerald-400">
                         </div>
                         <div>
                             <label class="font-semibold text-gray-600 mb-1 block">เรือนนอน <span class="text-emerald-600 font-normal">(ดึงอัตโนมัติ)</span></label>
@@ -1760,7 +1760,7 @@
                     <button type="button" onclick="closeHealthRecordModal()" class="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium transition text-sm">
                         ยกเลิก
                     </button>
-                    <button type="submit" id="btnSaveHealthRecord" class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold transition text-sm shadow-md flex items-center justify-center">
+                    <button type="button" onclick="saveHealthRecord()" id="btnSaveHealthRecord" class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold transition text-sm shadow-md flex items-center justify-center cursor-pointer">
                         <i class="fas fa-save mr-2"></i> บันทึกผลการตรวจสุขภาพ
                     </button>
                 </div>
@@ -6057,12 +6057,26 @@
         }
 
         function getHealthRadioVal(name) {
-            const el = document.querySelector(`input[name="${name}"]:checked`);
+            let el = document.querySelector(`input[name="${name}"]:checked`);
+            if (!el) {
+                let altName = name;
+                if (altName.startsWith('hm-')) altName = altName.replace('hm-', '').replace(/-/g, '_');
+                if (name === 'hm-p2-wfh' || name === 'p2-wfh') altName = 'p2_weightForHeight';
+                if (name === 'hm-p2-hfa' || name === 'p2-hfa') altName = 'p2_heightForAge';
+                el = document.querySelector(`input[name="${altName}"]:checked`);
+            }
             return el ? el.value : '';
         }
 
         function setHealthRadioVal(name, val) {
-            const radios = document.querySelectorAll(`input[name="${name}"]`);
+            let radios = document.querySelectorAll(`input[name="${name}"]`);
+            if (!radios || radios.length === 0) {
+                let altName = name;
+                if (altName.startsWith('hm-')) altName = altName.replace('hm-', '').replace(/-/g, '_');
+                if (name === 'hm-p2-wfh' || name === 'p2-wfh') altName = 'p2_weightForHeight';
+                if (name === 'hm-p2-hfa' || name === 'p2-hfa') altName = 'p2_heightForAge';
+                radios = document.querySelectorAll(`input[name="${altName}"]`);
+            }
             radios.forEach(r => {
                 r.checked = (r.value === val);
             });
@@ -6080,22 +6094,22 @@
             if (sEl && !sEl.value) sEl.value = '98';
 
             // จุดที่ 2: ตั้งค่าภาวะการเจริญเติบโตสมส่วน
-            const wfh = getHealthRadioVal('hm-p2-wfh');
-            if (!wfh) setHealthRadioVal('hm-p2-wfh', 'สมส่วน');
-            const hfa = getHealthRadioVal('hm-p2-hfa');
-            if (!hfa) setHealthRadioVal('hm-p2-hfa', 'สูงตามเกณฑ์');
+            const wfh = getHealthRadioVal('p2_weightForHeight');
+            if (!wfh) setHealthRadioVal('p2_weightForHeight', 'สมส่วน');
+            const hfa = getHealthRadioVal('p2_heightForAge');
+            if (!hfa) setHealthRadioVal('p2_heightForAge', 'สูงตามเกณฑ์');
 
             // จุดที่ 3
             quickSetStation3Normal();
 
             // จุดที่ 4
-            setHealthRadioVal('hm-p4-vision', 'ปกติ');
+            setHealthRadioVal('p4_vision', 'ปกติ');
             const p4Note = document.getElementById('hm-p4-vision-note');
             if (p4Note) p4Note.value = '';
 
             // จุดที่ 5
-            setHealthRadioVal('hm-p5-hearing', 'ปกติ');
-            setHealthRadioVal('hm-p5-whisper', 'ได้ยิน');
+            setHealthRadioVal('p5_hearing', 'ปกติ');
+            setHealthRadioVal('p5_whisper', 'ได้ยิน');
             const p5Note = document.getElementById('hm-p5-hearing-note');
             if (p5Note) p5Note.value = '';
 
@@ -6123,13 +6137,11 @@
         }
 
         function quickSetStation3Normal() {
-            ['hm-p3-head', 'hm-p3-hair', 'hm-p3-ear', 'hm-p3-eye', 'hm-p3-nose', 'hm-p3-nail', 'hm-p3-skin'].forEach(name => {
-                setHealthRadioVal(name, 'ปกติ');
-            });
-            ['hm-p3-head-note', 'hm-p3-hair-note', 'hm-p3-ear-note', 'hm-p3-eye-note', 'hm-p3-nose-note', 'hm-p3-nail-note', 'hm-p3-skin-note'].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.value = '';
-                toggleNoteInput(id, false);
+            ['head', 'hair', 'ear', 'eye', 'nose', 'nail', 'skin'].forEach(part => {
+                setHealthRadioVal('p3_' + part, 'ปกติ');
+                const noteEl = document.getElementById('hm-p3-' + part + '-note');
+                if (noteEl) noteEl.value = '';
+                toggleNoteInput('p3-' + part + '-note-wrap', false);
             });
             for (let i = 1; i <= 7; i++) {
                 const cb = document.getElementById(`hm-p3-skin-cb-${i}`);
@@ -6138,23 +6150,21 @@
         }
 
         function quickSetStation7Normal() {
-            ['hm-p7-general', 'hm-p7-headneck', 'hm-p7-heart', 'hm-p7-abdomen', 'hm-p7-limbs', 'hm-p7-neuro'].forEach(name => {
-                setHealthRadioVal(name, 'ปกติ');
-            });
-            ['hm-p7-general-note', 'hm-p7-headneck-note', 'hm-p7-heart-note', 'hm-p7-abdomen-note', 'hm-p7-limbs-note', 'hm-p7-neuro-note'].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.value = '';
-                toggleNoteInput(id, false);
+            ['general', 'headneck', 'heart', 'abdomen', 'limbs', 'neuro'].forEach(part => {
+                setHealthRadioVal('p7_' + part, 'ปกติ');
+                const noteEl = document.getElementById('hm-p7-' + part + '-note');
+                if (noteEl) noteEl.value = '';
+                toggleNoteInput('p7-' + part + '-note-wrap', false);
             });
         }
 
         function toggleNoteInput(id, isShow) {
             const el = document.getElementById(id);
             if (!el) return;
-            const parent = el.closest('.health-note-container') || el.parentElement;
-            if (parent) {
-                if (isShow) parent.classList.remove('hidden');
-                else parent.classList.add('hidden');
+            if (isShow) {
+                el.classList.remove('hidden');
+            } else {
+                el.classList.add('hidden');
             }
         }
 
@@ -6183,30 +6193,30 @@
 
             // ประเมินน้ำหนักตามเกณฑ์ส่วนสูงตามค่าดัชนีมวลกาย (BMI)
             if (bmi < 15.0) {
-                setHealthRadioVal('hm-p2-wfh', 'ผอม');
+                setHealthRadioVal('p2_weightForHeight', 'ผอม');
             } else if (bmi < 16.5) {
-                setHealthRadioVal('hm-p2-wfh', 'ค่อนข้างผอม');
+                setHealthRadioVal('p2_weightForHeight', 'ค่อนข้างผอม');
             } else if (bmi < 22.0) {
-                setHealthRadioVal('hm-p2-wfh', 'สมส่วน');
+                setHealthRadioVal('p2_weightForHeight', 'สมส่วน');
             } else if (bmi < 24.5) {
-                setHealthRadioVal('hm-p2-wfh', 'ท้วม');
+                setHealthRadioVal('p2_weightForHeight', 'ท้วม');
             } else if (bmi < 27.5) {
-                setHealthRadioVal('hm-p2-wfh', 'เริ่มอ้วน');
+                setHealthRadioVal('p2_weightForHeight', 'เริ่มอ้วน');
             } else {
-                setHealthRadioVal('hm-p2-wfh', 'อ้วน');
+                setHealthRadioVal('p2_weightForHeight', 'อ้วน');
             }
 
             // ประเมินส่วนสูงตามเกณฑ์อายุ
             if (h < 130) {
-                setHealthRadioVal('hm-p2-hfa', 'เตี้ย');
+                setHealthRadioVal('p2_heightForAge', 'เตี้ย');
             } else if (h < 145) {
-                setHealthRadioVal('hm-p2-hfa', 'ค่อนข้างเตี้ย');
+                setHealthRadioVal('p2_heightForAge', 'ค่อนข้างเตี้ย');
             } else if (h <= 170) {
-                setHealthRadioVal('hm-p2-hfa', 'สูงตามเกณฑ์');
+                setHealthRadioVal('p2_heightForAge', 'สูงตามเกณฑ์');
             } else if (h <= 178) {
-                setHealthRadioVal('hm-p2-hfa', 'ค่อนข้างสูง');
+                setHealthRadioVal('p2_heightForAge', 'ค่อนข้างสูง');
             } else {
-                setHealthRadioVal('hm-p2-hfa', 'สูง');
+                setHealthRadioVal('p2_heightForAge', 'สูง');
             }
         }
 
@@ -6303,7 +6313,24 @@
             const fragment = document.createDocumentFragment();
             const targetYear = String(currentHealthAcademicYear || '2568');
 
-            const filteredStudents = studentsList.filter(st => {
+            // 💡 จัดเรียงลำดับนักเรียนตามระดับชั้น และชื่อภาษาไทย (ก-ฮ) เหมือนกับแท็บข้อมูลนักเรียน 100%
+            let sortedStudents = [...studentsList];
+            sortedStudents.sort((a, b) => {
+                let valA = a[sortConfigStudents.key] || '';
+                let valB = b[sortConfigStudents.key] || '';
+                let direction = sortConfigStudents.direction === 'asc' ? 1 : -1;
+
+                if (sortConfigStudents.key === 'grade') {
+                    let weightA = getGradeWeight(valA);
+                    let weightB = getGradeWeight(valB);
+                    if (weightA !== weightB) return (weightA - weightB) * direction;
+                    return String(a.name).localeCompare(String(b.name), 'th') * direction;
+                }
+                
+                return String(valA).localeCompare(String(valB), 'th') * direction;
+            });
+
+            const filteredStudents = sortedStudents.filter(st => {
                 if (filterGrade && st.grade !== filterGrade) return false;
                 if (filterDorm && st.dormitory !== filterDorm && !findMatchingDormitoryOption(st.dormitory).includes(filterDorm)) return false;
                 if (searchStr) {
@@ -6405,8 +6432,8 @@
                 tr.onclick = function() { openStudentViewModal(st.id); };
 
                 tr.innerHTML = `
-                    <td class="px-3 py-2 text-center whitespace-nowrap">
-                        <img src="${imgSrc}" class="w-10 h-10 rounded-full object-cover object-top border-2 border-emerald-500 shadow-xs inline-block" onerror="handleStudentImgError(this, '${stDriveId}', '${encodeURIComponent(st.nickname || st.name)}')">
+                    <td class="px-4 py-3 whitespace-nowrap text-center">
+                        <img class="w-12 h-14 rounded-md object-cover object-top shadow-sm border border-gray-200 group-hover:border-emerald-400 transition inline-block" src="${imgSrc}" onerror="handleStudentImgError(this, '${stDriveId}', '${(st.nickname || st.name || '').replace(/'/g, "")}')">
                     </td>
                     <td class="px-4 py-2 whitespace-nowrap">
                         <div class="font-bold text-gray-800 text-sm">${safeName}${safeNickname}</div>
@@ -6460,21 +6487,40 @@
             const form = document.getElementById('healthRecordForm');
             if (form) form.reset();
 
-            document.getElementById('hm-student-id').value = st.id;
-            document.getElementById('hm-academic-year').value = year;
-            document.getElementById('hm-modal-title-year').innerText = year;
-            document.getElementById('hm-student-name').innerText = st.name + (st.nickname ? ' (' + st.nickname + ')' : '');
-            document.getElementById('hm-student-code').innerText = st.id;
-            document.getElementById('hm-student-grade').innerText = st.grade || '-';
-            document.getElementById('hm-student-dob').innerText = formatDateAndAge(st.dob);
+            // กำหนดค่า Input ที่ซ่อนอยู่
+            const targetStudentInput = document.getElementById('hm-target-student-id');
+            if (targetStudentInput) targetStudentInput.value = st.id;
+            const academicYearInput = document.getElementById('hm-academic-year');
+            if (academicYearInput) academicYearInput.value = year;
 
-            let genderText = st.gender || '';
-            if (!genderText) {
-                if ((st.name || '').startsWith('นาย') || (st.name || '').startsWith('เด็กชาย') || (st.name || '').startsWith('ด.ช.')) genderText = 'ชาย';
-                else if ((st.name || '').startsWith('นางสาว') || (st.name || '').startsWith('เด็กหญิง') || (st.name || '').startsWith('ด.ญ.')) genderText = 'หญิง';
-                else genderText = 'ชาย';
+            // แสดงข้อมูลในแถบ Profile Strip ด้านบนของ Modal
+            const nameEl = document.getElementById('hm-student-name');
+            if (nameEl) nameEl.innerText = st.name + (st.nickname ? ' (' + st.nickname + ')' : '');
+            const idEl = document.getElementById('hm-student-id');
+            if (idEl) idEl.innerText = st.id;
+            const gradeEl = document.getElementById('hm-student-grade');
+            if (gradeEl) gradeEl.innerText = st.grade || '-';
+
+            // คำนวณและแสดงอายุ
+            const ageEl = document.getElementById('hm-student-age');
+            if (ageEl) {
+                let ageStr = '-';
+                if (st.dob) {
+                    const formatted = formatDateAndAge(st.dob);
+                    const m = formatted.match(/อายุ\s+(\d+)\s+ปี/);
+                    ageStr = m ? m[1] : formatted;
+                }
+                ageEl.innerText = ageStr;
             }
-            document.getElementById('hm-student-gender').innerText = genderText;
+
+            // แสดงรูปถ่ายนักเรียน
+            const imgEl = document.getElementById('hm-student-img');
+            if (imgEl) {
+                let stDriveId = extractGoogleDriveId(st.profileImg);
+                let imgSrc = st.profileImg ? fixDriveUrl(st.profileImg) : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(st.nickname || st.name || 'Student') + '&background=0d8139&color=fff&size=128&bold=true';
+                imgEl.src = imgSrc;
+                imgEl.onerror = function() { handleStudentImgError(this, stDriveId, (st.nickname || st.name || '').replace(/'/g, "")); };
+            }
 
             // ตรวจสอบและเลือกเรือนนอนให้อัตโนมัติ (รองรับทั้งนักเรียนอยู่ประจำ และ ไป-กลับ ที่มีเรือนนอน)
             const dormSelect = document.getElementById('hm-dormitory');
@@ -6482,42 +6528,45 @@
                 dormSelect.value = findMatchingDormitoryOption(st.dormitory);
             }
 
+            // วันที่ตรวจเริ่มต้นเป็นวันปัจจุบันในรูปแบบไทย วว/ดด/ปปปป
             const today = new Date();
             const yThai = today.getFullYear() > 2400 ? today.getFullYear() : today.getFullYear() + 543;
             const mStr = String(today.getMonth() + 1).padStart(2, '0');
             const dStr = String(today.getDate()).padStart(2, '0');
-            document.getElementById('hm-check-date').value = `${dStr}/${mStr}/${yThai}`;
+            const dateInput = document.getElementById('hm-check-date');
+            if (dateInput) dateInput.value = `${dStr}/${mStr}/${yThai}`;
 
             const record = healthRecordsList.find(r => String(r.studentId) === String(studentId) && String(r.academicYear) === String(year));
             currentEditingHealthRecord = record || null;
 
             if (record) {
-                document.getElementById('hm-record-id').value = record.recordId || '';
-                if (record.checkDate) document.getElementById('hm-check-date').value = record.checkDate;
+                const recIdEl = document.getElementById('hm-record-id');
+                if (recIdEl) recIdEl.value = record.recordId || '';
+                if (record.checkDate && dateInput) dateInput.value = record.checkDate;
                 if (record.dormitory && dormSelect) dormSelect.value = record.dormitory;
 
                 // จุดที่ 1 สัญญาณชีพ
-                document.getElementById('hm-p1-temp').value = record.p1_temp || '';
-                document.getElementById('hm-p1-bp').value = record.p1_bp || '';
-                document.getElementById('hm-p1-pulse').value = record.p1_pulse || '';
-                document.getElementById('hm-p1-spo2').value = record.p1_spo2 || '';
-                document.getElementById('hm-p1-officer').value = record.p1_officer || '';
+                const p1Temp = document.getElementById('hm-p1-temp'); if (p1Temp) p1Temp.value = record.p1_temp || '';
+                const p1Bp = document.getElementById('hm-p1-bp'); if (p1Bp) p1Bp.value = record.p1_bp || '';
+                const p1Pulse = document.getElementById('hm-p1-pulse'); if (p1Pulse) p1Pulse.value = record.p1_pulse || '';
+                const p1Spo2 = document.getElementById('hm-p1-spo2'); if (p1Spo2) p1Spo2.value = record.p1_spo2 || '';
+                const p1Off = document.getElementById('hm-p1-officer'); if (p1Off) p1Off.value = record.p1_officer || '';
 
                 // จุดที่ 2 การเจริญเติบโต
-                document.getElementById('hm-p2-weight').value = record.p2_weight || '';
-                document.getElementById('hm-p2-height').value = record.p2_height || '';
-                setHealthRadioVal('hm-p2-wfh', record.p2_weightForHeight || '');
-                setHealthRadioVal('hm-p2-hfa', record.p2_heightForAge || '');
-                document.getElementById('hm-p2-officer').value = record.p2_officer || '';
+                const p2W = document.getElementById('hm-p2-weight'); if (p2W) p2W.value = record.p2_weight || '';
+                const p2H = document.getElementById('hm-p2-height'); if (p2H) p2H.value = record.p2_height || '';
+                setHealthRadioVal('p2_weightForHeight', record.p2_weightForHeight || '');
+                setHealthRadioVal('p2_heightForAge', record.p2_heightForAge || '');
+                const p2Off = document.getElementById('hm-p2-officer'); if (p2Off) p2Off.value = record.p2_officer || '';
 
                 // จุดที่ 3 ตรวจร่างกาย
                 ['head', 'hair', 'ear', 'eye', 'nose', 'nail', 'skin'].forEach(part => {
                     const val = record['p3_' + part] || 'ปกติ';
-                    setHealthRadioVal('hm-p3-' + part, val);
+                    setHealthRadioVal('p3_' + part, val);
                     const note = record['p3_' + part + '_note'] || '';
                     const noteEl = document.getElementById('hm-p3-' + part + '-note');
                     if (noteEl) noteEl.value = note;
-                    toggleNoteInput('hm-p3-' + part + '-note', val === 'ผิดปกติ');
+                    toggleNoteInput('p3-' + part + '-note-wrap', val === 'ผิดปกติ');
                 });
                 const skinNote = record.p3_skin_note || '';
                 const skinCbs = [
@@ -6533,54 +6582,56 @@
                     const el = document.getElementById(cb.id);
                     if (el) el.checked = skinNote.includes(cb.kw);
                 });
-                document.getElementById('hm-p3-officer').value = record.p3_officer || '';
+                const p3Off = document.getElementById('hm-p3-officer'); if (p3Off) p3Off.value = record.p3_officer || '';
 
                 // จุดที่ 4 การมองเห็น
-                setHealthRadioVal('hm-p4-vision', record.p4_vision || 'ปกติ');
-                document.getElementById('hm-p4-vision-note').value = record.p4_vision_note || '';
-                document.getElementById('hm-p4-officer').value = record.p4_officer || '';
+                setHealthRadioVal('p4_vision', record.p4_vision || 'ปกติ');
+                const p4Note = document.getElementById('hm-p4-vision-note'); if (p4Note) p4Note.value = record.p4_vision_note || '';
+                const p4Off = document.getElementById('hm-p4-officer'); if (p4Off) p4Off.value = record.p4_officer || '';
 
                 // จุดที่ 5 การได้ยิน
-                setHealthRadioVal('hm-p5-hearing', record.p5_hearing || 'ปกติ');
+                setHealthRadioVal('p5_hearing', record.p5_hearing || 'ปกติ');
                 const hNote = record.p5_hearing_note || '';
-                if (hNote.includes('ไม่ได้ยิน')) setHealthRadioVal('hm-p5-whisper', 'ไม่ได้ยิน');
-                else setHealthRadioVal('hm-p5-whisper', 'ได้ยิน');
-                document.getElementById('hm-p5-hearing-note').value = hNote.replace('ไม่ได้ยินเสียงกระซิบ', '').replace('ไม่ได้ยิน', '').replace('ได้ยิน', '').replace(/^[,\s]+/, '');
-                document.getElementById('hm-p5-officer').value = record.p5_officer || '';
+                if (hNote.includes('ไม่ได้ยิน')) setHealthRadioVal('p5_whisper', 'ไม่ได้ยิน');
+                else setHealthRadioVal('p5_whisper', 'ได้ยิน');
+                const p5Note = document.getElementById('hm-p5-hearing-note');
+                if (p5Note) p5Note.value = hNote.replace('ไม่ได้ยินเสียงกระซิบ', '').replace('ไม่ได้ยิน', '').replace('ได้ยิน', '').replace(/^[,\s]+/, '');
+                const p5Off = document.getElementById('hm-p5-officer'); if (p5Off) p5Off.value = record.p5_officer || '';
 
                 // จุดที่ 6 ฟันและช่องปาก
-                document.getElementById('hm-p6-cavity').value = record.p6_cavity || '0';
-                document.getElementById('hm-p6-yellow').value = record.p6_yellow || '0';
-                document.getElementById('hm-p6-tartar').checked = (record.p6_tartar === 'มี' || record.p6_tartar === true || record.p6_tartar === 'true');
-                document.getElementById('hm-p6-gingivitis').checked = (record.p6_gingivitis === 'มี' || record.p6_gingivitis === true || record.p6_gingivitis === 'true');
-                document.getElementById('hm-p6-note').value = record.p6_note || '';
-                document.getElementById('hm-p6-officer').value = record.p6_officer || '';
+                const p6Cav = document.getElementById('hm-p6-cavity'); if (p6Cav) p6Cav.value = record.p6_cavity || '0';
+                const p6Yel = document.getElementById('hm-p6-yellow'); if (p6Yel) p6Yel.value = record.p6_yellow || '0';
+                const p6Tar = document.getElementById('hm-p6-tartar'); if (p6Tar) p6Tar.checked = (record.p6_tartar === 'มี' || record.p6_tartar === true || record.p6_tartar === 'true');
+                const p6Gin = document.getElementById('hm-p6-gingivitis'); if (p6Gin) p6Gin.checked = (record.p6_gingivitis === 'มี' || record.p6_gingivitis === true || record.p6_gingivitis === 'true');
+                const p6Note = document.getElementById('hm-p6-note'); if (p6Note) p6Note.value = record.p6_note || '';
+                const p6Off = document.getElementById('hm-p6-officer'); if (p6Off) p6Off.value = record.p6_officer || '';
 
                 // จุดที่ 7 กายภาพบำบัด
                 ['general', 'headneck', 'heart', 'abdomen', 'limbs', 'neuro'].forEach(part => {
                     const val = record['p7_' + part] || 'ปกติ';
-                    setHealthRadioVal('hm-p7-' + part, val);
+                    setHealthRadioVal('p7_' + part, val);
                     const note = record['p7_' + part + '_note'] || '';
                     const noteEl = document.getElementById('hm-p7-' + part + '-note');
                     if (noteEl) noteEl.value = note;
-                    toggleNoteInput('hm-p7-' + part + '-note', val === 'ผิดปกติ');
+                    toggleNoteInput('p7-' + part + '-note-wrap', val === 'ผิดปกติ');
                 });
-                document.getElementById('hm-p7-officer').value = record.p7_officer || '';
+                const p7Off = document.getElementById('hm-p7-officer'); if (p7Off) p7Off.value = record.p7_officer || '';
             } else {
-                document.getElementById('hm-record-id').value = '';
+                const recIdEl = document.getElementById('hm-record-id'); if (recIdEl) recIdEl.value = '';
                 quickSetStation3Normal();
-                setHealthRadioVal('hm-p4-vision', 'ปกติ');
-                setHealthRadioVal('hm-p5-hearing', 'ปกติ');
-                setHealthRadioVal('hm-p5-whisper', 'ได้ยิน');
-                document.getElementById('hm-p6-cavity').value = '0';
-                document.getElementById('hm-p6-yellow').value = '0';
-                document.getElementById('hm-p6-tartar').checked = false;
-                document.getElementById('hm-p6-gingivitis').checked = false;
-                document.getElementById('hm-p6-note').value = '';
+                setHealthRadioVal('p4_vision', 'ปกติ');
+                setHealthRadioVal('p5_hearing', 'ปกติ');
+                setHealthRadioVal('p5_whisper', 'ได้ยิน');
+                const p6Cav = document.getElementById('hm-p6-cavity'); if (p6Cav) p6Cav.value = '0';
+                const p6Yel = document.getElementById('hm-p6-yellow'); if (p6Yel) p6Yel.value = '0';
+                const p6Tar = document.getElementById('hm-p6-tartar'); if (p6Tar) p6Tar.checked = false;
+                const p6Gin = document.getElementById('hm-p6-gingivitis'); if (p6Gin) p6Gin.checked = false;
+                const p6Note = document.getElementById('hm-p6-note'); if (p6Note) p6Note.value = '';
                 quickSetStation7Normal();
             }
 
-            document.getElementById('healthRecordModal').classList.remove('hidden');
+            const modal = document.getElementById('healthRecordModal');
+            if (modal) modal.classList.remove('hidden');
         }
 
         function closeHealthRecordModal() {
@@ -6588,9 +6639,14 @@
             if (modal) modal.classList.add('hidden');
         }
 
+        function handleHealthRecordSubmit(event) {
+            if (event) event.preventDefault();
+            saveHealthRecord();
+        }
+
         function saveHealthRecord() {
-            const studentId = document.getElementById('hm-student-id').value;
-            const academicYear = document.getElementById('hm-academic-year').value || currentHealthAcademicYear || '2568';
+            const studentId = document.getElementById('hm-target-student-id')?.value || currentHealthStudentId;
+            const academicYear = document.getElementById('hm-academic-year')?.value || currentHealthAcademicYear || '2568';
             if (!studentId) {
                 Swal.fire('ข้อผิดพลาด', 'กรุณาระบุนักเรียน', 'warning');
                 return;
@@ -6610,7 +6666,7 @@
             if (extraSkinNote) checkedSkins.push(extraSkinNote);
             const combinedSkinNote = checkedSkins.join(', ');
 
-            const whisperVal = getHealthRadioVal('hm-p5-whisper');
+            const whisperVal = getHealthRadioVal('p5_whisper');
             const extraHearingNote = (document.getElementById('hm-p5-hearing-note')?.value || '').trim();
             let combinedHearingNote = '';
             if (whisperVal === 'ไม่ได้ยิน') combinedHearingNote = 'ไม่ได้ยินเสียงกระซิบ';
@@ -6623,7 +6679,7 @@
             const isDentalAbnormal = (cavityNum > 0 || yellowNum > 0 || hasTartar || hasGingivitis);
 
             const recordObj = {
-                recordId: document.getElementById('hm-record-id').value || ('HLTH_' + studentId + '_' + academicYear),
+                recordId: document.getElementById('hm-record-id')?.value || ('HLTH_' + studentId + '_' + academicYear),
                 studentId: studentId,
                 academicYear: academicYear,
                 checkDate: document.getElementById('hm-check-date')?.value || '',
@@ -6637,31 +6693,31 @@
                 // จุดที่ 2
                 p2_weight: document.getElementById('hm-p2-weight')?.value.trim() || '',
                 p2_height: document.getElementById('hm-p2-height')?.value.trim() || '',
-                p2_weightForHeight: getHealthRadioVal('hm-p2-wfh'),
-                p2_heightForAge: getHealthRadioVal('hm-p2-hfa'),
+                p2_weightForHeight: getHealthRadioVal('p2_weightForHeight'),
+                p2_heightForAge: getHealthRadioVal('p2_heightForAge'),
                 p2_officer: document.getElementById('hm-p2-officer')?.value.trim() || '',
                 // จุดที่ 3
-                p3_head: getHealthRadioVal('hm-p3-head') || 'ปกติ',
+                p3_head: getHealthRadioVal('p3_head') || 'ปกติ',
                 p3_head_note: document.getElementById('hm-p3-head-note')?.value.trim() || '',
-                p3_hair: getHealthRadioVal('hm-p3-hair') || 'ปกติ',
+                p3_hair: getHealthRadioVal('p3_hair') || 'ปกติ',
                 p3_hair_note: document.getElementById('hm-p3-hair-note')?.value.trim() || '',
-                p3_ear: getHealthRadioVal('hm-p3-ear') || 'ปกติ',
+                p3_ear: getHealthRadioVal('p3_ear') || 'ปกติ',
                 p3_ear_note: document.getElementById('hm-p3-ear-note')?.value.trim() || '',
-                p3_eye: getHealthRadioVal('hm-p3-eye') || 'ปกติ',
+                p3_eye: getHealthRadioVal('p3_eye') || 'ปกติ',
                 p3_eye_note: document.getElementById('hm-p3-eye-note')?.value.trim() || '',
-                p3_nose: getHealthRadioVal('hm-p3-nose') || 'ปกติ',
+                p3_nose: getHealthRadioVal('p3_nose') || 'ปกติ',
                 p3_nose_note: document.getElementById('hm-p3-nose-note')?.value.trim() || '',
-                p3_nail: getHealthRadioVal('hm-p3-nail') || 'ปกติ',
+                p3_nail: getHealthRadioVal('p3_nail') || 'ปกติ',
                 p3_nail_note: document.getElementById('hm-p3-nail-note')?.value.trim() || '',
-                p3_skin: getHealthRadioVal('hm-p3-skin') || 'ปกติ',
+                p3_skin: getHealthRadioVal('p3_skin') || 'ปกติ',
                 p3_skin_note: combinedSkinNote,
                 p3_officer: document.getElementById('hm-p3-officer')?.value.trim() || '',
                 // จุดที่ 4
-                p4_vision: getHealthRadioVal('hm-p4-vision') || 'ปกติ',
+                p4_vision: getHealthRadioVal('p4_vision') || 'ปกติ',
                 p4_vision_note: document.getElementById('hm-p4-vision-note')?.value.trim() || '',
                 p4_officer: document.getElementById('hm-p4-officer')?.value.trim() || '',
                 // จุดที่ 5
-                p5_hearing: getHealthRadioVal('hm-p5-hearing') || 'ปกติ',
+                p5_hearing: getHealthRadioVal('p5_hearing') || 'ปกติ',
                 p5_hearing_note: combinedHearingNote,
                 p5_officer: document.getElementById('hm-p5-officer')?.value.trim() || '',
                 // จุดที่ 6
@@ -6673,17 +6729,17 @@
                 p6_note: document.getElementById('hm-p6-note')?.value.trim() || '',
                 p6_officer: document.getElementById('hm-p6-officer')?.value.trim() || '',
                 // จุดที่ 7
-                p7_general: getHealthRadioVal('hm-p7-general') || 'ปกติ',
+                p7_general: getHealthRadioVal('p7_general') || 'ปกติ',
                 p7_general_note: document.getElementById('hm-p7-general-note')?.value.trim() || '',
-                p7_headneck: getHealthRadioVal('hm-p7-headneck') || 'ปกติ',
+                p7_headneck: getHealthRadioVal('p7_headneck') || 'ปกติ',
                 p7_headneck_note: document.getElementById('hm-p7-headneck-note')?.value.trim() || '',
-                p7_heart: getHealthRadioVal('hm-p7-heart') || 'ปกติ',
+                p7_heart: getHealthRadioVal('p7_heart') || 'ปกติ',
                 p7_heart_note: document.getElementById('hm-p7-heart-note')?.value.trim() || '',
-                p7_abdomen: getHealthRadioVal('hm-p7-abdomen') || 'ปกติ',
+                p7_abdomen: getHealthRadioVal('p7_abdomen') || 'ปกติ',
                 p7_abdomen_note: document.getElementById('hm-p7-abdomen-note')?.value.trim() || '',
-                p7_limbs: getHealthRadioVal('hm-p7-limbs') || 'ปกติ',
+                p7_limbs: getHealthRadioVal('p7_limbs') || 'ปกติ',
                 p7_limbs_note: document.getElementById('hm-p7-limbs-note')?.value.trim() || '',
-                p7_neuro: getHealthRadioVal('hm-p7-neuro') || 'ปกติ',
+                p7_neuro: getHealthRadioVal('p7_neuro') || 'ปกติ',
                 p7_neuro_note: document.getElementById('hm-p7-neuro-note')?.value.trim() || '',
                 p7_officer: document.getElementById('hm-p7-officer')?.value.trim() || '',
                 // ข้อมูลระบบ
