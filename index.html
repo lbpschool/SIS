@@ -7018,6 +7018,9 @@
                 return '.....................................';
             }
 
+            let stDriveId = extractGoogleDriveId(st.profileImg);
+            let profileImgSrc = st.profileImg ? fixDriveUrl(st.profileImg) : ('https://ui-avatars.com/api/?name=' + encodeURIComponent(st.nickname || st.name || 'Student') + '&background=0d8139&color=fff&size=128&bold=true');
+
             let printWindow = window.open('', '_blank', 'width=1000,height=1000');
             if (!printWindow) {
                 Swal.fire('แจ้งเตือน', 'กรุณาอนุญาต Pop-up บนเบราว์เซอร์เพื่อเปิดดูเอกสาร PDF', 'warning');
@@ -7045,77 +7048,110 @@
             padding: 0;
             background: #fff;
             color: #000;
-            font-size: 9.5pt;
-            line-height: 1.34;
+            font-size: 9.8pt;
+            line-height: 1.38;
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
         }
         .page-container {
             width: 100%;
-            max-width: 192mm;
+            max-width: 194mm;
             margin: 0 auto;
-            padding: 2px 2px;
+            padding: 0;
             background: #fff;
+            position: relative;
         }
         .doc-header {
             text-align: center;
-            margin-bottom: 3px;
+            margin-bottom: 8px;
+            position: relative;
+            min-height: 94px;
         }
         .school-logo {
             height: 48px;
             width: auto;
             display: block;
-            margin: 0 auto 2px auto;
+            margin: 0 auto 3px auto;
         }
         .doc-title {
-            font-size: 13.5pt;
+            font-size: 14.5pt;
             font-weight: 700;
             margin: 0;
-            line-height: 1.2;
+            line-height: 1.25;
         }
         .doc-sub {
-            font-size: 12pt;
+            font-size: 12.5pt;
             font-weight: 700;
-            margin: 1px 0 3px 0;
-            line-height: 1.2;
+            margin: 3px 0 0 0;
+            line-height: 1.25;
+        }
+        .student-photo-box {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 72px;
+            height: 92px;
+            border: 1px solid #64748b;
+            border-radius: 4px;
+            overflow: hidden;
+            background: #f8fafc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+        }
+        .student-photo {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: top;
+            display: block;
         }
         .profile-row {
-            font-size: 9.5pt;
-            line-height: 1.34;
-            margin-bottom: 2px;
+            font-size: 10pt;
+            line-height: 1.48;
+            margin-bottom: 4px;
             white-space: nowrap;
         }
         .dorm-line {
-            font-size: 9pt;
-            line-height: 1.3;
-            margin-bottom: 1px;
-            white-space: nowrap;
+            font-size: 8.8pt;
+            line-height: 1.4;
+            margin-bottom: 2px;
+            display: flex;
+            align-items: center;
+        }
+        .dorm-line.space-between {
+            justify-content: space-between;
+        }
+        .dorm-line.gap-start {
+            gap: 28px;
         }
         .section-divider {
             border: none;
             border-top: 1.5px solid #000;
-            margin: 4px 0 4px 0;
+            margin: 6px 0 8px 0;
         }
         .station-title {
             font-size: 10pt;
             font-weight: bold;
             color: #000;
-            margin-top: 2px;
-            margin-bottom: 1px;
-            line-height: 1.2;
+            margin-top: 4px;
+            margin-bottom: 2px;
+            line-height: 1.25;
         }
         .station-line {
-            font-size: 9.5pt;
-            line-height: 1.32;
+            font-size: 9.6pt;
+            line-height: 1.38;
             color: #000;
             white-space: nowrap;
+            margin-bottom: 1px;
         }
         .chk-box {
-            font-size: 11pt;
+            font-size: 11.5pt;
             font-family: Arial, 'Segoe UI Symbol', sans-serif;
             display: inline-block;
             vertical-align: -1px;
-            margin-right: 1px;
+            margin-right: 1.5px;
             color: #000;
         }
         .chk-box.checked {
@@ -7131,9 +7167,9 @@
         }
         .officer-sign {
             text-align: right;
-            font-size: 9pt;
-            margin-top: 0px;
-            margin-bottom: 2px;
+            font-size: 9.2pt;
+            margin-top: 1px;
+            margin-bottom: 3px;
             padding-right: 12px;
         }
         .officer-fill {
@@ -7164,6 +7200,9 @@
             <img src="https://lbpschool.github.io/SIS/school_logo.png?v=3" class="school-logo" alt="ตราโรงเรียน">
             <div class="doc-title">แบบบันทึกการตรวจสุขภาพนักเรียน</div>
             <div class="doc-sub">โรงเรียนลพบุรีปัญญากูล  จังหวัดลพบุรี ปีการศึกษา ${escapeHtml(year)}</div>
+            <div class="student-photo-box">
+                <img src="${profileImgSrc}" class="student-photo" alt="รูปนักเรียน" onerror="handleStudentImgError(this, '${stDriveId || ''}', '${escapeHtml(st.nickname || st.name || 'Student')}')">
+            </div>
         </div>
 
         <div class="profile-row">
@@ -7175,17 +7214,17 @@
             &nbsp;&nbsp;อายุ ${valOrDots(age, 6)} ปี
         </div>
 
-        <div class="dorm-line">
-            ${chkDorm('ทานตะวัน')} เรือนนอนชาย 1 ทานตะวัน &nbsp;
-            ${chkDorm('พุทธรักษา')} เรือนนอนชาย 2 พุทธรักษา &nbsp;
-            ${chkDorm('ชงโค')} เรือนนอนชาย 3 ชงโค &nbsp;
-            ${chkDorm('อัญชัน')} เรือนนอนชาย 4 อัญชัน &nbsp;
-            ${chkDorm('พวงคราม')} เรือนนอนชาย 5 พวงคราม
+        <div class="dorm-line space-between">
+            <span>${chkDorm('ทานตะวัน')} เรือนนอนชาย 1 ทานตะวัน</span>
+            <span>${chkDorm('พุทธรักษา')} เรือนนอนชาย 2 พุทธรักษา</span>
+            <span>${chkDorm('ชงโค')} เรือนนอนชาย 3 ชงโค</span>
+            <span>${chkDorm('อัญชัน')} เรือนนอนชาย 4 อัญชัน</span>
+            <span>${chkDorm('พวงคราม')} เรือนนอนชาย 5 พวงคราม</span>
         </div>
-        <div class="dorm-line">
-            ${chkDorm('เฟื่องฟ้า')} เรือนนอนหญิง 2 เฟื่องฟ้า &nbsp;&nbsp;&nbsp;&nbsp;
-            ${chkDorm('ดอกแก้ว')} เรือนนอนหญิง 2 ดอกแก้ว &nbsp;&nbsp;&nbsp;&nbsp;
-            ${chkDorm('พิกุล')} เรือนนอนหญิง 3 พิกุล
+        <div class="dorm-line gap-start">
+            <span>${chkDorm('เฟื่องฟ้า')} เรือนนอนหญิง 2 เฟื่องฟ้า</span>
+            <span>${chkDorm('ดอกแก้ว')} เรือนนอนหญิง 2 ดอกแก้ว</span>
+            <span>${chkDorm('พิกุล')} เรือนนอนหญิง 3 พิกุล</span>
         </div>
 
         <hr class="section-divider">
@@ -7209,7 +7248,7 @@
             ส่วนสูง ${valOrDots(rec.p2_height, 8)} เซนติเมตร &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
             เพศ &nbsp;&nbsp; ${chkBox(isMale)} ชาย &nbsp;&nbsp;&nbsp;&nbsp; ${chkBox(isFemale)} หญิง
         </div>
-        <div class="station-line" style="margin-top: 1px;">
+        <div class="station-line" style="margin-top: 2px;">
             ➢ ผลภาวะการณ์เจริญเติบโตน้ำหนักตามเกณฑ์ส่วนสูง
         </div>
         <div class="station-line" style="padding-left: 14px;">
@@ -7220,7 +7259,7 @@
             ${chkBox(rec.p2_weightForHeight === 'เริ่มอ้วน')} เริ่มอ้วน &nbsp;&nbsp;&nbsp;&nbsp;
             ${chkBox(rec.p2_weightForHeight === 'อ้วน')} อ้วน
         </div>
-        <div class="station-line" style="margin-top: 1px;">
+        <div class="station-line" style="margin-top: 2px;">
             ➢ ผลภาวะการณ์เจริญเติบโตส่วนสูงตามเกณฑ์อายุ
         </div>
         <div class="station-line" style="padding-left: 14px;">
@@ -7365,6 +7404,16 @@
     </div>
 
     <` + `script>
+        function handleStudentImgError(img, fileId, name) {
+            if (fileId && !img.dataset.triedFallback) {
+                img.dataset.triedFallback = 'true';
+                img.src = 'https://lh3.googleusercontent.com/d/' + fileId;
+            } else {
+                img.onerror = null;
+                img.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(name) + '&background=0d8139&color=fff&size=128&bold=true';
+            }
+        }
+
         function downloadPDF() {
             const element = document.getElementById('health-pdf-document');
             const opt = {
