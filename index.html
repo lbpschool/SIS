@@ -6329,8 +6329,10 @@
             const fragment = document.createDocumentFragment();
             const targetYear = String(currentHealthAcademicYear || '2568');
 
-            // 💡 จัดเรียงลำดับนักเรียนตามระดับชั้น และชื่อภาษาไทย (ก-ฮ) เหมือนกับแท็บข้อมูลนักเรียน 100%
-            let sortedStudents = [...studentsList];
+            // 💡 คัดกรองเฉพาะนักเรียนปัจจุบัน (ไม่รวมผู้ที่จบการศึกษาแล้ว) เพื่อให้สอดคล้องกับระบบแดชบอร์ดและระบบอื่น 100%
+            // พร้อมจัดเรียงลำดับตามระดับชั้น และชื่อภาษาไทย (ก-ฮ) เหมือนกับแท็บข้อมูลนักเรียน
+            let activeHealthStudents = studentsList.filter(s => s.commuteType !== 'จบการศึกษา');
+            let sortedStudents = [...activeHealthStudents];
             sortedStudents.sort((a, b) => {
                 let valA = a[sortConfigStudents.key] || '';
                 let valB = b[sortConfigStudents.key] || '';
