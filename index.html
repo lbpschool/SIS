@@ -577,12 +577,12 @@
                             </div>
                         </div>
 
-                        <!-- Filters Row -->
-                        <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-2 pt-1 border-t border-gray-100">
+                        <!-- แถวที่ 1: ตัวกรอง 4 ช่อง -->
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1 border-t border-gray-100">
                             <!-- ปีการศึกษา -->
                             <div>
                                 <label class="text-[11px] font-semibold text-gray-600 mb-1 block">ปีการศึกษา</label>
-                                <select id="filterHealthYear" onchange="onHealthYearChange()" class="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 outline-none focus:border-emerald-500 text-xs sm:text-sm bg-white shadow-xs">
+                                <select id="filterHealthYear" onchange="onHealthYearChange()" class="w-full border border-gray-200 rounded-lg px-2.5 py-2 outline-none focus:border-emerald-500 text-xs sm:text-sm bg-white shadow-xs">
                                     <option value="2568" selected>ปีการศึกษา 2568</option>
                                     <option value="2567">ปีการศึกษา 2567</option>
                                     <option value="2569">ปีการศึกษา 2569</option>
@@ -592,14 +592,14 @@
                             <!-- ระดับชั้น -->
                             <div>
                                 <label class="text-[11px] font-semibold text-gray-600 mb-1 block">ระดับชั้น</label>
-                                <select id="filterHealthGrade" onchange="renderHealthTable()" class="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 outline-none focus:border-emerald-500 text-xs sm:text-sm bg-white shadow-xs">
+                                <select id="filterHealthGrade" onchange="renderHealthTable()" class="w-full border border-gray-200 rounded-lg px-2.5 py-2 outline-none focus:border-emerald-500 text-xs sm:text-sm bg-white shadow-xs">
                                     <option value="">ทุกระดับชั้น</option>
                                 </select>
                             </div>
                             <!-- เรือนนอน -->
                             <div>
                                 <label class="text-[11px] font-semibold text-gray-600 mb-1 block">เรือนนอน</label>
-                                <select id="filterHealthDormitory" onchange="renderHealthTable()" class="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 outline-none focus:border-emerald-500 text-xs sm:text-sm bg-white shadow-xs">
+                                <select id="filterHealthDormitory" onchange="renderHealthTable()" class="w-full border border-gray-200 rounded-lg px-2.5 py-2 outline-none focus:border-emerald-500 text-xs sm:text-sm bg-white shadow-xs">
                                     <option value="">ทุกเรือนนอน</option>
                                     <option value="ทานตะวัน">1. เรือนนอนชาย ทานตะวัน</option>
                                     <option value="พุทธรักษา">2. เรือนนอนชาย พุทธรักษา</option>
@@ -613,22 +613,20 @@
                             </div>
                             <!-- สถานะการตรวจ -->
                             <div>
-                                <label class="text-[11px] font-semibold text-gray-600 mb-1 block">สถานะ</label>
-                                <select id="filterHealthStatus" onchange="renderHealthTable()" class="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 outline-none focus:border-emerald-500 text-xs sm:text-sm bg-white shadow-xs">
+                                <label class="text-[11px] font-semibold text-gray-600 mb-1 block">สถานะผลตรวจ</label>
+                                <select id="filterHealthStatus" onchange="renderHealthTable()" class="w-full border border-gray-200 rounded-lg px-2.5 py-2 outline-none focus:border-emerald-500 text-xs sm:text-sm bg-white shadow-xs">
                                     <option value="">ทั้งหมด</option>
-                                    <option value="checked">ตรวจแล้ว</option>
+                                    <option value="checked">ตรวจแล้ว (ปกติ)</option>
+                                    <option value="issue">พบอาการผิดปกติ / เฝ้าระวัง</option>
                                     <option value="pending">ยังไม่ได้ตรวจ</option>
-                                    <option value="issue">พบภาวะผิดปกติ / เฝ้าระวัง</option>
                                 </select>
                             </div>
-                            <!-- ค้นหา -->
-                            <div class="col-span-2 sm:col-span-4 lg:col-span-1">
-                                <label class="text-[11px] font-semibold text-gray-600 mb-1 block">ค้นหา</label>
-                                <div class="relative">
-                                    <input type="text" id="searchHealthStudent" oninput="renderHealthTable()" placeholder="ค้นหาชื่อ / รหัส..." class="w-full border border-gray-200 rounded-lg pl-8 pr-3 py-1.5 outline-none focus:border-emerald-500 text-xs sm:text-sm bg-white shadow-xs">
-                                    <i class="fas fa-search absolute left-2.5 top-2 text-gray-400 text-xs"></i>
-                                </div>
-                            </div>
+                        </div>
+
+                        <!-- แถวที่ 2: ช่องค้นหา (ล่างช่องปีการศึกษาและตัวกรอง) -->
+                        <div class="relative w-full">
+                            <input type="text" id="searchHealthStudent" oninput="renderHealthTable()" placeholder="ค้นหาด้วย ชื่อ-สกุล, ชื่อเล่น หรือรหัสนักเรียน..." class="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-xs sm:text-sm transition-colors shadow-xs bg-white">
+                            <i class="fas fa-search absolute left-3 top-2.5 sm:top-3 text-gray-400 text-xs sm:text-sm"></i>
                         </div>
                     </div>
 
@@ -2010,6 +2008,9 @@
             const searchTeacherInput = document.getElementById('searchTeacher');
             if(searchTeacherInput) searchTeacherInput.addEventListener('input', debounce(renderTeachers, 250));
             
+            const searchHealthInput = document.getElementById('searchHealthStudent');
+            if(searchHealthInput) searchHealthInput.addEventListener('input', debounce(renderHealthTable, 250));
+            
             updateSortIcons('students');
             updateSortIcons('teachers');
 
@@ -2448,6 +2449,7 @@
                 populateTeacherDatalist();
                 updateDashboardStats(false); // อัปเดตสถิติโดยไม่ต้องดึงเน็ตซ้ำ
                 renderTeachers();
+                renderHealthTable();
             } else {
                 // ถ้าไม่มี Cache (เพิ่งเข้าครั้งแรก) ค่อยแสดง โครงกระดูก Loading
                 showTableSkeleton('studentTableBody', 7, true);
@@ -2482,6 +2484,7 @@
                                 updateDashboardStats(false);
                                 renderTeachers();
                                 updateWeeklyChart(parsed.weeklyStats);
+                                renderHealthTable();
                             }
                         } catch(e) {
                             console.warn('[Server] Error parsing initial app data:', e);
@@ -2650,6 +2653,17 @@
                     filterGrade.appendChild(opt); 
                 });
                 if(currGrade) filterGrade.value = currGrade;
+            }
+
+            const filterHealthGrade = document.getElementById('filterHealthGrade');
+            if(filterHealthGrade) {
+                const currHealthGrade = filterHealthGrade.value;
+                filterHealthGrade.innerHTML = '<option value="">ทุกระดับชั้น</option>';
+                sortedGrades.forEach(function(g) { 
+                    let opt = document.createElement('option'); opt.value = g; opt.innerText = g; 
+                    filterHealthGrade.appendChild(opt); 
+                });
+                if(currHealthGrade) filterHealthGrade.value = currHealthGrade;
             }
             
             if(filterDorm) {
@@ -6197,30 +6211,13 @@
         }
 
         function initHealthPage() {
-            const yearEl = document.getElementById('healthFilterYear');
+            const yearEl = document.getElementById('filterHealthYear');
             if (yearEl) {
                 currentHealthAcademicYear = yearEl.value || '2568';
             }
             
-            const dormSelect = document.getElementById('healthFilterDorm');
-            if (dormSelect && dormSelect.options.length <= 1) {
-                const dorms = [
-                    '1.เรือนนอนชาย ทานตะวัน',
-                    '2.เรือนนอนชาย พุทธรักษา',
-                    '3.เรือนนอนชาย ชงโค',
-                    '4.เรือนนอนชาย อัญชัน',
-                    '5.เรือนนอนชาย พวงคราม',
-                    '6.เรือนนอนหญิง เฟื่องฟ้า',
-                    '7.เรือนนอนหญิง ดอกแก้ว',
-                    '8.เรือนนอนหญิง พิกุล'
-                ];
-                dorms.forEach(d => {
-                    const opt = document.createElement('option');
-                    opt.value = d;
-                    opt.textContent = d;
-                    dormSelect.appendChild(opt);
-                });
-            }
+            // อัปเดตรายชื่อชั้นเรียนในตัวกรองระดับชั้น
+            populateClassDropdown();
 
             loadHealthRecordsFromCache(currentHealthAcademicYear);
             renderHealthTable();
@@ -6228,7 +6225,7 @@
         }
 
         function onHealthYearChange() {
-            const yearEl = document.getElementById('healthFilterYear');
+            const yearEl = document.getElementById('filterHealthYear');
             if (!yearEl) return;
             currentHealthAcademicYear = yearEl.value;
             loadHealthRecordsFromCache(currentHealthAcademicYear);
@@ -6260,6 +6257,7 @@
         }
 
         function fetchHealthRecordsFromServer(year, callback) {
+            year = year || currentHealthAcademicYear || '2568';
             if (typeof google !== 'undefined' && google.script && google.script.run) {
                 google.script.run
                     .withSuccessHandler(function(res) {
@@ -6293,25 +6291,24 @@
             const tbody = document.getElementById('healthTableBody');
             if (!tbody) return;
 
-            const filterGrade = (document.getElementById('healthFilterGrade')?.value || '').trim();
-            const filterDorm = (document.getElementById('healthFilterDorm')?.value || '').trim();
-            const filterStatus = (document.getElementById('healthFilterStatus')?.value || 'all').trim();
-            const searchStr = (document.getElementById('healthSearch')?.value || '').toLowerCase().trim();
+            const filterGrade = (document.getElementById('filterHealthGrade')?.value || '').trim();
+            const filterDorm = (document.getElementById('filterHealthDormitory')?.value || '').trim();
+            const filterStatus = (document.getElementById('filterHealthStatus')?.value || '').trim();
+            const searchStr = (document.getElementById('searchHealthStudent')?.value || '').toLowerCase().trim();
 
             let totalCount = 0;
             let examinedCount = 0;
-            let normalCount = 0;
             let abnormalCount = 0;
 
             const fragment = document.createDocumentFragment();
-            const targetYear = String(currentHealthAcademicYear);
+            const targetYear = String(currentHealthAcademicYear || '2568');
 
             const filteredStudents = studentsList.filter(st => {
                 if (filterGrade && st.grade !== filterGrade) return false;
                 if (filterDorm && st.dormitory !== filterDorm && !findMatchingDormitoryOption(st.dormitory).includes(filterDorm)) return false;
                 if (searchStr) {
                     const matchName = (st.name || '').toLowerCase().includes(searchStr);
-                    const matchId = (st.id || '').toLowerCase().includes(searchStr);
+                    const matchId = String(st.id || '').toLowerCase().includes(searchStr);
                     const matchNick = (st.nickname || '').toLowerCase().includes(searchStr);
                     if (!matchName && !matchId && !matchNick) return false;
                 }
@@ -6324,7 +6321,7 @@
                 const isExamined = !!record;
 
                 let isAbnormal = false;
-                let summaryText = '-';
+                let vitalsSummary = '-';
 
                 if (isExamined) {
                     examinedCount++;
@@ -6334,7 +6331,7 @@
                         record.p3_nose === 'ผิดปกติ' || record.p3_nail === 'ผิดปกติ' ||
                         record.p3_skin === 'ผิดปกติ' || record.p4_vision === 'ผิดปกติ' ||
                         record.p5_hearing === 'ผิดปกติ' || record.p6_dental === 'ผิดปกติ' ||
-                        parseInt(record.p6_cavity || '0') > 0 ||
+                        parseInt(record.p6_cavity || '0', 10) > 0 ||
                         record.p7_general === 'ผิดปกติ' || record.p7_headneck === 'ผิดปกติ' ||
                         record.p7_heart === 'ผิดปกติ' || record.p7_abdomen === 'ผิดปกติ' ||
                         record.p7_limbs === 'ผิดปกติ' || record.p7_neuro === 'ผิดปกติ'
@@ -6344,27 +6341,39 @@
                         isAbnormal = true;
                         abnormalCount++;
                         const abnormals = [];
-                        if (record.p6_dental === 'ผิดปกติ' || parseInt(record.p6_cavity || '0') > 0) abnormals.push(`ฟันผุ ${record.p6_cavity || 0} ซี่`);
+                        if (parseInt(record.p6_cavity || '0', 10) > 0) abnormals.push(`ฟันผุ ${record.p6_cavity} ซี่`);
                         if (record.p4_vision === 'ผิดปกติ') abnormals.push('สายตาผิดปกติ');
                         if (record.p5_hearing === 'ผิดปกติ') abnormals.push('การได้ยินผิดปกติ');
                         if (record.p3_skin === 'ผิดปกติ') abnormals.push(record.p3_skin_note || 'ผิวหนังผิดปกติ');
                         if (record.p3_hair === 'ผิดปกติ') abnormals.push(record.p3_hair_note || 'ผมผิดปกติ');
-                        summaryText = abnormals.length > 0 ? abnormals.join(', ') : 'พบอาการผิดปกติ';
+                        vitalsSummary = abnormals.length > 0 ? abnormals.join(', ') : 'พบอาการผิดปกติ';
                     } else {
-                        normalCount++;
-                        summaryText = `ปกติ (BT: ${record.p1_temp || '-'}°C, น้ำหนัก: ${record.p2_weight || '-'} กก.)`;
+                        const parts = [];
+                        if (record.p1_temp) parts.push(`${record.p1_temp}°C`);
+                        if (record.p1_bp) parts.push(`BP ${record.p1_bp}`);
+                        if (record.p2_weight && record.p2_height) parts.push(`${record.p2_weight} กก. / ${record.p2_height} ซม.`);
+                        if (record.p2_weightForHeight) parts.push(`(${record.p2_weightForHeight})`);
+                        vitalsSummary = parts.length > 0 ? parts.join(' | ') : 'ปกติ';
                     }
                 }
 
-                if (filterStatus === 'examined' && !isExamined) return;
-                if (filterStatus === 'unexamined' && isExamined) return;
-                if (filterStatus === 'normal' && (!isExamined || isAbnormal)) return;
-                if (filterStatus === 'abnormal' && (!isExamined || !isAbnormal)) return;
+                if (filterStatus === 'checked' && (!isExamined || isAbnormal)) return;
+                if (filterStatus === 'issue' && (!isExamined || !isAbnormal)) return;
+                if (filterStatus === 'pending' && isExamined) return;
 
                 const tr = document.createElement('tr');
-                tr.className = 'hover:bg-gray-50 transition border-b border-gray-100 last:border-0';
-
+                tr.className = 'hover:bg-emerald-50/40 transition-colors group cursor-pointer border-b border-gray-100 last:border-0';
+                
+                const safeId = String(st.id).replace(/'/g, "\\'");
+                const safeName = escapeHtml(st.name);
+                const safeNickname = st.nickname ? ` <span class="text-gray-400 font-normal">(${escapeHtml(st.nickname)})</span>` : '';
+                const safeGrade = escapeHtml(st.grade || '-');
                 const dormDisplay = st.dormitory ? escapeHtml(st.dormitory) : '<span class="text-gray-400">-</span>';
+
+                let stDriveId = extractGoogleDriveId(st.profileImg);
+                let imgSrc = st.profileImg ? fixDriveUrl(st.profileImg) : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(st.nickname || st.name || 'Student') + '&background=0d8139&color=fff&size=128&bold=true';
+
+                const checkDateDisplay = (isExamined && record.checkDate) ? escapeHtml(record.checkDate) : '<span class="text-gray-300">-</span>';
 
                 let statusBadge = '';
                 if (!isExamined) {
@@ -6375,15 +6384,11 @@
                     statusBadge = '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200"><i class="fas fa-check-circle mr-1.5 text-emerald-500"></i>ปกติ</span>';
                 }
 
-                const safeId = String(st.id).replace(/'/g, "\\'");
-                const safeName = escapeHtml(st.name);
-                const safeNickname = st.nickname ? ` <span class="text-gray-400 font-normal">(${escapeHtml(st.nickname)})</span>` : '';
-
                 let actions = `
-                    <button onclick="openHealthRecordModal('${safeId}', '${targetYear}')" class="inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-md shadow-2xs transition ${isExamined ? 'bg-sky-50 text-sky-700 hover:bg-sky-100 border border-sky-200' : 'bg-emerald-600 text-white hover:bg-emerald-700'}" title="${isExamined ? 'แก้ไขผลการตรวจ' : 'บันทึกการตรวจ'}">
+                    <button onclick="event.stopPropagation(); openHealthRecordModal('${safeId}', '${targetYear}')" class="inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-md shadow-2xs transition ${isExamined ? 'bg-sky-50 text-sky-700 hover:bg-sky-100 border border-sky-200' : 'bg-emerald-600 text-white hover:bg-emerald-700'}" title="${isExamined ? 'แก้ไขผลการตรวจ' : 'บันทึกการตรวจ'}">
                         <i class="fas ${isExamined ? 'fa-edit' : 'fa-plus-circle'} mr-1"></i> ${isExamined ? 'แก้ไข' : 'บันทึก'}
                     </button>
-                    <button onclick="printStudentHealthPDF('${safeId}', '${targetYear}')" class="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-md shadow-2xs bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 ml-1 transition" title="พิมพ์หรือดาวน์โหลด PDF เอกสาร A4">
+                    <button onclick="event.stopPropagation(); printStudentHealthPDF('${safeId}', '${targetYear}')" class="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-md shadow-2xs bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 ml-1 transition" title="พิมพ์หรือดาวน์โหลด PDF เอกสาร A4">
                         <i class="fas fa-file-pdf mr-1 text-indigo-600"></i> PDF
                     </button>
                 `;
@@ -6391,20 +6396,28 @@
                 if (isExamined && currentUserRole === 'admin') {
                     const safeRecordId = String(record.recordId).replace(/'/g, "\\'");
                     actions += `
-                        <button onclick="deleteHealthRecord('${safeRecordId}')" class="inline-flex items-center p-1 text-xs text-red-500 hover:text-red-700 hover:bg-red-50 rounded ml-1 transition" title="ลบผลการตรวจ">
+                        <button onclick="event.stopPropagation(); deleteHealthRecord('${safeRecordId}')" class="inline-flex items-center p-1 text-xs text-red-500 hover:text-red-700 hover:bg-red-50 rounded ml-1 transition" title="ลบผลการตรวจ">
                             <i class="fas fa-trash-alt"></i>
                         </button>
                     `;
                 }
 
+                tr.onclick = function() { openStudentViewModal(st.id); };
+
                 tr.innerHTML = `
-                    <td class="px-3 py-3 text-center text-xs font-mono font-medium text-gray-500">${escapeHtml(st.id)}</td>
-                    <td class="px-4 py-3 font-semibold text-gray-800 text-sm whitespace-nowrap">${safeName}${safeNickname}</td>
-                    <td class="px-3 py-3 text-xs text-gray-600 whitespace-nowrap">${escapeHtml(st.grade || '-')}</td>
-                    <td class="px-3 py-3 text-xs text-gray-600 whitespace-nowrap">${dormDisplay}</td>
-                    <td class="px-3 py-3 text-center whitespace-nowrap">${statusBadge}</td>
-                    <td class="px-4 py-3 text-xs text-gray-600 max-w-xs truncate" title="${escapeHtml(summaryText)}">${escapeHtml(summaryText)}</td>
-                    <td class="px-3 py-3 text-right whitespace-nowrap">${actions}</td>
+                    <td class="px-3 py-2 text-center whitespace-nowrap">
+                        <img src="${imgSrc}" class="w-10 h-10 rounded-full object-cover object-top border-2 border-emerald-500 shadow-xs inline-block" onerror="handleStudentImgError(this, '${stDriveId}', '${encodeURIComponent(st.nickname || st.name)}')">
+                    </td>
+                    <td class="px-4 py-2 whitespace-nowrap">
+                        <div class="font-bold text-gray-800 text-sm">${safeName}${safeNickname}</div>
+                        <div class="text-xs font-mono text-gray-400">รหัส: ${escapeHtml(st.id)}</div>
+                    </td>
+                    <td class="px-3 py-2 text-center text-xs sm:text-sm font-semibold text-gray-700 whitespace-nowrap">${safeGrade}</td>
+                    <td class="px-3 py-2 text-xs sm:text-sm text-gray-600 whitespace-nowrap">${dormDisplay}</td>
+                    <td class="px-3 py-2 text-center text-xs text-gray-600 whitespace-nowrap">${checkDateDisplay}</td>
+                    <td class="px-3 py-2 text-xs text-gray-600 max-w-xs whitespace-normal">${escapeHtml(vitalsSummary)}</td>
+                    <td class="px-3 py-2 text-center whitespace-nowrap">${statusBadge}</td>
+                    <td class="px-4 py-2 text-right whitespace-nowrap pr-6">${actions}</td>
                 `;
                 fragment.appendChild(tr);
             });
@@ -6413,7 +6426,7 @@
             if (fragment.children.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="7" class="text-center py-10 text-gray-400">
+                        <td colspan="8" class="text-center py-12 text-gray-400">
                             <i class="fas fa-search text-3xl mb-2 text-gray-300 block"></i>
                             ไม่พบข้อมูลนักเรียนตามเงื่อนไขที่เลือก
                         </td>
@@ -6423,14 +6436,14 @@
                 tbody.appendChild(fragment);
             }
 
-            const elTotal = document.getElementById('health-stat-total');
+            const elTotal = document.getElementById('healthStatTotal');
             if (elTotal) elTotal.innerText = totalCount;
-            const elDone = document.getElementById('health-stat-done');
-            if (elDone) elDone.innerText = examinedCount;
-            const elNormal = document.getElementById('health-stat-normal');
-            if (elNormal) elNormal.innerText = normalCount;
-            const elAbnormal = document.getElementById('health-stat-abnormal');
-            if (elAbnormal) elAbnormal.innerText = abnormalCount;
+            const elChecked = document.getElementById('healthStatChecked');
+            if (elChecked) elChecked.innerText = examinedCount;
+            const elPending = document.getElementById('healthStatPending');
+            if (elPending) elPending.innerText = (totalCount - examinedCount);
+            const elIssue = document.getElementById('healthStatIssue');
+            if (elIssue) elIssue.innerText = abnormalCount;
         }
 
         function openHealthRecordModal(studentId, year) {
