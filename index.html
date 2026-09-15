@@ -6974,13 +6974,13 @@
 
             const rec = healthRecordsList.find(r => String(r.studentId) === String(studentId) && String(r.academicYear) === String(year)) || {};
 
-            let dobDay = '……', dobMonth = '………………', dobYear = '………', age = '……';
+            let dobDay = '', dobMonth = '', dobYear = '', age = '';
             if (st.dob) {
                 const parts = String(st.dob).split('-');
                 if (parts.length === 3) {
                     dobDay = parseInt(parts[2], 10);
                     const thaiMonths = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
-                    dobMonth = thaiMonths[parseInt(parts[1], 10) - 1] || '………………';
+                    dobMonth = thaiMonths[parseInt(parts[1], 10) - 1] || '';
                     const y = parseInt(parts[0], 10);
                     dobYear = y > 2400 ? y : (y + 543);
                     const birthYear = y > 2400 ? (y - 543) : y;
@@ -6997,15 +6997,25 @@
 
             const dorm = rec.dormitory || findMatchingDormitoryOption(st.dormitory);
             function chkDorm(kw) {
-                return (dorm && dorm.includes(kw)) ? '<span class="chk-box-checked">☑</span>' : '<span class="chk-box">☐</span>';
+                return (dorm && dorm.includes(kw)) ? '<span class="chk-box checked">☑</span>' : '<span class="chk-box">☐</span>';
             }
 
-            function chk(val, target) {
-                return (String(val).trim() === String(target).trim()) ? '<span class="chk-box-checked">☑</span>' : '<span class="chk-box">☐</span>';
+            function chkBox(condition) {
+                return condition ? '<span class="chk-box checked">☑</span>' : '<span class="chk-box">☐</span>';
             }
 
-            function dotOrVal(val, defaultDots = '……………………') {
-                return (val && String(val).trim()) ? `<span class="val-underline">${escapeHtml(val)}</span>` : defaultDots;
+            function valOrDots(val, dotLength) {
+                if (val !== undefined && val !== null && String(val).trim() !== '') {
+                    return `<span class="val-fill">${escapeHtml(String(val).trim())}</span>`;
+                }
+                return '.'.repeat(dotLength || 15);
+            }
+
+            function officerSignOrDots(name) {
+                if (name && String(name).trim() !== '') {
+                    return `<span class="officer-fill">${escapeHtml(String(name).trim())}</span>`;
+                }
+                return '.....................................';
             }
 
             let printWindow = window.open('', '_blank', 'width=1000,height=1000');
@@ -7024,7 +7034,7 @@
     <style>
         @page {
             size: A4 portrait;
-            margin: 8mm 12mm 8mm 12mm;
+            margin: 6mm 10mm 6mm 10mm;
         }
         * {
             box-sizing: border-box;
@@ -7035,88 +7045,105 @@
             padding: 0;
             background: #fff;
             color: #000;
-            font-size: 11.5pt;
-            line-height: 1.42;
+            font-size: 9.5pt;
+            line-height: 1.34;
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
         }
         .page-container {
             width: 100%;
-            max-width: 190mm;
+            max-width: 192mm;
             margin: 0 auto;
-            padding: 2px 4px;
+            padding: 2px 2px;
             background: #fff;
         }
         .doc-header {
             text-align: center;
-            margin-bottom: 6px;
+            margin-bottom: 3px;
         }
         .school-logo {
             height: 48px;
             width: auto;
             display: block;
-            margin: 0 auto 3px auto;
+            margin: 0 auto 2px auto;
         }
         .doc-title {
-            font-size: 15pt;
+            font-size: 13.5pt;
             font-weight: 700;
             margin: 0;
-            line-height: 1.25;
+            line-height: 1.2;
         }
         .doc-sub {
-            font-size: 13pt;
+            font-size: 12pt;
             font-weight: 700;
-            margin: 1px 0 6px 0;
+            margin: 1px 0 3px 0;
+            line-height: 1.2;
         }
-        .info-row {
-            font-size: 11pt;
-            line-height: 1.45;
+        .profile-row {
+            font-size: 9.5pt;
+            line-height: 1.34;
             margin-bottom: 2px;
+            white-space: nowrap;
         }
-        .dorm-row {
+        .dorm-line {
+            font-size: 9pt;
+            line-height: 1.3;
+            margin-bottom: 1px;
+            white-space: nowrap;
+        }
+        .section-divider {
+            border: none;
+            border-top: 1.5px solid #000;
+            margin: 4px 0 4px 0;
+        }
+        .station-title {
             font-size: 10pt;
-            line-height: 1.4;
-            margin-bottom: 2px;
-        }
-        .chk-box {
-            font-size: 12pt;
-            font-family: Arial, sans-serif;
-            margin-right: 2px;
-            color: #333;
-        }
-        .chk-box-checked {
-            font-size: 12pt;
-            font-family: Arial, sans-serif;
-            margin-right: 2px;
             font-weight: bold;
             color: #000;
+            margin-top: 2px;
+            margin-bottom: 1px;
+            line-height: 1.2;
         }
-        .station-header {
-            font-size: 11.5pt;
+        .station-line {
+            font-size: 9.5pt;
+            line-height: 1.32;
+            color: #000;
+            white-space: nowrap;
+        }
+        .chk-box {
+            font-size: 11pt;
+            font-family: Arial, 'Segoe UI Symbol', sans-serif;
+            display: inline-block;
+            vertical-align: -1px;
+            margin-right: 1px;
+            color: #000;
+        }
+        .chk-box.checked {
+            font-weight: 900;
+            color: #000;
+        }
+        .val-fill {
             font-weight: 700;
-            margin-top: 5px;
-            margin-bottom: 2px;
             color: #000;
-        }
-        .station-body {
-            font-size: 10.5pt;
-            line-height: 1.4;
-            padding-left: 2px;
-        }
-        .officer-row {
-            text-align: right;
-            font-size: 10pt;
-            margin-top: 1px;
-            margin-bottom: 3px;
-        }
-        .val-underline {
-            font-weight: 600;
+            border-bottom: 1px dotted #000;
             padding: 0 4px;
-            border-bottom: 1px dotted #333;
-            color: #000;
+            display: inline-block;
         }
-        .label-bold {
-            font-weight: 600;
+        .officer-sign {
+            text-align: right;
+            font-size: 9pt;
+            margin-top: 0px;
+            margin-bottom: 2px;
+            padding-right: 12px;
+        }
+        .officer-fill {
+            font-weight: 700;
+            color: #000;
+            border-bottom: 1px dotted #000;
+            padding: 0 8px;
+            min-width: 140px;
+            display: inline-block;
+            text-align: center;
         }
         @media print {
             .no-print { display: none !important; }
@@ -7136,205 +7163,204 @@
         <div class="doc-header">
             <img src="https://lbpschool.github.io/SIS/school_logo.png?v=3" class="school-logo" alt="ตราโรงเรียน">
             <div class="doc-title">แบบบันทึกการตรวจสุขภาพนักเรียน</div>
-            <div class="doc-sub">โรงเรียนลพบุรีปัญญานุกูล  จังหวัดลพบุรี ปีการศึกษา ${escapeHtml(year)}</div>
+            <div class="doc-sub">โรงเรียนลพบุรีปัญญากูล  จังหวัดลพบุรี ปีการศึกษา ${escapeHtml(year)}</div>
         </div>
 
-        <!-- บรรทัดข้อมูลนักเรียน -->
-        <div class="info-row">
-            ชื่อ-สกุล <span class="val-underline">${escapeHtml(st.name)}</span>
-            ระดับชั้น <span class="val-underline">${escapeHtml(st.grade || '-')}</span>
-            เกิดวันที่ <span class="val-underline">${dobDay}</span>
-            เดือน <span class="val-underline">${dobMonth}</span>
-            พ.ศ. <span class="val-underline">${dobYear}</span>
-            อายุ <span class="val-underline">${age}</span> ปี
+        <div class="profile-row">
+            ชื่อ-สกุล ${valOrDots(st.name, 35)}
+            &nbsp;&nbsp;ระดับชั้น ${valOrDots(st.grade, 10)}
+            &nbsp;&nbsp;เกิดวันที่ ${valOrDots(dobDay, 6)}
+            &nbsp;&nbsp;เดือน ${valOrDots(dobMonth, 12)}
+            &nbsp;&nbsp;พ.ศ. ${valOrDots(dobYear, 8)}
+            &nbsp;&nbsp;อายุ ${valOrDots(age, 6)} ปี
         </div>
 
-        <!-- รายการเรือนนอนตามต้นฉบับเป๊ะ -->
-        <div class="dorm-row">
+        <div class="dorm-line">
             ${chkDorm('ทานตะวัน')} เรือนนอนชาย 1 ทานตะวัน &nbsp;
             ${chkDorm('พุทธรักษา')} เรือนนอนชาย 2 พุทธรักษา &nbsp;
             ${chkDorm('ชงโค')} เรือนนอนชาย 3 ชงโค &nbsp;
             ${chkDorm('อัญชัน')} เรือนนอนชาย 4 อัญชัน &nbsp;
             ${chkDorm('พวงคราม')} เรือนนอนชาย 5 พวงคราม
         </div>
-        <div class="dorm-row" style="margin-bottom: 5px;">
+        <div class="dorm-line">
             ${chkDorm('เฟื่องฟ้า')} เรือนนอนหญิง 2 เฟื่องฟ้า &nbsp;&nbsp;&nbsp;&nbsp;
             ${chkDorm('ดอกแก้ว')} เรือนนอนหญิง 2 ดอกแก้ว &nbsp;&nbsp;&nbsp;&nbsp;
             ${chkDorm('พิกุล')} เรือนนอนหญิง 3 พิกุล
         </div>
 
-        <!-- จุดที่ 1 แบบประเมินสัญญาณชีพ -->
-        <div class="station-header">จุดที่ 1 แบบประเมินสัญญาณชีพ</div>
-        <div class="station-body">
-            อุณหภูมิร่างกาย <span class="val-underline">${dotOrVal(rec.p1_temp, '……..…')}</span> °C &nbsp;&nbsp;&nbsp;&nbsp;
-            ความดันโลหิต <span class="val-underline">${dotOrVal(rec.p1_bp, '……..…')}</span> mmHg. &nbsp;&nbsp;&nbsp;&nbsp;
-            ค่าชีพจร <span class="val-underline">${dotOrVal(rec.p1_pulse, '……..…')}</span> ครั้ง/นาที &nbsp;&nbsp;&nbsp;&nbsp;
-            ความเข้มของออกซิเจนในเลือด <span class="val-underline">${dotOrVal(rec.p1_spo2, '……..…')}</span> %
+        <hr class="section-divider">
+
+        <!-- จุดที่ 1 -->
+        <div class="station-title">จุดที่ 1 แบบประเมินสัญญาณชีพ</div>
+        <div class="station-line">
+            อุณหภูมิร่างกาย ${valOrDots(rec.p1_temp, 8)} °C &nbsp;&nbsp;&nbsp;&nbsp;
+            ความดันโลหิต ${valOrDots(rec.p1_bp, 10)} mmHg. &nbsp;&nbsp;&nbsp;&nbsp;
+            ค่าชีพจร ${valOrDots(rec.p1_pulse, 8)} ครั้ง/นาที &nbsp;&nbsp;&nbsp;&nbsp;
+            ความเข้มของออกซิเจนในเลือด ${valOrDots(rec.p1_spo2, 8)} %
         </div>
-        <div class="officer-row">
-            ลงชื่อ <span class="val-underline">${dotOrVal(rec.p1_officer, '.....................................')}</span> เจ้าหน้าที่
+        <div class="officer-sign">
+            ลงชื่อ ${officerSignOrDots(rec.p1_officer)} เจ้าหน้าที่
         </div>
 
-        <!-- จุดที่ 2 แบบประเมินการเจริญเติบโต -->
-        <div class="station-header">จุดที่ 2 แบบประเมินการเจริญเติบโต</div>
-        <div class="station-body">
-            น้ำหนัก <span class="val-underline">${dotOrVal(rec.p2_weight, '………..')}</span> กิโลกรัม &nbsp;&nbsp;&nbsp;&nbsp;
-            ส่วนสูง <span class="val-underline">${dotOrVal(rec.p2_height, '………..')}</span> เซนติเมตร &nbsp;&nbsp;&nbsp;&nbsp;
-            เพศ &nbsp;${isMale ? '<span class="chk-box-checked">☑</span>' : '<span class="chk-box">☐</span>'} ชาย &nbsp;&nbsp;
-            ${isFemale ? '<span class="chk-box-checked">☑</span>' : '<span class="chk-box">☐</span>'} หญิง
-            <div style="margin-top: 2px;">
-                <span class="label-bold">ผลภาวะการณ์เจริญเติบโตน้ำหนักตามเกณฑ์ส่วนสูง</span><br>
-                ${chk(rec.p2_weightForHeight, 'ผอม')} ผอม &nbsp;&nbsp;&nbsp;&nbsp;
-                ${chk(rec.p2_weightForHeight, 'ค่อนข้างผอม')} ค่อนข้างผอม &nbsp;&nbsp;&nbsp;&nbsp;
-                ${chk(rec.p2_weightForHeight, 'สมส่วน')} สมส่วน &nbsp;&nbsp;&nbsp;&nbsp;
-                ${chk(rec.p2_weightForHeight, 'ท้วม')} ท้วม &nbsp;&nbsp;&nbsp;&nbsp;
-                ${chk(rec.p2_weightForHeight, 'เริ่มอ้วน')} เริ่มอ้วน &nbsp;&nbsp;&nbsp;&nbsp;
-                ${chk(rec.p2_weightForHeight, 'อ้วน')} อ้วน
-            </div>
-            <div style="margin-top: 2px;">
-                <span class="label-bold">ผลภาวะการณ์เจริญเติบโตส่วนสูงตามเกณฑ์อายุ</span><br>
-                ${chk(rec.p2_heightForAge, 'เตี้ย')} เตี้ย &nbsp;&nbsp;&nbsp;&nbsp;
-                ${(rec.p2_heightForAge === 'ค่อนข้างเตี้ย' || rec.p2_heightForAge === 'ค่อนข้างแคระ') ? '<span class="chk-box-checked">☑</span>' : '<span class="chk-box">☐</span>'} ค่อนข้างแคระ &nbsp;&nbsp;&nbsp;&nbsp;
-                ${chk(rec.p2_heightForAge, 'สมส่วน')} สมส่วน &nbsp;&nbsp;&nbsp;&nbsp;
-                ${chk(rec.p2_heightForAge, 'สูงตามเกณฑ์')} สูงตามเกณฑ์ &nbsp;&nbsp;&nbsp;&nbsp;
-                ${chk(rec.p2_heightForAge, 'ค่อนข้างสูง')} ค่อนข้างสูง &nbsp;&nbsp;&nbsp;&nbsp;
-                ${chk(rec.p2_heightForAge, 'สูง')} สูง
-            </div>
+        <!-- จุดที่ 2 -->
+        <div class="station-title">จุดที่ 2 แบบประเมินการเจริญเติบโต</div>
+        <div class="station-line">
+            น้ำหนัก ${valOrDots(rec.p2_weight, 8)} กิโลกรัม &nbsp;&nbsp;&nbsp;&nbsp;
+            ส่วนสูง ${valOrDots(rec.p2_height, 8)} เซนติเมตร &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            เพศ &nbsp;&nbsp; ${chkBox(isMale)} ชาย &nbsp;&nbsp;&nbsp;&nbsp; ${chkBox(isFemale)} หญิง
         </div>
-        <div class="officer-row">
-            ลงชื่อ <span class="val-underline">${dotOrVal(rec.p2_officer, '.....................................')}</span> เจ้าหน้าที่
+        <div class="station-line" style="margin-top: 1px;">
+            ➢ ผลภาวะการณ์เจริญเติบโตน้ำหนักตามเกณฑ์ส่วนสูง
         </div>
-
-        <!-- จุดที่ 3 การตรวจสุขภาพร่างกาย -->
-        <div class="station-header">จุดที่ 3 การตรวจสุขภาพร่างกาย</div>
-        <div class="station-body">
-            <div>
-                ศีรษะ &nbsp;&nbsp;&nbsp;&nbsp;
-                ${chk(rec.p3_head, 'ปกติ')} ปกติ &nbsp;&nbsp;&nbsp;&nbsp;
-                ${chk(rec.p3_head, 'ผิดปกติ')} ผิดปกติ &nbsp;&nbsp;
-                เชื้อรา / ชันตุ / รังแค / อื่น ๆ โปรดระบุ <span class="val-underline">${dotOrVal(rec.p3_head_note, '…………………………………')}</span>
-            </div>
-            <div>
-                ผม &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                ${chk(rec.p3_hair, 'ปกติ')} ปกติ &nbsp;&nbsp;&nbsp;&nbsp;
-                ${chk(rec.p3_hair, 'ผิดปกติ')} ผิดปกติ &nbsp;&nbsp;
-                ผมยาว / ไข่เหา(ไม่มีตัวเหา) / เหา / อื่น ๆ โปรดระบุ <span class="val-underline">${dotOrVal(rec.p3_hair_note, '…………………………')}</span>
-            </div>
-            <div>
-                หู &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                ${chk(rec.p3_ear, 'ปกติ')} ปกติ &nbsp;&nbsp;&nbsp;&nbsp;
-                ${chk(rec.p3_ear, 'ผิดปกติ')} ผิดปกติ &nbsp;&nbsp;
-                ขี้หู / หูน้ำหนวก / อื่น ๆ โปรดระบุ <span class="val-underline">${dotOrVal(rec.p3_ear_note, '…………………………………')}</span>
-            </div>
-            <div>
-                ตา &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                ${chk(rec.p3_eye, 'ปกติ')} ปกติ &nbsp;&nbsp;&nbsp;&nbsp;
-                ${chk(rec.p3_eye, 'ผิดปกติ')} ผิดปกติ &nbsp;&nbsp;
-                ตาแดง / ตาอักเสบ / อื่น ๆ โปรดระบุ <span class="val-underline">${dotOrVal(rec.p3_eye_note, '…………………………………')}</span>
-            </div>
-            <div>
-                จมูก &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                ${chk(rec.p3_nose, 'ปกติ')} ปกติ &nbsp;&nbsp;&nbsp;&nbsp;
-                ${chk(rec.p3_nose, 'ผิดปกติ')} ผิดปกติ &nbsp;&nbsp;
-                น้ำมูกไหล / คัดจมูก / อื่น ๆ โปรดระบุ <span class="val-underline">${dotOrVal(rec.p3_nose_note, '…………………………………')}</span>
-            </div>
-            <div>
-                เล็บ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                ${chk(rec.p3_nail, 'ปกติ')} ปกติ &nbsp;&nbsp;&nbsp;&nbsp;
-                ${chk(rec.p3_nail, 'ผิดปกติ')} ผิดปกติ &nbsp;&nbsp;
-                เล็บยาว / เล็บขบ / อื่น ๆ โปรดระบุ <span class="val-underline">${dotOrVal(rec.p3_nail_note, '…………………………………')}</span>
-            </div>
-            <div>
-                ผิวหนัง &nbsp;&nbsp;&nbsp;
-                ${chk(rec.p3_skin, 'ปกติ')} ปกติ &nbsp;&nbsp;&nbsp;&nbsp;
-                ${chk(rec.p3_skin, 'ผิดปกติ')} ผิดปกติ &nbsp;&nbsp;
-                กลาก / เกลื้อน / อื่น ๆ โปรดระบุ <span class="val-underline">${dotOrVal(rec.p3_skin_note, '…………………………………')}</span>
-            </div>
+        <div class="station-line" style="padding-left: 14px;">
+            ${chkBox(rec.p2_weightForHeight === 'ผอม')} ผอม &nbsp;&nbsp;&nbsp;&nbsp;
+            ${chkBox(rec.p2_weightForHeight === 'ค่อนข้างผอม')} ค่อนข้างผอม &nbsp;&nbsp;&nbsp;&nbsp;
+            ${chkBox(rec.p2_weightForHeight === 'สมส่วน')} สมส่วน &nbsp;&nbsp;&nbsp;&nbsp;
+            ${chkBox(rec.p2_weightForHeight === 'ท้วม')} ท้วม &nbsp;&nbsp;&nbsp;&nbsp;
+            ${chkBox(rec.p2_weightForHeight === 'เริ่มอ้วน')} เริ่มอ้วน &nbsp;&nbsp;&nbsp;&nbsp;
+            ${chkBox(rec.p2_weightForHeight === 'อ้วน')} อ้วน
         </div>
-        <div class="officer-row">
-            ลงชื่อ <span class="val-underline">${dotOrVal(rec.p3_officer, '.....................................')}</span> เจ้าหน้าที่
+        <div class="station-line" style="margin-top: 1px;">
+            ➢ ผลภาวะการณ์เจริญเติบโตส่วนสูงตามเกณฑ์อายุ
+        </div>
+        <div class="station-line" style="padding-left: 14px;">
+            ${chkBox(rec.p2_heightForAge === 'เตี้ย')} เตี้ย &nbsp;&nbsp;&nbsp;&nbsp;
+            ${chkBox(rec.p2_heightForAge === 'ค่อนข้างแคระ' || rec.p2_heightForAge === 'ค่อนข้างเตี้ย')} ค่อนข้างแคระ &nbsp;&nbsp;&nbsp;&nbsp;
+            ${chkBox(rec.p2_heightForAge === 'สมส่วน')} สมส่วน &nbsp;&nbsp;&nbsp;&nbsp;
+            ${chkBox(rec.p2_heightForAge === 'สูงตามเกณฑ์')} สูงตามเกณฑ์ &nbsp;&nbsp;&nbsp;&nbsp;
+            ${chkBox(rec.p2_heightForAge === 'ค่อนข้างสูง')} ค่อนข้างสูง &nbsp;&nbsp;&nbsp;&nbsp;
+            ${chkBox(rec.p2_heightForAge === 'สูง')} สูง
+        </div>
+        <div class="officer-sign">
+            ลงชื่อ ${officerSignOrDots(rec.p2_officer)} เจ้าหน้าที่
         </div>
 
-        <!-- จุดที่ 4 ตรวจการมองเห็น -->
-        <div class="station-header">จุดที่ 4 ตรวจการมองเห็น</div>
-        <div class="station-body">
-            ${chk(rec.p4_vision, 'ปกติ')} ปกติ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-            ${chk(rec.p4_vision, 'ผิดปกติ')} ผิดปกติ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-            ${chk(rec.p4_vision, 'ประเมินไม่ได้')} ประเมินไม่ได้ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-            ระบุ <span class="val-underline">${dotOrVal(rec.p4_vision_note, '…………………………………')}</span>
+        <!-- จุดที่ 3 -->
+        <div class="station-title">จุดที่ 3 การตรวจสุขภาพร่างกาย</div>
+        <div class="station-line">
+            <span style="display:inline-block; min-width: 65px;">➢ ศีรษะ</span>
+            ${chkBox(rec.p3_head === 'ปกติ')} ปกติ &nbsp;&nbsp;
+            ${chkBox(rec.p3_head === 'ผิดปกติ')} ผิดปกติ &nbsp;&nbsp;
+            เชื้อรา / ชันตุ / รังแค / อื่น ๆ โปรดระบุ ${valOrDots(rec.p3_head_note, 50)}
         </div>
-        <div class="officer-row">
-            ลงชื่อ <span class="val-underline">${dotOrVal(rec.p4_officer, '.....................................')}</span> เจ้าหน้าที่
+        <div class="station-line">
+            <span style="display:inline-block; min-width: 65px;">➢ ผม</span>
+            ${chkBox(rec.p3_hair === 'ปกติ')} ปกติ &nbsp;&nbsp;
+            ${chkBox(rec.p3_hair === 'ผิดปกติ')} ผิดปกติ &nbsp;&nbsp;
+            ผมยาว / ไข่เหา(ไม่มีตัวเหา) / เหา / อื่น ๆ โปรดระบุ ${valOrDots(rec.p3_hair_note, 45)}
+        </div>
+        <div class="station-line">
+            <span style="display:inline-block; min-width: 65px;">➢ หู</span>
+            ${chkBox(rec.p3_ear === 'ปกติ')} ปกติ &nbsp;&nbsp;
+            ${chkBox(rec.p3_ear === 'ผิดปกติ')} ผิดปกติ &nbsp;&nbsp;
+            ขี้หู/ หูน้ำหนวก / อื่น ๆ โปรดระบุ ${valOrDots(rec.p3_ear_note, 52)}
+        </div>
+        <div class="station-line">
+            <span style="display:inline-block; min-width: 65px;">➢ ตา</span>
+            ${chkBox(rec.p3_eye === 'ปกติ')} ปกติ &nbsp;&nbsp;
+            ${chkBox(rec.p3_eye === 'ผิดปกติ')} ผิดปกติ &nbsp;&nbsp;
+            ตาแดง / ตาอักเสบ / อื่น ๆ โปรดระบุ ${valOrDots(rec.p3_eye_note, 50)}
+        </div>
+        <div class="station-line">
+            <span style="display:inline-block; min-width: 65px;">➢ จมูก</span>
+            ${chkBox(rec.p3_nose === 'ปกติ')} ปกติ &nbsp;&nbsp;
+            ${chkBox(rec.p3_nose === 'ผิดปกติ')} ผิดปกติ &nbsp;&nbsp;
+            น้ำมูกไหล / คัดจมูก / อื่น ๆ โปรดระบุ ${valOrDots(rec.p3_nose_note, 48)}
+        </div>
+        <div class="station-line">
+            <span style="display:inline-block; min-width: 65px;">➢ เล็บ</span>
+            ${chkBox(rec.p3_nail === 'ปกติ')} ปกติ &nbsp;&nbsp;
+            ${chkBox(rec.p3_nail === 'ผิดปกติ')} ผิดปกติ &nbsp;&nbsp;
+            เล็บยาว / เล็บขบ / อื่น ๆ โปรดระบุ ${valOrDots(rec.p3_nail_note, 48)}
+        </div>
+        <div class="station-line">
+            <span style="display:inline-block; min-width: 65px;">➢ ผิวหนัง</span>
+            ${chkBox(rec.p3_skin === 'ปกติ')} ปกติ &nbsp;&nbsp;
+            ${chkBox(rec.p3_skin === 'ผิดปกติ')} ผิดปกติ &nbsp;&nbsp;
+            กลาก / เกลื้อน / อื่น ๆ โปรดระบุ ${valOrDots(rec.p3_skin_note, 50)}
+        </div>
+        <div class="officer-sign">
+            ลงชื่อ ${officerSignOrDots(rec.p3_officer)} เจ้าหน้าที่
         </div>
 
-        <!-- จุดที่ 5 ตรวจการได้ยิน -->
-        <div class="station-header">จุดที่ 5 ตรวจการได้ยิน</div>
-        <div class="station-body">
-            ${chk(rec.p5_hearing, 'ปกติ')} ปกติ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-            ${chk(rec.p5_hearing, 'ผิดปกติ')} ผิดปกติ &nbsp;&nbsp;&nbsp;&nbsp;
-            ไม่ได้ยิน / ได้ยินเสียงกระซิบเบาๆ / อื่น ๆ โปรดระบุ <span class="val-underline">${dotOrVal(rec.p5_hearing_note, '…………………………………')}</span>
+        <!-- จุดที่ 4 -->
+        <div class="station-title">จุดที่ 4 ตรวจการมองเห็น</div>
+        <div class="station-line">
+            ${chkBox(rec.p4_vision === 'ปกติ')} ปกติ &nbsp;&nbsp;&nbsp;&nbsp;
+            ${chkBox(rec.p4_vision === 'ผิดปกติ')} ผิดปกติ &nbsp;&nbsp;&nbsp;&nbsp;
+            ${chkBox(rec.p4_vision === 'ประเมินไม่ได้')} ประเมินไม่ได้ &nbsp;&nbsp;&nbsp;&nbsp;
+            ${chkBox(Boolean(rec.p4_vision_note))} ระบุ ${valOrDots(rec.p4_vision_note, 55)}
         </div>
-        <div class="officer-row">
-            ลงชื่อ <span class="val-underline">${dotOrVal(rec.p5_officer, '.....................................')}</span> เจ้าหน้าที่
-        </div>
-
-        <!-- จุดที่ 6 ตรวจช่องปากและฟัน -->
-        <div class="station-header">จุดที่ 6 ตรวจช่องปากและฟัน</div>
-        <div class="station-body">
-            ${chk(rec.p6_dental || 'ปกติ', 'ปกติ')} ปกติ &nbsp;&nbsp;&nbsp;&nbsp;
-            ${chk(rec.p6_dental, 'ผิดปกติ')} ผิดปกติ &nbsp;&nbsp;
-            ฟันผุ <span class="val-underline">${dotOrVal(rec.p6_cavity, '……')}</span> ซี่ &nbsp;&nbsp;/&nbsp;&nbsp;
-            ฟันเหลือง <span class="val-underline">${dotOrVal(rec.p6_yellow, '……')}</span> ซี่ &nbsp;&nbsp;/&nbsp;&nbsp;
-            ${(rec.p6_tartar === 'มี' || rec.p6_tartar === true || rec.p6_tartar === 'true') ? '<span class="chk-box-checked">☑</span>' : '<span class="chk-box">☐</span>'} คราบหินปูน &nbsp;&nbsp;/&nbsp;&nbsp;
-            ${(rec.p6_gingivitis === 'มี' || rec.p6_gingivitis === true || rec.p6_gingivitis === 'true') ? '<span class="chk-box-checked">☑</span>' : '<span class="chk-box">☐</span>'} เหงือกอักเสบ &nbsp;&nbsp;/&nbsp;&nbsp;
-            อื่น ๆ โปรดระบุ <span class="val-underline">${dotOrVal(rec.p6_note, '…………………………………')}</span>
-        </div>
-        <div class="officer-row">
-            ลงชื่อ <span class="val-underline">${dotOrVal(rec.p6_officer, '.....................................')}</span> เจ้าหน้าที่
+        <div class="officer-sign">
+            ลงชื่อ ${officerSignOrDots(rec.p4_officer)} เจ้าหน้าที่
         </div>
 
-        <!-- จุดที่ 7 ตรวจกายภาพบำบัด -->
-        <div class="station-header">จุดที่ 7 ตรวจกายภาพบำบัด</div>
-        <div class="station-body">
-            <div>
-                ลักษณะทั่วไป &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                ${chk(rec.p7_general, 'ปกติ')} ปกติ &nbsp;&nbsp;&nbsp;&nbsp;
-                ${chk(rec.p7_general, 'ผิดปกติ')} ผิดปกติ &nbsp;&nbsp;&nbsp;&nbsp;
-                โปรดระบุ <span class="val-underline">${dotOrVal(rec.p7_general_note, '…………………………………')}</span>
-            </div>
-            <div>
-                ศีรษะและคอ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                ${chk(rec.p7_headneck, 'ปกติ')} ปกติ &nbsp;&nbsp;&nbsp;&nbsp;
-                ${chk(rec.p7_headneck, 'ผิดปกติ')} ผิดปกติ &nbsp;&nbsp;&nbsp;&nbsp;
-                โปรดระบุ <span class="val-underline">${dotOrVal(rec.p7_headneck_note, '…………………………………')}</span>
-            </div>
-            <div>
-                ระบบหัวใจและหลอดเลือด &nbsp;&nbsp;
-                ${chk(rec.p7_heart, 'ปกติ')} ปกติ &nbsp;&nbsp;&nbsp;&nbsp;
-                ${chk(rec.p7_heart, 'ผิดปกติ')} ผิดปกติ &nbsp;&nbsp;&nbsp;&nbsp;
-                โปรดระบุ <span class="val-underline">${dotOrVal(rec.p7_heart_note, '…………………………………')}</span>
-            </div>
-            <div>
-                การตรวจช่องท้อง &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                ${chk(rec.p7_abdomen, 'ปกติ')} ปกติ &nbsp;&nbsp;&nbsp;&nbsp;
-                ${chk(rec.p7_abdomen, 'ผิดปกติ')} ผิดปกติ &nbsp;&nbsp;&nbsp;&nbsp;
-                โปรดระบุ <span class="val-underline">${dotOrVal(rec.p7_abdomen_note, '…………………………………')}</span>
-            </div>
-            <div>
-                ลำตัวและแขนขา &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                ${chk(rec.p7_limbs, 'ปกติ')} ปกติ &nbsp;&nbsp;&nbsp;&nbsp;
-                ${chk(rec.p7_limbs, 'ผิดปกติ')} ผิดปกติ &nbsp;&nbsp;&nbsp;&nbsp;
-                โปรดระบุ <span class="val-underline">${dotOrVal(rec.p7_limbs_note, '…………………………………')}</span>
-            </div>
-            <div>
-                ระบบประสาท &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                ${chk(rec.p7_neuro, 'ปกติ')} ปกติ &nbsp;&nbsp;&nbsp;&nbsp;
-                ${chk(rec.p7_neuro, 'ผิดปกติ')} ผิดปกติ &nbsp;&nbsp;&nbsp;&nbsp;
-                โปรดระบุ <span class="val-underline">${dotOrVal(rec.p7_neuro_note, '…………………………………')}</span>
-            </div>
+        <!-- จุดที่ 5 -->
+        <div class="station-title">จุดที่ 5 ตรวจการได้ยิน</div>
+        <div class="station-line">
+            ${chkBox(rec.p5_hearing === 'ปกติ')} ปกติ &nbsp;&nbsp;&nbsp;&nbsp;
+            ${chkBox(rec.p5_hearing === 'ผิดปกติ')} ผิดปกติ &nbsp;&nbsp;
+            ไม่ได้ยิน / ได้ยินเสียงกระซิบเบาๆ / อื่น ๆ โปรดระบุ ${valOrDots(rec.p5_hearing_note, 50)}
         </div>
-        <div class="officer-row">
-            ลงชื่อ <span class="val-underline">${dotOrVal(rec.p7_officer, '.....................................')}</span> เจ้าหน้าที่
+        <div class="officer-sign">
+            ลงชื่อ ${officerSignOrDots(rec.p5_officer)} เจ้าหน้าที่
+        </div>
+
+        <!-- จุดที่ 6 -->
+        <div class="station-title">จุดที่ 6 ตรวจช่องปากและฟัน</div>
+        <div class="station-line">
+            ${chkBox((rec.p6_dental || 'ปกติ') === 'ปกติ')} ปกติ &nbsp;&nbsp;
+            ${chkBox(rec.p6_dental === 'ผิดปกติ')} ผิดปกติ &nbsp;&nbsp;
+            ฟันผุ ${valOrDots(rec.p6_cavity && rec.p6_cavity !== '0' ? rec.p6_cavity : '', 6)} ซี่ &nbsp;/&nbsp;
+            ฟันเหลือง ${valOrDots(rec.p6_yellow && rec.p6_yellow !== '0' ? rec.p6_yellow : '', 6)} ซี่ &nbsp;/&nbsp;
+            ${(rec.p6_tartar === 'มี' || rec.p6_tartar === true || rec.p6_tartar === 'true') ? '<u>คราบหินปูน</u>' : 'คราบหินปูน'} &nbsp;/&nbsp;
+            ${(rec.p6_gingivitis === 'มี' || rec.p6_gingivitis === true || rec.p6_gingivitis === 'true') ? '<u>เหงือกอักเสบ</u>' : 'เหงือกอักเสบ'} &nbsp;/&nbsp;
+            อื่น ๆ โปรดระบุ ${valOrDots(rec.p6_note, 24)}
+        </div>
+        <div class="officer-sign">
+            ลงชื่อ ${officerSignOrDots(rec.p6_officer)} เจ้าหน้าที่
+        </div>
+
+        <!-- จุดที่ 7 -->
+        <div class="station-title">จุดที่ 7 ตรวจกายภาพบำบัด</div>
+        <div class="station-line">
+            <span style="display:inline-block; min-width: 145px;">➢ ลักษณะทั่วไป</span>
+            ${chkBox(rec.p7_general === 'ปกติ')} ปกติ &nbsp;&nbsp;
+            ${chkBox(rec.p7_general === 'ผิดปกติ')} ผิดปกติ &nbsp;&nbsp;
+            โปรดระบุ ${valOrDots(rec.p7_general_note, 45)}
+        </div>
+        <div class="station-line">
+            <span style="display:inline-block; min-width: 145px;">➢ ศีรษะและคอ</span>
+            ${chkBox(rec.p7_headneck === 'ปกติ')} ปกติ &nbsp;&nbsp;
+            ${chkBox(rec.p7_headneck === 'ผิดปกติ')} ผิดปกติ &nbsp;&nbsp;
+            โปรดระบุ ${valOrDots(rec.p7_headneck_note, 45)}
+        </div>
+        <div class="station-line">
+            <span style="display:inline-block; min-width: 145px;">➢ ระบบหัวใจและหลอดเลือด</span>
+            ${chkBox(rec.p7_heart === 'ปกติ')} ปกติ &nbsp;&nbsp;
+            ${chkBox(rec.p7_heart === 'ผิดปกติ')} ผิดปกติ &nbsp;&nbsp;
+            โปรดระบุ ${valOrDots(rec.p7_heart_note, 45)}
+        </div>
+        <div class="station-line">
+            <span style="display:inline-block; min-width: 145px;">➢ การตรวจช่องท้อง</span>
+            ${chkBox(rec.p7_abdomen === 'ปกติ')} ปกติ &nbsp;&nbsp;
+            ${chkBox(rec.p7_abdomen === 'ผิดปกติ')} ผิดปกติ &nbsp;&nbsp;
+            โปรดระบุ ${valOrDots(rec.p7_abdomen_note, 45)}
+        </div>
+        <div class="station-line">
+            <span style="display:inline-block; min-width: 145px;">➢ ลำตัวและแขนขา</span>
+            ${chkBox(rec.p7_limbs === 'ปกติ')} ปกติ &nbsp;&nbsp;
+            ${chkBox(rec.p7_limbs === 'ผิดปกติ')} ผิดปกติ &nbsp;&nbsp;
+            โปรดระบุ ${valOrDots(rec.p7_limbs_note, 45)}
+        </div>
+        <div class="station-line">
+            <span style="display:inline-block; min-width: 145px;">➢ ระบบประสาท</span>
+            ${chkBox(rec.p7_neuro === 'ปกติ')} ปกติ &nbsp;&nbsp;
+            ${chkBox(rec.p7_neuro === 'ผิดปกติ')} ผิดปกติ &nbsp;&nbsp;
+            โปรดระบุ ${valOrDots(rec.p7_neuro_note, 45)}
+        </div>
+        <div class="officer-sign">
+            ลงชื่อ ${officerSignOrDots(rec.p7_officer)} เจ้าหน้าที่
         </div>
     </div>
 
@@ -7342,7 +7368,7 @@
         function downloadPDF() {
             const element = document.getElementById('health-pdf-document');
             const opt = {
-                margin: [8, 10, 8, 10],
+                margin: [6, 10, 6, 10],
                 filename: 'แบบบันทึกตรวจสุขภาพ_${escapeHtml(st.name)}_ปี${escapeHtml(year)}.pdf',
                 image: { type: 'jpeg', quality: 0.98 },
                 html2canvas: { scale: 2, useCORS: true, logging: false },
