@@ -811,7 +811,6 @@
                                 <select id="formCommuteType" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-school-500 outline-none bg-white" onchange="handleCommuteTypeChange()">
                                     <option value="ไป-กลับ">ไป-กลับ</option>
                                     <option value="อยู่ประจำ">อยู่ประจำ</option>
-                                    <option value="จบการศึกษา">จบการศึกษา</option>
                                 </select>
                             </div>
                             <div class="col-span-1">
@@ -3168,8 +3167,7 @@
                 if(passesSearch && passesGrade && passesDorm && passesLearning && passesGraduation) {
                     const attData = todayAttendanceStats[st.id], attStatus = attData ? (typeof attData === 'string' ? attData : attData.status) : null, attRemark = attData && typeof attData === 'object' && attData.remark ? attData.remark : '';
                     let attBadge = '';
-                    if (st.commuteType === 'จบการศึกษา') attBadge = '<span class="inline-flex bg-gray-200 text-gray-600 text-xs font-medium px-3 py-1 rounded-full whitespace-nowrap border border-gray-300"><i class="fas fa-graduation-cap mr-1 mt-0.5"></i>จบการศึกษา</span>';
-                    else if(attStatus === 'present' || attStatus === 'late') attBadge = '<span class="inline-flex bg-green-100 text-green-700 text-xs font-medium px-3 py-1 rounded-full whitespace-nowrap border border-green-200"><i class="fas fa-check-circle mr-1 mt-0.5"></i>มาเรียน</span>';
+                    if(attStatus === 'present' || attStatus === 'late') attBadge = '<span class="inline-flex bg-green-100 text-green-700 text-xs font-medium px-3 py-1 rounded-full whitespace-nowrap border border-green-200"><i class="fas fa-check-circle mr-1 mt-0.5"></i>มาเรียน</span>';
                     else if(attStatus === 'absent' || attStatus === 'leave') attBadge = '<span class="inline-flex bg-red-100 text-red-700 text-xs font-medium px-3 py-1 rounded-full whitespace-nowrap border border-red-200" title="' + attRemark + '"><i class="fas fa-times-circle mr-1 mt-0.5"></i>ไม่มาโรงเรียน' + (attRemark ? '<span class="ml-1 opacity-80">(' + attRemark + ')</span>' : '') + '</span>';
                     else if(attStatus === 'home') attBadge = '<span class="inline-flex bg-purple-100 text-purple-700 text-xs font-medium px-3 py-1 rounded-full whitespace-nowrap border border-purple-200" title="' + attRemark + '"><i class="fas fa-house-user mr-1 mt-0.5"></i>กลับบ้าน' + (attRemark ? '<span class="ml-1 opacity-80">(' + attRemark + ')</span>' : '') + '</span>';
                     else attBadge = '<span class="inline-flex bg-gray-100 text-gray-500 text-xs font-medium px-3 py-1 rounded-full whitespace-nowrap border border-gray-200">ยังไม่เช็คชื่อ</span>';
@@ -4207,8 +4205,7 @@
             viewProfileImg.onerror = function() { handleStudentImgError(this, stDriveId, st.nickname || st.name); };
 
             const statusBadge = document.getElementById('view-status-badge');
-            if (st.commuteType === "จบการศึกษา") { statusBadge.innerHTML = '<i class="fas fa-graduation-cap mr-1"></i> จบการศึกษาแล้ว'; statusBadge.className = "px-4 py-1.5 rounded-full text-sm font-semibold mb-3 bg-gray-100 text-gray-700 border border-gray-200 shadow-sm block"; } 
-            else if (st.commuteType === "อยู่ประจำ") { statusBadge.innerText = "นักเรียนอยู่ประจำ"; statusBadge.className = "px-4 py-1.5 rounded-full text-sm font-semibold mb-3 bg-purple-100 text-purple-700 border border-purple-200 block"; } 
+            if (st.commuteType === "อยู่ประจำ") { statusBadge.innerText = "นักเรียนอยู่ประจำ"; statusBadge.className = "px-4 py-1.5 rounded-full text-sm font-semibold mb-3 bg-purple-100 text-purple-700 border border-purple-200 block"; } 
             else { statusBadge.innerText = "นักเรียนไป-กลับ"; statusBadge.className = "px-4 py-1.5 rounded-full text-sm font-semibold mb-3 bg-blue-100 text-blue-700 border border-blue-200 block"; }
 
             const disImgContainer = document.getElementById('view-disability-img-container');
@@ -4459,7 +4456,7 @@
                     document.getElementById('formIdCard').value = st.idCard || ""; document.getElementById('formName').value = st.name || ""; document.getElementById('formNickname').value = st.nickname || "";
                     if (document.getElementById('formDob')._flatpickr) document.getElementById('formDob')._flatpickr.setDate(st.dob || ""); else document.getElementById('formDob').value = st.dob || "";
                     document.getElementById('formGrade').value = st.grade || ""; document.getElementById('formTeacher').value = st.teacher || ""; document.getElementById('formCoTeacher').value = st.coTeacher || ""; document.getElementById('formCoTeacher2').value = st.coTeacher2 || "";
-                    document.getElementById('formCommuteType').value = st.commuteType || "ไป-กลับ"; document.getElementById('formDormitory').value = st.dormitory || ""; document.getElementById('formLearningSource').value = st.learningSource || "";
+                    document.getElementById('formCommuteType').value = (st.commuteType === 'อยู่ประจำ') ? 'อยู่ประจำ' : 'ไป-กลับ'; document.getElementById('formDormitory').value = st.dormitory || ""; document.getElementById('formLearningSource').value = st.learningSource || "";
                     setDiseaseInputValues(st.disease || ""); setMedicineInputValues(st.medicine || "");
                     document.getElementById('formAddress').value = st.address || ""; document.getElementById('formFatherName').value = st.fatherName || ""; document.getElementById('formFatherPhone').value = st.fatherPhone || "";
                     document.getElementById('formMotherName').value = st.motherName || ""; document.getElementById('formMotherPhone').value = st.motherPhone || ""; document.getElementById('formGuardianName').value = st.guardianName || ""; document.getElementById('formGuardianPhone').value = st.guardianPhone || ""; document.getElementById('formGuardianRelation').value = st.guardianRelation || "";
@@ -4483,21 +4480,20 @@
                 editMode.value = ""; idInput.readOnly = false; idInput.classList.remove('bg-gray-100', 'cursor-not-allowed'); document.getElementById('formCommuteType').value = "ไป-กลับ"; document.getElementById('formLearningSource').value = "";
                 setDiseaseInputValues(""); setMedicineInputValues("");
             }
+
             handleCommuteTypeChange();
-            document.getElementById('studentModal').classList.remove('hidden'); 
+            document.getElementById('studentModal').classList.remove('hidden');
         }
 
         function closeStudentModal() { document.getElementById('studentModal').classList.add('hidden'); }
 
         function handleCommuteTypeChange() {
-            const commuteType = document.getElementById('formCommuteType').value, gradeInput = document.getElementById('formGrade'), gradeLabel = document.getElementById('gradeLabelText');
-            if (commuteType === 'จบการศึกษา') {
-                gradeInput.required = false; gradeInput.placeholder = "ไม่ต้องระบุ";
-                if (gradeLabel) gradeLabel.innerHTML = 'ชั้นเรียน / ห้อง <span class="text-gray-400 font-normal">(ไม่ต้องระบุ)</span>';
-            } else {
-                gradeInput.required = true; gradeInput.placeholder = "เช่น ม.1/1";
-                if (gradeLabel) gradeLabel.innerHTML = 'ชั้นเรียน / ห้อง <span class="text-red-500">*</span>';
+            const gradeInput = document.getElementById('formGrade'), gradeLabel = document.getElementById('gradeLabelText');
+            if (gradeInput) {
+                gradeInput.required = true;
+                gradeInput.placeholder = "เช่น ม.1/1";
             }
+            if (gradeLabel) gradeLabel.innerHTML = 'ชั้นเรียน / ห้อง <span class="text-red-500">*</span>';
         }
 
         async function saveStudent(e) {
@@ -5951,8 +5947,7 @@
                 if (badgeCell) {
                     const attData = todayAttendanceStats[st.id], attStatus = attData ? (typeof attData === 'string' ? attData : attData.status) : null, attRemark = attData && typeof attData === 'object' && attData.remark ? attData.remark : '';
                     let attBadge = '';
-                    if (st.commuteType === 'จบการศึกษา') attBadge = '<span class="inline-flex bg-gray-200 text-gray-600 text-xs font-medium px-3 py-1 rounded-full whitespace-nowrap border border-gray-300"><i class="fas fa-graduation-cap mr-1 mt-0.5"></i>จบการศึกษา</span>';
-                    else if(attStatus === 'present' || attStatus === 'late') attBadge = '<span class="inline-flex bg-green-100 text-green-700 text-xs font-medium px-3 py-1 rounded-full whitespace-nowrap border border-green-200"><i class="fas fa-check-circle mr-1 mt-0.5"></i>มาเรียน</span>';
+                    if(attStatus === 'present' || attStatus === 'late') attBadge = '<span class="inline-flex bg-green-100 text-green-700 text-xs font-medium px-3 py-1 rounded-full whitespace-nowrap border border-green-200"><i class="fas fa-check-circle mr-1 mt-0.5"></i>มาเรียน</span>';
                     else if(attStatus === 'absent' || attStatus === 'leave') attBadge = '<span class="inline-flex bg-red-100 text-red-700 text-xs font-medium px-3 py-1 rounded-full whitespace-nowrap border border-red-200" title="' + attRemark + '"><i class="fas fa-times-circle mr-1 mt-0.5"></i>ไม่มาโรงเรียน' + (attRemark ? '<span class="ml-1 opacity-80">(' + attRemark + ')</span>' : '') + '</span>';
                     else if(attStatus === 'home') attBadge = '<span class="inline-flex bg-purple-100 text-purple-700 text-xs font-medium px-3 py-1 rounded-full whitespace-nowrap border border-purple-200" title="' + attRemark + '"><i class="fas fa-house-user mr-1 mt-0.5"></i>กลับบ้าน' + (attRemark ? '<span class="ml-1 opacity-80">(' + attRemark + ')</span>' : '') + '</span>';
                     else attBadge = '<span class="inline-flex bg-gray-100 text-gray-500 text-xs font-medium px-3 py-1 rounded-full whitespace-nowrap border border-gray-200">ยังไม่เช็คชื่อ</span>';
