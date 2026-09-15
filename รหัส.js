@@ -1160,8 +1160,9 @@ function saveStudentHealthRecord(recordObj) {
 }
 
 function deleteStudentHealthRecord(id, role) {
-  if (role && String(role).toLowerCase() !== 'admin') {
-    return JSON.stringify({ status: 'error', message: 'เฉพาะผู้ดูแลระบบ (Admin) เท่านั้นที่สามารถลบข้อมูลได้' });
+  const cleanRole = String(role || '').toLowerCase();
+  if (cleanRole !== 'admin' && cleanRole !== 'schoolhealth') {
+    return JSON.stringify({ status: 'error', message: 'เฉพาะผู้ดูแลระบบ (Admin) หรือเจ้าหน้าที่อนามัย (SchoolHealth) เท่านั้นที่สามารถลบข้อมูลได้' });
   }
   const cleanId = String(id || '').trim();
   if (!cleanId) {
