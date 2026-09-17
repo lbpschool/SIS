@@ -48,6 +48,10 @@
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://npmcdn.com/flatpickr/dist/l10n/th.js"></script>
 
+    <!-- Firebase App & Realtime Database (Compat v9) -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
     <script>
         tailwind.config = {
             theme: {
@@ -173,6 +177,8 @@
                     <a href="#" onclick="switchPage('teachers')" class="menu-item block px-4 py-2 rounded-md hover:bg-white/10 transition text-school-100 admin-only" data-page="teachers"><i class="fas fa-chalkboard-teacher w-6 text-purple-300"></i> ข้อมูลครูประจำชั้น</a>
                     <!-- เมนูตรวจสุขภาพนักเรียน (เห็นเฉพาะ Admin และ SchoolHealth) -->
                     <a href="#" onclick="switchPage('health')" class="menu-item block px-4 py-2 rounded-md hover:bg-white/10 transition text-school-100 health-only" data-page="health"><i class="fas fa-heartbeat w-6 text-emerald-300"></i> ตรวจสุขภาพนักเรียน</a>
+                    <!-- เมนูซิงค์ Firebase (เห็นเฉพาะ Admin) -->
+                    <a href="#" onclick="manualSyncFirebase()" class="menu-item block px-4 py-2 rounded-md hover:bg-white/10 transition text-amber-200 admin-only" title="ซิงค์ข้อมูลทั้งหมดไป Firebase"><i class="fas fa-bolt w-6 text-amber-300"></i> ซิงค์ไป Firebase</a>
                 </nav>
             </div>
             <div class="absolute bottom-0 w-full p-4 border-t border-white/10">
@@ -1784,6 +1790,38 @@
         };
 
         // =====================================================================
+        // 🔥 Firebase Realtime Database Configuration & Initialization
+        // =====================================================================
+        const FIREBASE_CONFIG = {
+            apiKey: "AIzaSyBl9XUMf3GB-HKBQAWVWzIqnl0p9LLoQv8",
+            authDomain: "sis-lop-system.firebaseapp.com",
+            databaseURL: "https://sis-lop-system-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "sis-lop-system",
+            storageBucket: "sis-lop-system.firebasestorage.app",
+            messagingSenderId: "576421221781",
+            appId: "1:576421221781:web:78be3ecf6e498a3bd5129c",
+            measurementId: "G-XNHR8PVMDZ"
+        };
+
+        let firebaseDb = null;
+        let isFirebaseReady = false;
+
+        try {
+            if (typeof firebase !== 'undefined') {
+                if (!firebase.apps || !firebase.apps.length) {
+                    firebase.initializeApp(FIREBASE_CONFIG);
+                }
+                firebaseDb = firebase.database();
+                isFirebaseReady = true;
+                console.log('[Firebase] Realtime Database initialized successfully ⚡');
+            }
+        } catch(e) {
+            console.warn('[Firebase] Init error, fallback to standard backend:', e);
+            isFirebaseReady = false;
+        }
+
+
+        // =====================================================================
         // โค้ดเชื่อมต่อ API แบบแก้ไขเรื่อง CORS (รองรับ GitHub Pages & Google Apps Script)
         // =====================================================================
         if (typeof google === 'undefined') {
@@ -1873,7 +1911,8 @@
                                 getInitialAppData: function(dateStr) { callAPI('getInitialAppData', {dateStr}, sHandler, fHandler); },
                                 getStudentHealthRecords: function(academicYear) { callAPI('getStudentHealthRecords', {academicYear}, sHandler, fHandler); },
                                 saveStudentHealthRecord: function(recordObj) { callAPI('saveStudentHealthRecord', {recordObj}, sHandler, fHandler); },
-                                deleteStudentHealthRecord: function(id, role) { callAPI('deleteStudentHealthRecord', {id, role: role || currentUserRole}, sHandler, fHandler); }
+                                deleteStudentHealthRecord: function(id, role) { callAPI('deleteStudentHealthRecord', {id, role: role || currentUserRole}, sHandler, fHandler); },
+                                syncAllSheetsToFirebase: function() { callAPI('syncAllSheetsToFirebase', {}, sHandler, fHandler); }
                             };
                         }
                     })()
@@ -2459,12 +2498,52 @@
             }
         }
 
-        // --- ฟังก์ชันใหม่ ดึงข้อมูลรวบยอดครั้งเดียว ---
+        // --- ฟังก์ชันใหม่ ดึงข้อมูลรวบยอดครั้งเดียว (ความเร็วระดับเสี้ยววินาทีด้วย Firebase RTDB) ---
         function fetchInitialDataFromServer() {
             const todayStr = document.getElementById('attendanceDate').value;
 
+            // 1. ลองอ่านจาก Firebase Realtime Database ก่อนทันที (~50-100ms)
+            if (isFirebaseReady && firebaseDb) {
+                firebaseDb.ref('/').once('value').then(function(snapshot) {
+                    const data = snapshot.val();
+                    if (data && data.students && Object.keys(data.students).length > 0) {
+                        const rawStudents = Array.isArray(data.students) ? data.students : Object.values(data.students);
+                        const rawTeachers = data.teachers ? (Array.isArray(data.teachers) ? data.teachers : Object.values(data.teachers)) : [];
+
+                        studentsList = rawStudents.filter(Boolean).map(formatStudentData);
+                        teachersList = rawTeachers.filter(Boolean).map(formatTeacherData);
+
+                        if (data.todayStats) todayAttendanceStats = data.todayStats;
+
+                        setCachedData(SIS_STORAGE_KEYS.STUDENTS, studentsList);
+                        setCachedData(SIS_STORAGE_KEYS.TEACHERS, teachersList);
+                        if (data.todayStats) setCachedData(SIS_STORAGE_KEYS.TODAY_STATS, todayAttendanceStats);
+                        if (data.weeklyStats) setCachedData(SIS_STORAGE_KEYS.WEEKLY_STATS, data.weeklyStats);
+
+                        populateClassDropdown();
+                        populateTeacherDatalist();
+                        updateDashboardStats(false);
+                        renderTeachers();
+                        if (data.weeklyStats) updateWeeklyChart(data.weeklyStats);
+                        renderHealthTable();
+                        console.log('[Firebase] ⚡ โหลดข้อมูลเริ่มต้นสำเร็จในระดับเสี้ยววินาที');
+
+                        setupFirebaseRealtimeListeners();
+                        return;
+                    }
+                    // ถ้า Firebase ยังไม่มีข้อมูล ให้ดึงจาก Google Sheets ตามเดิม
+                    fetchInitialDataFromGas(todayStr);
+                }).catch(function(err) {
+                    console.warn('[Firebase] Read error, fallback to GAS:', err);
+                    fetchInitialDataFromGas(todayStr);
+                });
+            } else {
+                fetchInitialDataFromGas(todayStr);
+            }
+        }
+
+        function fetchInitialDataFromGas(todayStr) {
             if (typeof google !== 'undefined' && google.script) {
-                // ถ้าระบบหลังบ้านมีฟังก์ชัน getInitialAppData (ที่ให้ไปวางใน Code.gs) ให้ใช้แบบเร็ว
                 if (google.script.run.getInitialAppData) {
                     google.script.run.withSuccessHandler(function(res) {
                         try {
@@ -2474,31 +2553,32 @@
                                 teachersList = parsed.teachers.map(formatTeacherData);
                                 todayAttendanceStats = parsed.todayStats;
                                 
-                                // บันทึกลง Cache ไว้ใช้รอบหน้า
                                 setCachedData(SIS_STORAGE_KEYS.STUDENTS, studentsList);
                                 setCachedData(SIS_STORAGE_KEYS.TEACHERS, teachersList);
                                 setCachedData(SIS_STORAGE_KEYS.TODAY_STATS, todayAttendanceStats);
                                 setCachedData(SIS_STORAGE_KEYS.WEEKLY_STATS, parsed.weeklyStats);
 
-                                // วาด UI ใหม่อีกครั้งเพื่ออัปเดตข้อมูลล่าสุดแบบแนบเนียน
                                 populateClassDropdown();
                                 populateTeacherDatalist();
                                 updateDashboardStats(false);
                                 renderTeachers();
                                 updateWeeklyChart(parsed.weeklyStats);
                                 renderHealthTable();
+
+                                // ซิงค์ก้อนนี้ขึ้น Firebase ทันที เพื่อให้รอบถัดไปเปิดได้ในเสี้ยววินาที
+                                if (isFirebaseReady && firebaseDb) {
+                                    autoSyncInitialDataToFirebase(parsed);
+                                }
                             }
                         } catch(e) {
                             console.warn('[Server] Error parsing initial app data:', e);
                         }
                     }).getInitialAppData(todayStr);
                 } else {
-                    // ระบบสำรอง หากไม่ได้อัปเดตหลังบ้าน
                     fetchStudentsData();
                     fetchTeachersData();
                 }
             } else {
-                // สำหรับ Mock Environment
                 setTimeout(() => { 
                     studentsList = getCachedData(SIS_STORAGE_KEYS.STUDENTS, initialMockStudents);
                     teachersList = getCachedData(SIS_STORAGE_KEYS.TEACHERS, []);
@@ -2509,6 +2589,104 @@
                 }, 800);
             }
         }
+
+        function autoSyncInitialDataToFirebase(parsed) {
+            try {
+                if (!isFirebaseReady || !firebaseDb) return;
+                const studentsMap = {};
+                (parsed.students || []).forEach(s => {
+                    const id = String(s.studentId || s.id || '').trim();
+                    if (id) {
+                        const copy = Object.assign({}, s);
+                        delete copy.faceDescriptor;
+                        studentsMap[id] = copy;
+                    }
+                });
+                const teachersMap = {};
+                (parsed.teachers || []).forEach(t => {
+                    const id = String(t.teacherId || t.id || '').trim();
+                    if (id) teachersMap[id] = t;
+                });
+
+                const updates = {};
+                if (Object.keys(studentsMap).length > 0) updates['students'] = studentsMap;
+                if (Object.keys(teachersMap).length > 0) updates['teachers'] = teachersMap;
+                if (parsed.todayStats) updates['todayStats'] = parsed.todayStats;
+                if (parsed.weeklyStats) updates['weeklyStats'] = parsed.weeklyStats;
+                updates['lastSyncTime'] = new Date().toISOString();
+
+                firebaseDb.ref('/').update(updates).then(() => {
+                    console.log('[Firebase] ⚡ Auto-seeded initial data to Firebase');
+                }).catch(e => console.warn('[Firebase Seed Error]', e));
+            } catch(e) {
+                console.warn('[Firebase AutoSeed Error]', e);
+            }
+        }
+
+        let hasSetupRealtimeListeners = false;
+        function setupFirebaseRealtimeListeners() {
+            if (hasSetupRealtimeListeners || !isFirebaseReady || !firebaseDb) return;
+            hasSetupRealtimeListeners = true;
+
+            // ฟัง event เมื่อมีการอัปเดตสถิติเช็คชื่อวันนี้ (Today Stats) ข้ามเครื่องแบบเรียลไทม์
+            firebaseDb.ref('todayStats').on('value', function(snap) {
+                const stats = snap.val();
+                if (stats && stats.totalActive !== undefined) {
+                    todayAttendanceStats = stats;
+                    setCachedData(SIS_STORAGE_KEYS.TODAY_STATS, stats);
+                    updateDashboardStats(false);
+                }
+            });
+        }
+
+        function manualSyncFirebase() {
+            Swal.fire({
+                title: 'ซิงค์ข้อมูลไป Firebase',
+                text: 'ระบบจะอ่านข้อมูลทั้งหมดจาก Google Sheets ปัจจุบัน และอัปเดตขึ้น Firebase Realtime Database',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#00a651',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: '⚡ ซิงค์ทันที',
+                cancelButtonText: 'ยกเลิก'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'กำลังซิงค์ข้อมูล...',
+                        text: 'กรุณารอสักครู่ ระบบกำลังส่งข้อมูลขึ้น Firebase',
+                        allowOutsideClick: false,
+                        didOpen: () => { Swal.showLoading(); }
+                    });
+
+                    if (typeof google !== 'undefined' && google.script && google.script.run) {
+                        google.script.run
+                            .withSuccessHandler(function(res) {
+                                try {
+                                    const parsed = typeof res === 'string' ? JSON.parse(res) : res;
+                                    if (parsed.status === 'success') {
+                                        Swal.fire({
+                                            icon: 'success',
+                                            title: 'ซิงค์สำเร็จ! ⚡',
+                                            text: parsed.message || 'ข้อมูลใน Firebase ได้รับการอัปเดตเรียบร้อยแล้ว',
+                                            confirmButtonColor: '#00a651'
+                                        });
+                                        fetchInitialDataFromServer();
+                                    } else {
+                                        Swal.fire('ข้อผิดพลาด', parsed.message || 'ไม่สามารถซิงค์ได้', 'error');
+                                    }
+                                } catch(e) {
+                                    Swal.fire('สำเร็จ', 'ดำเนินการซิงค์ข้อมูลเรียบร้อย', 'success');
+                                }
+                            })
+                            .withFailureHandler(function(err) {
+                                Swal.fire('เกิดข้อผิดพลาด', err.message || err.toString(), 'error');
+                            })
+                            .syncAllSheetsToFirebase();
+                    }
+                }
+            });
+        }
+
 
         // Helper ฟังก์ชันจัดฟอร์แมต (ลดโค้ดซ้ำซ้อน)
         function formatStudentData(p) {
@@ -4813,24 +4991,38 @@
                 if(radio) records.push({ studentId: st.id, status: radio.value, remark: remarkInput && !remarkInput.classList.contains('hidden') ? remarkInput.value.trim() : '' });
             });
 
+            // ⚡ 1. บันทึกลง Firebase Realtime Database ทันที (เสร็จใน ~50ms)
+            if (isFirebaseReady && firebaseDb) {
+                const safeClass = String(selectedClass).replace(/[\.\#\$\/\[\]]/g, '_');
+                firebaseDb.ref('attendance/' + selectedDate + '/' + safeClass).set(records);
+            }
+
+            // บันทึกแคช LocalStorage
+            let attData = JSON.parse(localStorage.getItem('sis_attendance')) || {};
+            if(!attData[selectedDate]) attData[selectedDate] = {};
+            records.forEach(function(r) { attData[selectedDate][r.studentId] = { status: r.status, remark: r.remark }; });
+            localStorage.setItem('sis_attendance', JSON.stringify(attData));
+
             if (typeof google !== 'undefined' && google.script) {
-                Swal.fire({ title: 'กำลังบันทึก...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
+                Swal.fire({ icon: 'success', title: 'บันทึกสำเร็จ ⚡', showConfirmButton: false, timer: 1200 });
+                updateDashboardStats();
+
+                // 2. ซิงค์ลง Google Sheets ในพื้นหลัง (Background Sync)
                 google.script.run
                     .withSuccessHandler(function(res) {
-                        const parsed = JSON.parse(res);
-                        if(parsed.status === 'success') {
-                            Swal.fire({ icon: 'success', title: 'บันทึกสำเร็จ', showConfirmButton: false, timer: 1500 });
-                            updateDashboardStats();
-                        } else { Swal.fire('เกิดข้อผิดพลาด', parsed.message, 'error'); }
+                        try {
+                            const parsed = JSON.parse(res);
+                            if(parsed.status === 'success') {
+                                updateDashboardStats();
+                            }
+                        } catch(e) {}
                     })
-                    .withFailureHandler(function(err) { Swal.fire('เกิดข้อผิดพลาด', err.message, 'error'); })
+                    .withFailureHandler(function(err) {
+                        console.warn('[Background Sync Attendance Error]', err);
+                    })
                     .saveAttendanceData(selectedDate, selectedClass, records);
             } else {
-                let attData = JSON.parse(localStorage.getItem('sis_attendance')) || {};
-                if(!attData[selectedDate]) attData[selectedDate] = {};
-                records.forEach(function(r) { attData[selectedDate][r.studentId] = { status: r.status, remark: r.remark }; });
-                localStorage.setItem('sis_attendance', JSON.stringify(attData));
-                Swal.fire({ icon: 'success', title: 'บันทึกสำเร็จ (โหมดจำลอง)', showConfirmButton: false, timer: 1500 });
+                Swal.fire({ icon: 'success', title: 'บันทึกสำเร็จ ⚡ (โหมดจำลอง)', showConfirmButton: false, timer: 1200 });
                 updateDashboardStats();
             }
         }
@@ -6266,6 +6458,32 @@
 
         function fetchHealthRecordsFromServer(year, callback) {
             year = year || currentHealthAcademicYear || '2568';
+
+            // 1. ลองดึงจาก Firebase Realtime Database ก่อนทันที (~50ms)
+            if (isFirebaseReady && firebaseDb) {
+                firebaseDb.ref('health/' + year).once('value').then(function(snap) {
+                    const data = snap.val();
+                    if (data && Object.keys(data).length > 0) {
+                        const records = Object.values(data);
+                        healthRecordsList = healthRecordsList.filter(r => String(r.academicYear) !== String(year)).concat(records);
+                        saveHealthRecordsToCache(year, records);
+                        healthLoadedYears.add(String(year));
+                        renderHealthTable();
+                        if (callback) callback(records);
+                        console.log('[Firebase] ⚡ โหลดข้อมูลตรวจสุขภาพเสร็จสิ้นในระดับเสี้ยววินาที');
+                        return;
+                    }
+                    fetchHealthRecordsFromGas(year, callback);
+                }).catch(function(err) {
+                    console.warn('[Firebase] Health fetch error, fallback to GAS:', err);
+                    fetchHealthRecordsFromGas(year, callback);
+                });
+            } else {
+                fetchHealthRecordsFromGas(year, callback);
+            }
+        }
+
+        function fetchHealthRecordsFromGas(year, callback) {
             if (typeof google !== 'undefined' && google.script && google.script.run) {
                 google.script.run
                     .withSuccessHandler(function(res) {
@@ -6276,6 +6494,17 @@
                                 saveHealthRecordsToCache(year, parsed.data);
                                 healthLoadedYears.add(String(year));
                                 renderHealthTable();
+
+                                // ซิงค์เข้า Firebase เพื่อให้ครั้งถัดไปเปิดได้ทันที
+                                if (isFirebaseReady && firebaseDb && parsed.data.length > 0) {
+                                    const hMap = {};
+                                    parsed.data.forEach(r => {
+                                        const recId = String(r.recordId || ('HL-' + year + '-' + r.studentId)).replace(/[\.\#\$\/\[\]]/g, '_');
+                                        hMap[recId] = r;
+                                    });
+                                    firebaseDb.ref('health/' + year).update(hMap);
+                                }
+
                                 if (callback) callback(parsed.data);
                             } else if (callback) {
                                 callback([]);
@@ -6750,6 +6979,12 @@
                 recordedBy: currentUserRole || 'SchoolHealth'
             };
 
+            // ⚡ 1. บันทึกลง Firebase Realtime Database ทันที (เสร็จใน ~50ms)
+            if (isFirebaseReady && firebaseDb) {
+                const safeRecId = String(recordObj.recordId).replace(/[\.\#\$\/\[\]]/g, '_');
+                firebaseDb.ref('health/' + academicYear + '/' + safeRecId).set(recordObj);
+            }
+
             Swal.fire({
                 title: 'กำลังบันทึกข้อมูล...',
                 text: 'กรุณารอสักครู่',
@@ -6773,7 +7008,7 @@
 
                                 Swal.fire({
                                     icon: 'success',
-                                    title: 'บันทึกสำเร็จ!',
+                                    title: 'บันทึกสำเร็จ! ⚡',
                                     text: 'บันทึกผลการตรวจสุขภาพเรียบร้อยแล้ว',
                                     confirmButtonColor: '#00a651'
                                 });
@@ -6854,6 +7089,12 @@
                 cancelButtonText: 'ยกเลิก'
             }).then(result => {
                 if (result.isConfirmed) {
+                    // ⚡ 1. ลบจาก Firebase Realtime Database ทันที
+                    if (isFirebaseReady && firebaseDb) {
+                        const safeRecId = String(recordId).replace(/[\.\#\$\/\[\]]/g, '_');
+                        firebaseDb.ref('health/' + currentHealthAcademicYear + '/' + safeRecId).remove();
+                    }
+
                     Swal.fire({
                         title: 'กำลังลบข้อมูล...',
                         allowOutsideClick: false,
@@ -6868,7 +7109,7 @@
                                     healthRecordsList = healthRecordsList.filter(r => String(r.recordId) !== String(recordId));
                                     saveHealthRecordsToCache(currentHealthAcademicYear, healthRecordsList.filter(r => String(r.academicYear) === String(currentHealthAcademicYear)));
                                     renderHealthTable();
-                                    Swal.fire('ลบสำเร็จ', 'ลบข้อมูลการตรวจสุขภาพเรียบร้อยแล้ว', 'success');
+                                    Swal.fire('ลบสำเร็จ ⚡', 'ลบข้อมูลการตรวจสุขภาพเรียบร้อยแล้ว', 'success');
                                 } else {
                                     Swal.fire('เกิดข้อผิดพลาด', parsed.message || 'ไม่สามารถลบข้อมูลได้', 'error');
                                 }

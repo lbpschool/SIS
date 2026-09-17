@@ -9,6 +9,9 @@ const SPREADSHEET_ID = '12vLCiBnEsYex9ATHjcMcbdtfC88OqMVA08avY6S_ohc'; // <--- �
 // วิธีหา ID: สร้างโฟลเดอร์ใน Google Drive ดับเบิ้ลคลิกเข้าไป แล้วก๊อปปี้รหัสยาวๆ จาก URL มาใส่
 const IMAGE_FOLDER_ID = '1Es7lkQN6QsUxs8J0a23Tcn59U-DTW-sx'; // <--- นำ ID โฟลเดอร์ใน Google Drive มาใส่ตรงนี้
 
+// 3. ตั้งค่า Firebase Realtime Database (ความเร็วสูง โหนดสิงคโปร์)
+const FIREBASE_DB_URL = 'https://sis-lop-system-default-rtdb.asia-southeast1.firebasedatabase.app';
+
 // กำหนดหัวคอลัมน์ที่ต้องการทั้งหมดสำหรับนักเรียน (เพิ่ม faceDescriptor)
 const EXPECTED_HEADERS = [
   'studentId', 'idCard', 'name', 'nickname', 'dob', 'grade', 
@@ -90,6 +93,7 @@ function doPost(e) {
       case 'autoCleanOldData14Days': result = JSON.parse(autoCleanOldData14Days()); break;
       case 'setupDailyCleanupTrigger': result = JSON.parse(setupDailyCleanupTrigger()); break;
       case 'uploadImageToDrive': result = JSON.parse(uploadImageToDrive(params.base64Data, params.fileName)); break;
+      case 'syncAllSheetsToFirebase': result = JSON.parse(syncAllSheetsToFirebase()); break;
       default: result = { status: 'error', message: 'Action not found: ' + action };
     }
     
@@ -155,6 +159,219 @@ function setupSheets() {
     healthSheet.getRange(1, 1, 1, HEALTH_HEADERS.length).setValues([HEALTH_HEADERS]);
   }
 }
+
+// =========================================================================
+// 🔥 เมนูและการเชื่อมต่อ Firebase Realtime Database
+// =========================================================================
+
+function onOpen() {
+  try {
+    SpreadsheetApp.getUi()
+      .createMenu('⚡ Firebase Sync')
+      .addItem('🚀 ซิงค์ข้อมูลทั้งหมดไป Firebase', 'syncAllSheetsToFirebase')
+      .addToUi();
+  } catch(e) {
+    console.warn('[onOpen Error]', e);
+  }
+}
+
+function firebasePut(path, data) {
+  try {
+    if (!FIREBASE_DB_URL) return false;
+    const cleanPath = String(path).replace(/^\/+/, '');
+    const url = FIREBASE_DB_URL + '/' + cleanPath + '.json';
+    const options = {
+      method: 'put',
+      contentType: 'application/json',
+      payload: JSON.stringify(data),
+      muteHttpExceptions: true
+    };
+    const res = UrlFetchApp.fetch(url, options);
+    return res.getResponseCode() >= 200 && res.getResponseCode() < 300;
+  } catch(e) {
+    console.warn('[Firebase Put Error]', path, e);
+    return false;
+  }
+}
+
+function firebasePatch(path, data) {
+  try {
+    if (!FIREBASE_DB_URL) return false;
+    const cleanPath = String(path).replace(/^\/+/, '');
+    const url = FIREBASE_DB_URL + '/' + cleanPath + '.json';
+    const options = {
+      method: 'patch',
+      contentType: 'application/json',
+      payload: JSON.stringify(data),
+      muteHttpExceptions: true
+    };
+    const res = UrlFetchApp.fetch(url, options);
+    return res.getResponseCode() >= 200 && res.getResponseCode() < 300;
+  } catch(e) {
+    console.warn('[Firebase Patch Error]', path, e);
+    return false;
+  }
+}
+
+function firebaseDelete(path) {
+  try {
+    if (!FIREBASE_DB_URL) return false;
+    const cleanPath = String(path).replace(/^\/+/, '');
+    const url = FIREBASE_DB_URL + '/' + cleanPath + '.json';
+    const options = {
+      method: 'delete',
+      muteHttpExceptions: true
+    };
+    const res = UrlFetchApp.fetch(url, options);
+    return res.getResponseCode() >= 200 && res.getResponseCode() < 300;
+  } catch(e) {
+    console.warn('[Firebase Delete Error]', path, e);
+    return false;
+  }
+}
+
+function firebaseGet(path) {
+  try {
+    if (!FIREBASE_DB_URL) return null;
+    const cleanPath = String(path).replace(/^\/+/, '');
+    const url = FIREBASE_DB_URL + '/' + cleanPath + '.json';
+    const res = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
+    if (res.getResponseCode() >= 200 && res.getResponseCode() < 300) {
+      return JSON.parse(res.getContentText());
+    }
+    return null;
+  } catch(e) {
+    console.warn('[Firebase Get Error]', path, e);
+    return null;
+  }
+}
+
+function syncAllSheetsToFirebase() {
+  try {
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+
+    // 1. ซิงค์ข้อมูลนักเรียน (Students)
+    const studentSheet = ss.getSheetByName('Students');
+    const sData = studentSheet ? studentSheet.getDataRange().getValues() : [];
+    const studentsMap = {};
+    if (sData.length > 1) {
+      const sHeaders = sData[0];
+      for (let i = 1; i < sData.length; i++) {
+        const row = sData[i];
+        const sId = String(row[0] || '').trim();
+        if (!sId) continue;
+        const obj = {};
+        for (let j = 0; j < sHeaders.length; j++) {
+          if (sHeaders[j] === 'faceDescriptor') continue; // ข้ามเวกเตอร์ใบหน้าเพื่อประหยัด bandwidth
+          obj[sHeaders[j]] = row[j];
+        }
+        obj.studentId = sId;
+        obj.id = sId;
+        studentsMap[sId] = obj;
+      }
+    }
+    firebasePut('students', studentsMap);
+
+    // 2. ซิงค์ข้อมูลครู (Teachers)
+    const teacherSheet = ss.getSheetByName('Teachers');
+    const tData = teacherSheet ? teacherSheet.getDataRange().getValues() : [];
+    const teachersMap = {};
+    if (tData.length > 1) {
+      const tHeaders = tData[0];
+      for (let i = 1; i < tData.length; i++) {
+        const row = tData[i];
+        const tId = String(row[0] || '').trim();
+        if (!tId) continue;
+        const obj = {};
+        for (let j = 0; j < tHeaders.length; j++) {
+          obj[tHeaders[j]] = row[j];
+        }
+        obj.teacherId = tId;
+        obj.id = tId;
+        teachersMap[tId] = obj;
+      }
+    }
+    firebasePut('teachers', teachersMap);
+
+    // 3. ซิงค์ข้อมูลเช็คชื่อ (Attendance)
+    const attSheet = ss.getSheetByName('Attendance');
+    const aData = attSheet ? attSheet.getDataRange().getValues() : [];
+    const attMap = {};
+    if (aData.length > 1) {
+      for (let i = 1; i < aData.length; i++) {
+        const row = aData[i];
+        const dateStr = fastFormatDate(row[0]);
+        const grade = String(row[1] || '').trim();
+        const studentId = String(row[2] || '').trim();
+        const status = String(row[3] || 'present');
+        const remark = String(row[4] || '');
+        if (!dateStr || !grade || !studentId) continue;
+        const safeGrade = grade.replace(/[\.\#\$\/\[\]]/g, '_');
+        if (!attMap[dateStr]) attMap[dateStr] = {};
+        if (!attMap[dateStr][safeGrade]) attMap[dateStr][safeGrade] = [];
+        attMap[dateStr][safeGrade].push({ studentId, status, remark });
+      }
+    }
+    firebasePut('attendance', attMap);
+
+    // 4. ซิงค์ข้อมูลตรวจสุขภาพ (StudentHealth)
+    const healthSheet = ss.getSheetByName('StudentHealth');
+    const hData = healthSheet ? healthSheet.getDataRange().getValues() : [];
+    const healthMap = {};
+    if (hData.length > 1) {
+      const hHeaders = hData[0];
+      const sIdIdx = hHeaders.indexOf('studentId');
+      const yearIdx = hHeaders.indexOf('academicYear');
+      const recIdIdx = hHeaders.indexOf('recordId');
+      for (let i = 1; i < hData.length; i++) {
+        const row = hData[i];
+        const studentId = sIdIdx > -1 ? String(row[sIdIdx]).trim() : '';
+        const year = yearIdx > -1 ? String(row[yearIdx]).trim() : '2568';
+        let recId = recIdIdx > -1 ? String(row[recIdIdx]).trim() : '';
+        if (!recId) recId = 'HLTH_' + studentId + '_' + year;
+        const safeRecId = recId.replace(/[\.\#\$\/\[\]]/g, '_');
+        const obj = {};
+        for (let j = 0; j < hHeaders.length; j++) {
+          obj[hHeaders[j]] = row[j];
+        }
+        if (!healthMap[year]) healthMap[year] = {};
+        healthMap[year][safeRecId] = obj;
+      }
+    }
+    firebasePut('health', healthMap);
+
+    // 5. คำนวณ TodayStats & WeeklyStats
+    const todayStr = fastFormatDate(new Date());
+    try {
+      const todayStatsRes = JSON.parse(getTodayAttendanceStats(todayStr));
+      if (todayStatsRes && todayStatsRes.status === 'success') {
+        firebasePut('todayStats', todayStatsRes);
+      }
+    } catch(e) {}
+
+    try {
+      const weeklyStatsRes = JSON.parse(getWeeklyAttendanceStats(todayStr));
+      if (weeklyStatsRes) {
+        firebasePut('weeklyStats', weeklyStatsRes);
+      }
+    } catch(e) {}
+
+    firebasePut('lastSyncTime', new Date().toISOString());
+
+    const resultMsg = 'ซิงค์ข้อมูลไป Firebase สำเร็จ: นักเรียน ' + Object.keys(studentsMap).length + ' คน, ครู ' + Object.keys(teachersMap).length + ' คน';
+    sendLog('Firebase Sync', resultMsg);
+    return JSON.stringify({ 
+      status: 'success', 
+      message: resultMsg,
+      studentCount: Object.keys(studentsMap).length,
+      teacherCount: Object.keys(teachersMap).length
+    });
+  } catch(e) {
+    console.warn('[Firebase Sync Error]', e);
+    return JSON.stringify({ status: 'error', message: e.message || e.toString() });
+  }
+}
+
 
 // ----------------------------------------------------
 // ฟังก์ชันดึงข้อมูลรวบยอด (Single-pass Read เร็วขึ้น 3-4 เท่าตอนโหลดหน้าเว็บ)
@@ -419,6 +636,15 @@ function saveStudentData(studentObj) {
       sendLog('Add Student', 'Added student ID: ' + studentId);
     }
     
+    // ซิงค์ไปยัง Firebase Realtime Database
+    try {
+      const studentClean = Object.assign({}, studentObj);
+      delete studentClean.faceDescriptor;
+      firebasePut('students/' + studentId, studentClean);
+    } catch(fbErr) {
+      console.warn('[Firebase Sync Student Error]', fbErr);
+    }
+
     return JSON.stringify({status: 'success'});
   } catch(e) {
     return JSON.stringify({status: 'error', message: e.message});
@@ -445,6 +671,11 @@ function deleteStudentData(id, role) {
       if (String(data[i][0]) === cleanId) {
         sheet.deleteRow(i + 1);
         sendLog('Delete Student', 'Deleted student ID: ' + cleanId);
+        try {
+          firebaseDelete('students/' + cleanId);
+        } catch(fbErr) {
+          console.warn('[Firebase Delete Student Error]', fbErr);
+        }
         return JSON.stringify({status: 'success'});
       }
     }
@@ -599,6 +830,14 @@ function saveTeacherData(teacherObj) {
     }
     
     updateStudentTeachers(teacherObj);
+
+    // ซิงค์ไปยัง Firebase Realtime Database
+    try {
+      firebasePut('teachers/' + teacherId, teacherObj);
+    } catch(fbErr) {
+      console.warn('[Firebase Sync Teacher Error]', fbErr);
+    }
+
     return JSON.stringify({status: 'success'});
   } catch(e) {
     return JSON.stringify({status: 'error', message: e.message});
@@ -625,6 +864,11 @@ function deleteTeacherData(id, role) {
       if (String(data[i][0]) === cleanId) {
         sheet.deleteRow(i + 1);
         sendLog('Delete Teacher', 'Deleted teacher ID: ' + cleanId);
+        try {
+          firebaseDelete('teachers/' + cleanId);
+        } catch(fbErr) {
+          console.warn('[Firebase Delete Teacher Error]', fbErr);
+        }
         return JSON.stringify({status: 'success'});
       }
     }
@@ -751,6 +995,19 @@ function saveAttendanceData(dateStr, grade, records) {
     }
     
     sendLog('Save Attendance', `Saved attendance for class ${grade} on ${dateStr}`);
+
+    // ซิงค์ไปยัง Firebase Realtime Database
+    try {
+      const safeGrade = targetGrade.replace(/[\.\#\$\/\[\]]/g, '_');
+      firebasePut('attendance/' + targetDate + '/' + safeGrade, records || []);
+      const stats = JSON.parse(getTodayAttendanceStats(targetDate));
+      if (stats && stats.status === 'success') {
+        firebasePut('todayStats', stats);
+      }
+    } catch(fbErr) {
+      console.warn('[Firebase Sync Attendance Error]', fbErr);
+    }
+
     return JSON.stringify({status: 'success'});
   } catch(e) {
     return JSON.stringify({status: 'error', message: e.message});
@@ -1149,6 +1406,14 @@ function saveStudentHealthRecord(recordObj) {
       sheet.appendRow(rowValues);
       sendLog('Add Health Record', 'Added health record for student: ' + targetStudentId + ' (ปี ' + targetYear + ')');
     }
+
+    // ซิงค์ไปยัง Firebase Realtime Database
+    try {
+      const safeRecId = String(recordObj.recordId).replace(/[\.\#\$\/\[\]]/g, '_');
+      firebasePut('health/' + targetYear + '/' + safeRecId, recordObj);
+    } catch(fbErr) {
+      console.warn('[Firebase Sync Health Error]', fbErr);
+    }
     
     return JSON.stringify({ status: 'success', record: recordObj });
   } catch(e) {
@@ -1179,11 +1444,19 @@ function deleteStudentHealthRecord(id, role) {
     const data = sheet.getDataRange().getValues();
     const headers = data[0];
     const idIdx = headers.indexOf('recordId');
+    const yearIdx = headers.indexOf('academicYear');
     
     for (let i = 1; i < data.length; i++) {
       if (String(data[i][idIdx]).trim() === cleanId) {
+        const recYear = yearIdx > -1 ? String(data[i][yearIdx]).trim() : '2568';
         sheet.deleteRow(i + 1);
         sendLog('Delete Health Record', 'Deleted health record ID: ' + cleanId);
+        try {
+          const safeRecId = cleanId.replace(/[\.\#\$\/\[\]]/g, '_');
+          firebaseDelete('health/' + recYear + '/' + safeRecId);
+        } catch(fbErr) {
+          console.warn('[Firebase Delete Health Error]', fbErr);
+        }
         return JSON.stringify({ status: 'success' });
       }
     }
