@@ -3640,23 +3640,48 @@
                 document.getElementById('attendanceClassStats').classList.add('hidden');
             }
 
-            if (typeof google !== 'undefined' && google.script) {
-                google.script.run
-                    .withSuccessHandler(function(res) {
-                        const parsed = JSON.parse(res);
-                        if(parsed.status === 'success') renderAttendanceTable(selectedClass, selectedDate, parsed.data);
-                        else { 
-                            Swal.fire('เกิดข้อผิดพลาด', parsed.message, 'error'); 
-                            document.getElementById('attendanceTableBody').innerHTML = '<tr><td colspan="2" class="text-center py-6 text-red-500">ดึงข้อมูลล้มเหลว</td></tr>'; 
-                        }
-                    })
-                    .withFailureHandler(function(err) { 
-                        Swal.fire('การเชื่อมต่อขัดข้อง', err.message, 'error'); 
-                        document.getElementById('attendanceTableBody').innerHTML = '';
-                    })
-                    .getAttendanceData(selectedDate, selectedClass);
+            const safeClass = String(selectedClass).replace(/[\.\#\$\/\[\]]/g, '_');
+
+            // ⚡ ดึงข้อมูลจาก Firebase Realtime Database ก่อนเสมอ เพื่อความรวดเร็วระดับเสี้ยววินาที
+            if (isFirebaseReady && firebaseDb) {
+                firebaseDb.ref('attendance/' + selectedDate + '/' + safeClass).once('value').then(function(snap) {
+                    const records = snap.val();
+                    if (records && Array.isArray(records) && records.length > 0) {
+                        const dataMap = {};
+                        records.forEach(function(r) {
+                            if (r && r.studentId) dataMap[r.studentId] = { status: r.status, remark: r.remark || '' };
+                        });
+                        renderAttendanceTable(selectedClass, selectedDate, dataMap);
+                        return;
+                    }
+                    fetchFromGoogleSheets();
+                }).catch(function(err) {
+                    console.warn('[Firebase fetchAttendance Notice]', err);
+                    fetchFromGoogleSheets();
+                });
             } else {
-                setTimeout(function() { renderAttendanceTable(selectedClass, selectedDate, resolveMockAttendance(selectedDate, selectedClass)); }, 800);
+                fetchFromGoogleSheets();
+            }
+
+            function fetchFromGoogleSheets() {
+                if (typeof google !== 'undefined' && google.script && google.script.run) {
+                    google.script.run
+                        .withSuccessHandler(function(res) {
+                            const parsed = JSON.parse(res);
+                            if(parsed.status === 'success') renderAttendanceTable(selectedClass, selectedDate, parsed.data);
+                            else { 
+                                Swal.fire('เกิดข้อผิดพลาด', parsed.message, 'error'); 
+                                document.getElementById('attendanceTableBody').innerHTML = '<tr><td colspan="2" class="text-center py-6 text-red-500">ดึงข้อมูลล้มเหลว</td></tr>'; 
+                            }
+                        })
+                        .withFailureHandler(function(err) { 
+                            Swal.fire('การเชื่อมต่อขัดข้อง', err.message, 'error'); 
+                            document.getElementById('attendanceTableBody').innerHTML = '';
+                        })
+                        .getAttendanceData(selectedDate, selectedClass);
+                } else {
+                    setTimeout(function() { renderAttendanceTable(selectedClass, selectedDate, resolveMockAttendance(selectedDate, selectedClass)); }, 600);
+                }
             }
         }
 
@@ -4979,8 +5004,10 @@
         
         function saveAttendance() {
             const panel = document.getElementById('saveAttendancePanel');
-            const selectedDate = panel.dataset.date, selectedClass = panel.dataset.class;
-            if(!selectedDate) return;
+            const saveBtn = panel ? panel.querySelector('button') : null;
+            const selectedDate = panel ? panel.dataset.date : null;
+            const selectedClass = panel ? panel.dataset.class : null;
+            if(!selectedDate || !selectedClass) return;
 
             const studentsInClass = studentsList.filter(function(s) { return s.grade === selectedClass && s.commuteType !== 'จบการศึกษา'; });
             let records = [];
@@ -4991,39 +5018,80 @@
                 if(radio) records.push({ studentId: st.id, status: radio.value, remark: remarkInput && !remarkInput.classList.contains('hidden') ? remarkInput.value.trim() : '' });
             });
 
+            // ปรับสถานะปุ่มขณะบันทึก ป้องกันการกดซ้ำซ้อน
+            const originalBtnHtml = saveBtn ? saveBtn.innerHTML : '';
+            if (saveBtn) {
+                saveBtn.disabled = true;
+                saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> กำลังบันทึก...';
+            }
+
             // ⚡ 1. บันทึกลง Firebase Realtime Database ทันที (เสร็จใน ~50ms)
             if (isFirebaseReady && firebaseDb) {
                 const safeClass = String(selectedClass).replace(/[\.\#\$\/\[\]]/g, '_');
                 firebaseDb.ref('attendance/' + selectedDate + '/' + safeClass).set(records);
             }
 
-            // บันทึกแคช LocalStorage
+            // ⚡ 2. บันทึกแคช LocalStorage
             let attData = JSON.parse(localStorage.getItem('sis_attendance')) || {};
             if(!attData[selectedDate]) attData[selectedDate] = {};
             records.forEach(function(r) { attData[selectedDate][r.studentId] = { status: r.status, remark: r.remark }; });
             localStorage.setItem('sis_attendance', JSON.stringify(attData));
 
-            if (typeof google !== 'undefined' && google.script) {
-                Swal.fire({ icon: 'success', title: 'บันทึกสำเร็จ ⚡', showConfirmButton: false, timer: 1200 });
-                updateDashboardStats();
+            // ⚡ 3. อัปเดต in-memory todayAttendanceStats ทันที เพื่อให้การ์ดและแดชบอร์ดสะท้อนยอดทันที
+            if (!todayAttendanceStats) todayAttendanceStats = {};
+            records.forEach(function(r) {
+                todayAttendanceStats[r.studentId] = { status: r.status, remark: r.remark };
+            });
+            localStorage.setItem('sis_todaystats_cache', JSON.stringify(todayAttendanceStats));
+            updateDashboardStats(false);
 
-                // 2. ซิงค์ลง Google Sheets ในพื้นหลัง (Background Sync)
-                google.script.run
-                    .withSuccessHandler(function(res) {
-                        try {
-                            const parsed = JSON.parse(res);
-                            if(parsed.status === 'success') {
-                                updateDashboardStats();
+            // คืนค่าปุ่มหลังบันทึก
+            setTimeout(function() {
+                if (saveBtn) {
+                    saveBtn.disabled = false;
+                    saveBtn.innerHTML = originalBtnHtml || '<i class="fas fa-save mr-2"></i> บันทึกการเช็คชื่อ';
+                }
+            }, 600);
+
+            // แสดง Toast แจ้งเตือนความสำเร็จแบบ Realtime ทันที
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'success',
+                title: 'บันทึกการเช็คชื่อสำเร็จ ⚡',
+                showConfirmButton: false,
+                timer: 1800
+            });
+
+            // 4. ซิงค์ลง Google Sheets ในพื้นหลัง พร้อม Auto-Retry
+            if (typeof google !== 'undefined' && google.script && google.script.run) {
+                let retryCount = 0;
+                function syncToSheets() {
+                    google.script.run
+                        .withSuccessHandler(function(res) {
+                            try {
+                                const parsed = JSON.parse(res);
+                                if(parsed && parsed.status === 'success') {
+                                    console.log('[Attendance] Sheets sync completed successfully for', selectedClass);
+                                } else {
+                                    console.warn('[Attendance] Sheets sync notice:', parsed ? parsed.message : 'Unknown');
+                                    if (retryCount < 1) {
+                                        retryCount++;
+                                        setTimeout(syncToSheets, 2500);
+                                    }
+                                }
+                            } catch(e) {}
+                        })
+                        .withFailureHandler(function(err) {
+                            console.warn('[Attendance] Background sync error:', err);
+                            if (retryCount < 1) {
+                                retryCount++;
+                                setTimeout(syncToSheets, 2500);
                             }
-                        } catch(e) {}
-                    })
-                    .withFailureHandler(function(err) {
-                        console.warn('[Background Sync Attendance Error]', err);
-                    })
-                    .saveAttendanceData(selectedDate, selectedClass, records);
-            } else {
-                Swal.fire({ icon: 'success', title: 'บันทึกสำเร็จ ⚡ (โหมดจำลอง)', showConfirmButton: false, timer: 1200 });
-                updateDashboardStats();
+                        })
+                        .saveAttendanceData(selectedDate, selectedClass, records);
+                }
+                syncToSheets();
             }
         }
 
@@ -5033,17 +5101,107 @@
 
             Swal.fire({ title: 'กำลังตรวจสอบ...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
 
-            if (typeof google !== 'undefined' && google.script) {
+            let checkedClassesSet = new Set();
+
+            // 1. อ่านข้อมูลจาก LocalStorage ก่อน
+            try {
+                let attData = JSON.parse(localStorage.getItem('sis_attendance')) || {};
+                let localToday = attData[selectedDate] || {};
+                studentsList.forEach(function(st) {
+                    if (localToday[st.id] && st.grade && st.grade !== '-') {
+                        checkedClassesSet.add(st.grade);
+                    }
+                });
+            } catch(e) {}
+
+            function finalizeCheck() {
+                processMissingAttendance(Array.from(checkedClassesSet), selectedDate);
+            }
+
+            // 2. ดึงจาก Firebase Realtime Database ทันที (เร็วระดับ 50-150ms)
+            if (isFirebaseReady && firebaseDb) {
+                firebaseDb.ref('attendance/' + selectedDate).once('value').then(function(snap) {
+                    const fbData = snap.val();
+                    if (fbData && typeof fbData === 'object') {
+                        Object.keys(fbData).forEach(function(safeKey) {
+                            studentsList.forEach(function(s) {
+                                if (s.grade && s.grade !== '-') {
+                                    const safe = String(s.grade).replace(/[\.\#\$\/\[\]]/g, '_');
+                                    if (safe === safeKey) checkedClassesSet.add(s.grade);
+                                }
+                            });
+                        });
+                    }
+
+                    // ดึง Google Sheets เสริมควบคู่ (พร้อม Timeout 2 วินาที ป้องกันหน้าจอหมุนค้าง)
+                    if (typeof google !== 'undefined' && google.script && google.script.run) {
+                        let isDone = false;
+                        const timeoutTimer = setTimeout(function() {
+                            if (!isDone) {
+                                isDone = true;
+                                finalizeCheck();
+                            }
+                        }, 2000);
+
+                        google.script.run
+                            .withSuccessHandler(function(res) {
+                                if (!isDone) {
+                                    isDone = true;
+                                    clearTimeout(timeoutTimer);
+                                    try {
+                                        const sheetClasses = JSON.parse(res) || [];
+                                        sheetClasses.forEach(function(c) { if (c) checkedClassesSet.add(c); });
+                                    } catch(err) {}
+                                    finalizeCheck();
+                                }
+                            })
+                            .withFailureHandler(function(err) {
+                                if (!isDone) {
+                                    isDone = true;
+                                    clearTimeout(timeoutTimer);
+                                    finalizeCheck();
+                                }
+                            })
+                            .getCheckedClassesForDate(selectedDate);
+                    } else {
+                        finalizeCheck();
+                    }
+                }).catch(function(fbErr) {
+                    console.warn('[Firebase checkMissingAttendance Error]', fbErr);
+                    // Fallback ไป Google Sheets กรณี Firebase มีปัญหา
+                    if (typeof google !== 'undefined' && google.script && google.script.run) {
+                        google.script.run
+                            .withSuccessHandler(function(res) {
+                                try {
+                                    const sheetClasses = JSON.parse(res) || [];
+                                    sheetClasses.forEach(function(c) { if (c) checkedClassesSet.add(c); });
+                                } catch(err) {}
+                                finalizeCheck();
+                            })
+                            .withFailureHandler(function(err) {
+                                Swal.fire('การเชื่อมต่อขัดข้อง', err.message, 'error');
+                            })
+                            .getCheckedClassesForDate(selectedDate);
+                    } else {
+                        finalizeCheck();
+                    }
+                });
+            } else if (typeof google !== 'undefined' && google.script && google.script.run) {
+                // กรณีไม่มี Firebase ให้ดึงจาก Google Sheets
                 google.script.run
-                    .withSuccessHandler(function(res) { processMissingAttendance(JSON.parse(res), selectedDate); })
-                    .withFailureHandler(function(err) { Swal.fire('การเชื่อมต่อขัดข้อง', err.message, 'error'); })
+                    .withSuccessHandler(function(res) {
+                        try {
+                            const sheetClasses = JSON.parse(res) || [];
+                            sheetClasses.forEach(function(c) { if (c) checkedClassesSet.add(c); });
+                        } catch(err) {}
+                        finalizeCheck();
+                    })
+                    .withFailureHandler(function(err) {
+                        Swal.fire('การเชื่อมต่อขัดข้อง', err.message, 'error');
+                    })
                     .getCheckedClassesForDate(selectedDate);
             } else {
-                let attData = JSON.parse(localStorage.getItem('sis_attendance')) || {}, checkedClasses = [], todayData = attData[selectedDate] || {};
-                studentsList.forEach(function(st) {
-                    if (todayData[st.id] && st.grade && st.grade !== '-' && !checkedClasses.includes(st.grade)) checkedClasses.push(st.grade);
-                });
-                setTimeout(function() { processMissingAttendance(checkedClasses, selectedDate); }, 500);
+                setTimeout(finalizeCheck, 300);
             }
         }
 

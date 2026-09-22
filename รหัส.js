@@ -962,7 +962,8 @@ function getAttendanceData(dateStr, grade) {
 function saveAttendanceData(dateStr, grade, records) {
   const lock = LockService.getScriptLock();
   try {
-    lock.waitLock(10000);
+    // ขยายเวลา Lock Timeout เป็น 30 วินาที เพื่อรองรับการบันทึกพร้อมกันของครูหลายห้อง
+    lock.waitLock(30000);
     const targetDate = fastFormatDate(dateStr);
     const targetGrade = String(grade || "").trim();
     const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('Attendance');
@@ -994,6 +995,9 @@ function saveAttendanceData(dateStr, grade, records) {
       sheet.getRange(newDataToKeep.length + 1, 1, oldLength - newDataToKeep.length, newDataToKeep[0].length).clearContent();
     }
     
+    // บังคับบันทึกลง Google Sheets ทันที เพื่อให้คำขอถัดไปเห็นข้อมูลทันที
+    SpreadsheetApp.flush();
+
     sendLog('Save Attendance', `Saved attendance for class ${grade} on ${dateStr}`);
 
     // ซิงค์ไปยัง Firebase Realtime Database
@@ -1018,13 +1022,17 @@ function saveAttendanceData(dateStr, grade, records) {
 
 function getCheckedClassesForDate(dateStr) {
   try {
+    const targetDate = fastFormatDate(dateStr);
     const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('Attendance');
     const data = sheet.getDataRange().getValues();
     const classes = new Set();
     
     for (let i = 1; i < data.length; i++) {
       let rowDate = fastFormatDate(data[i][0]);
-      if (rowDate === dateStr) classes.add(data[i][1]);
+      if (rowDate === targetDate) {
+        const g = String(data[i][1] || '').trim();
+        if (g && g !== '-') classes.add(g);
+      }
     }
     return JSON.stringify(Array.from(classes));
   } catch(e) {
