@@ -600,9 +600,8 @@ function getStudents() {
 }
 
 function saveStudentData(studentObj) {
-  if (!studentObj || typeof studentObj !== 'object') {
-    return JSON.stringify({status: 'error', message: 'ข้อมูลนักเรียนไม่ถูกต้อง'});
-  }
+  if (!studentObj) return JSON.stringify({status: 'error', message: 'No student data provided'});
+  
   const studentId = String(studentObj.studentId || '').trim();
   if (!studentId) {
     return JSON.stringify({status: 'error', message: 'กรุณาระบุรหัสนักเรียน'});
@@ -610,8 +609,11 @@ function saveStudentData(studentObj) {
   studentObj.studentId = studentId;
 
   const lock = LockService.getScriptLock();
+  let lockAcquired = false;
   try {
-    lock.waitLock(10000);
+    // ขยายเวลา Lock Timeout เป็น 30 วินาที เพื่อรองรับการเข้าคิว
+    lock.waitLock(30000);
+    lockAcquired = true;
     const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('Students');
     const data = sheet.getDataRange().getValues();
     let rowIndex = -1;
@@ -636,21 +638,26 @@ function saveStudentData(studentObj) {
       sendLog('Add Student', 'Added student ID: ' + studentId);
     }
     
-    // ซิงค์ไปยัง Firebase Realtime Database
-    try {
-      const studentClean = Object.assign({}, studentObj);
-      delete studentClean.faceDescriptor;
-      firebasePut('students/' + studentId, studentClean);
-    } catch(fbErr) {
-      console.warn('[Firebase Sync Student Error]', fbErr);
-    }
-
-    return JSON.stringify({status: 'success'});
+    // บังคับบันทึกลง Google Sheets ทันที
+    SpreadsheetApp.flush();
   } catch(e) {
     return JSON.stringify({status: 'error', message: e.message});
   } finally {
-    try { lock.releaseLock(); } catch(err) {}
+    if (lockAcquired) {
+      try { lock.releaseLock(); } catch(err) {}
+    }
   }
+
+  // ซิงค์ไปยัง Firebase Realtime Database (ทำนอกบล็อก lock เพื่อคืน lock ให้คำขออื่นทันที!)
+  try {
+    const studentClean = Object.assign({}, studentObj);
+    delete studentClean.faceDescriptor;
+    firebasePut('students/' + studentId, studentClean);
+  } catch(fbErr) {
+    console.warn('[Firebase Sync Student Error]', fbErr);
+  }
+
+  return JSON.stringify({status: 'success'});
 }
 
 function deleteStudentData(id, role) {
@@ -663,28 +670,41 @@ function deleteStudentData(id, role) {
   }
 
   const lock = LockService.getScriptLock();
+  let lockAcquired = false;
+  let deleted = false;
   try {
-    lock.waitLock(10000);
+    lock.waitLock(30000);
+    lockAcquired = true;
     const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('Students');
     const data = sheet.getDataRange().getValues();
     for (let i = 1; i < data.length; i++) {
       if (String(data[i][0]) === cleanId) {
         sheet.deleteRow(i + 1);
+        SpreadsheetApp.flush();
         sendLog('Delete Student', 'Deleted student ID: ' + cleanId);
-        try {
-          firebaseDelete('students/' + cleanId);
-        } catch(fbErr) {
-          console.warn('[Firebase Delete Student Error]', fbErr);
-        }
-        return JSON.stringify({status: 'success'});
+        deleted = true;
+        break;
       }
     }
-    return JSON.stringify({status: 'error', message: 'ไม่พบข้อมูลนักเรียนรหัสนี้'});
+    if (!deleted) {
+      return JSON.stringify({status: 'error', message: 'ไม่พบข้อมูลนักเรียนรหัสนี้'});
+    }
   } catch(e) {
     return JSON.stringify({status: 'error', message: e.message});
   } finally {
-    try { lock.releaseLock(); } catch(err) {}
+    if (lockAcquired) {
+      try { lock.releaseLock(); } catch(err) {}
+    }
   }
+
+  // ลบใน Firebase Realtime Database นอกบล็อก lock
+  try {
+    firebaseDelete('students/' + cleanId);
+  } catch(fbErr) {
+    console.warn('[Firebase Delete Student Error]', fbErr);
+  }
+
+  return JSON.stringify({status: 'success'});
 }
 
 function batchSaveFaceDescriptors(descriptorMap) {
@@ -793,18 +813,19 @@ function getTeachers() {
 }
 
 function saveTeacherData(teacherObj) {
-  if (!teacherObj || typeof teacherObj !== 'object') {
-    return JSON.stringify({status: 'error', message: 'ข้อมูลครูไม่ถูกต้อง'});
-  }
-  const teacherId = String(teacherObj.teacherId || '').trim();
+  if (!teacherObj) return JSON.stringify({status: 'error', message: 'No teacher data provided'});
+  
+  const teacherId = String(teacherObj.teacherId || teacherObj.id || '').trim();
   if (!teacherId) {
     return JSON.stringify({status: 'error', message: 'กรุณาระบุรหัสครู'});
   }
   teacherObj.teacherId = teacherId;
 
   const lock = LockService.getScriptLock();
+  let lockAcquired = false;
   try {
-    lock.waitLock(10000);
+    lock.waitLock(30000);
+    lockAcquired = true;
     const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('Teachers');
     const data = sheet.getDataRange().getValues();
     let rowIndex = -1;
@@ -830,20 +851,23 @@ function saveTeacherData(teacherObj) {
     }
     
     updateStudentTeachers(teacherObj);
-
-    // ซิงค์ไปยัง Firebase Realtime Database
-    try {
-      firebasePut('teachers/' + teacherId, teacherObj);
-    } catch(fbErr) {
-      console.warn('[Firebase Sync Teacher Error]', fbErr);
-    }
-
-    return JSON.stringify({status: 'success'});
+    SpreadsheetApp.flush();
   } catch(e) {
     return JSON.stringify({status: 'error', message: e.message});
   } finally {
-    try { lock.releaseLock(); } catch(err) {}
+    if (lockAcquired) {
+      try { lock.releaseLock(); } catch(err) {}
+    }
   }
+
+  // ซิงค์ไปยัง Firebase Realtime Database นอกบล็อก lock
+  try {
+    firebasePut('teachers/' + teacherId, teacherObj);
+  } catch(fbErr) {
+    console.warn('[Firebase Sync Teacher Error]', fbErr);
+  }
+
+  return JSON.stringify({status: 'success'});
 }
 
 function deleteTeacherData(id, role) {
@@ -856,28 +880,40 @@ function deleteTeacherData(id, role) {
   }
 
   const lock = LockService.getScriptLock();
+  let lockAcquired = false;
+  let deleted = false;
   try {
-    lock.waitLock(10000);
+    lock.waitLock(30000);
+    lockAcquired = true;
     const sheet = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('Teachers');
     const data = sheet.getDataRange().getValues();
     for (let i = 1; i < data.length; i++) {
       if (String(data[i][0]) === cleanId) {
         sheet.deleteRow(i + 1);
+        SpreadsheetApp.flush();
         sendLog('Delete Teacher', 'Deleted teacher ID: ' + cleanId);
-        try {
-          firebaseDelete('teachers/' + cleanId);
-        } catch(fbErr) {
-          console.warn('[Firebase Delete Teacher Error]', fbErr);
-        }
-        return JSON.stringify({status: 'success'});
+        deleted = true;
+        break;
       }
     }
-    return JSON.stringify({status: 'error', message: 'ไม่พบข้อมูลครูรหัสนี้'});
+    if (!deleted) {
+      return JSON.stringify({status: 'error', message: 'ไม่พบข้อมูลครูรหัสนี้'});
+    }
   } catch(e) {
     return JSON.stringify({status: 'error', message: e.message});
   } finally {
-    try { lock.releaseLock(); } catch(err) {}
+    if (lockAcquired) {
+      try { lock.releaseLock(); } catch(err) {}
+    }
   }
+
+  try {
+    firebaseDelete('teachers/' + cleanId);
+  } catch(fbErr) {
+    console.warn('[Firebase Delete Teacher Error]', fbErr);
+  }
+
+  return JSON.stringify({status: 'success'});
 }
 
 function updateStudentTeachers(teacherObj) {
@@ -892,10 +928,17 @@ function updateStudentTeachers(teacherObj) {
   const targetColIdx = headers.indexOf(teacherColName);
   if (gradeIdx === -1 || targetColIdx === -1) return;
 
+  const targetGrade = teacherObj.assignedClass.trim();
+  let updatedAny = false;
   for (let i = 1; i < data.length; i++) {
-    if (data[i][gradeIdx] === teacherObj.assignedClass.trim()) {
-      studentSheet.getRange(i + 1, targetColIdx + 1).setValue(teacherObj.name);
+    if (String(data[i][gradeIdx] || '').trim() === targetGrade) {
+      data[i][targetColIdx] = teacherObj.name;
+      updatedAny = true;
     }
+  }
+  // เขียนอัปเดตแบบ Batch ทั้งชุด รวดเร็ว ไม่วนลูปทีละช่อง
+  if (updatedAny && data.length > 1) {
+    studentSheet.getRange(1, 1, data.length, data[0].length).setValues(data);
   }
 }
 
@@ -1369,8 +1412,10 @@ function getStudentHealthRecords(academicYear) {
 
 function saveStudentHealthRecord(recordObj) {
   const lock = LockService.getScriptLock();
+  let lockAcquired = false;
   try {
-    lock.waitLock(15000);
+    lock.waitLock(30000);
+    lockAcquired = true;
     if (!recordObj || !recordObj.studentId || !recordObj.academicYear) {
       return JSON.stringify({ status: 'error', message: 'กรุณาระบุรหัสนักเรียนและปีการศึกษา' });
     }
@@ -1414,22 +1459,27 @@ function saveStudentHealthRecord(recordObj) {
       sheet.appendRow(rowValues);
       sendLog('Add Health Record', 'Added health record for student: ' + targetStudentId + ' (ปี ' + targetYear + ')');
     }
-
-    // ซิงค์ไปยัง Firebase Realtime Database
-    try {
-      const safeRecId = String(recordObj.recordId).replace(/[\.\#\$\/\[\]]/g, '_');
-      firebasePut('health/' + targetYear + '/' + safeRecId, recordObj);
-    } catch(fbErr) {
-      console.warn('[Firebase Sync Health Error]', fbErr);
-    }
     
-    return JSON.stringify({ status: 'success', record: recordObj });
+    SpreadsheetApp.flush();
   } catch(e) {
     console.warn('[Health] saveStudentHealthRecord error:', e);
     return JSON.stringify({ status: 'error', message: e.message || e.toString() });
   } finally {
-    try { lock.releaseLock(); } catch(err) {}
+    if (lockAcquired) {
+      try { lock.releaseLock(); } catch(err) {}
+    }
   }
+
+  // ซิงค์ไปยัง Firebase Realtime Database นอกบล็อก lock
+  try {
+    const targetYear = String(recordObj.academicYear).trim();
+    const safeRecId = String(recordObj.recordId).replace(/[\.\#\$\/[\]]/g, '_');
+    firebasePut('health/' + targetYear + '/' + safeRecId, recordObj);
+  } catch(fbErr) {
+    console.warn('[Firebase Sync Health Error]', fbErr);
+  }
+  
+  return JSON.stringify({ status: 'success', record: recordObj });
 }
 
 function deleteStudentHealthRecord(id, role) {
@@ -1443,8 +1493,12 @@ function deleteStudentHealthRecord(id, role) {
   }
   
   const lock = LockService.getScriptLock();
+  let lockAcquired = false;
+  let recYear = '2568';
+  let deleted = false;
   try {
-    lock.waitLock(10000);
+    lock.waitLock(30000);
+    lockAcquired = true;
     const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
     const sheet = ss.getSheetByName('StudentHealth');
     if (!sheet) return JSON.stringify({ status: 'error', message: 'ไม่พบชีตข้อมูลสุขภาพ' });
@@ -1456,22 +1510,31 @@ function deleteStudentHealthRecord(id, role) {
     
     for (let i = 1; i < data.length; i++) {
       if (String(data[i][idIdx]).trim() === cleanId) {
-        const recYear = yearIdx > -1 ? String(data[i][yearIdx]).trim() : '2568';
+        recYear = yearIdx > -1 ? String(data[i][yearIdx]).trim() : '2568';
         sheet.deleteRow(i + 1);
+        SpreadsheetApp.flush();
         sendLog('Delete Health Record', 'Deleted health record ID: ' + cleanId);
-        try {
-          const safeRecId = cleanId.replace(/[\.\#\$\/\[\]]/g, '_');
-          firebaseDelete('health/' + recYear + '/' + safeRecId);
-        } catch(fbErr) {
-          console.warn('[Firebase Delete Health Error]', fbErr);
-        }
-        return JSON.stringify({ status: 'success' });
+        deleted = true;
+        break;
       }
     }
-    return JSON.stringify({ status: 'error', message: 'ไม่พบข้อมูลบันทึกรหัสนี้' });
+    if (!deleted) {
+      return JSON.stringify({ status: 'error', message: 'ไม่พบข้อมูลบันทึกรหัสนี้' });
+    }
   } catch(e) {
     return JSON.stringify({ status: 'error', message: e.message });
   } finally {
-    try { lock.releaseLock(); } catch(err) {}
+    if (lockAcquired) {
+      try { lock.releaseLock(); } catch(err) {}
+    }
   }
+
+  try {
+    const safeRecId = cleanId.replace(/[\.\#\$\/[\]]/g, '_');
+    firebaseDelete('health/' + recYear + '/' + safeRecId);
+  } catch(fbErr) {
+    console.warn('[Firebase Delete Health Error]', fbErr);
+  }
+
+  return JSON.stringify({ status: 'success' });
 }

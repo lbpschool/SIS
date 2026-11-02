@@ -3827,6 +3827,12 @@
 
         function closeTeacherModal() { document.getElementById('teacherModal').classList.add('hidden'); }
 
+        function isLockTimeoutError(msg) {
+            if (!msg) return false;
+            const str = String(msg).toLowerCase();
+            return str.includes('ล็อก') || str.includes('lock') || str.includes('timed out') || str.includes('timeout');
+        }
+
         function saveTeacher(e) {
             e.preventDefault();
             const btnSave = document.getElementById('btnSaveTeacher');
@@ -3847,24 +3853,51 @@
 
             if(btnSave) { btnSave.disabled = true; btnSave.classList.add('opacity-50', 'cursor-not-allowed'); }
 
+            // ⚡ ซิงค์ลง Firebase Realtime Database ทันทีเพื่อความรวดเร็ว
+            if (isFirebaseReady && firebaseDb) {
+                try {
+                    const tid = String(teacherObj.teacherId || teacherObj.id || '').trim();
+                    if (tid) firebaseDb.ref('teachers/' + tid).set(teacherObj);
+                } catch(fbErr) {
+                    console.warn('[Firebase Sync Teacher Direct]', fbErr);
+                }
+            }
+
             if (typeof google !== 'undefined' && google.script) {
-                Swal.fire({ title: 'กำลังบันทึก...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
-                google.script.run
-                    .withSuccessHandler(function(res) {
-                        if(btnSave) { btnSave.disabled = false; btnSave.classList.remove('opacity-50', 'cursor-not-allowed'); }
-                        let parsed = JSON.parse(res);
-                        if(parsed.status === 'success') {
-                            Swal.fire({ icon: 'success', title: 'บันทึกสำเร็จ', showConfirmButton: false, timer: 1500 });
-                            fetchTeachersData(); 
-                            fetchStudentsData(); 
-                            closeTeacherModal();
-                        } else { Swal.fire('เกิดข้อผิดพลาด', parsed.message, 'error'); }
-                    })
-                    .withFailureHandler(function(err) {
-                        if(btnSave) { btnSave.disabled = false; btnSave.classList.remove('opacity-50', 'cursor-not-allowed'); }
-                        Swal.fire('เกิดข้อผิดพลาด', err.message, 'error');
-                    })
-                    .saveTeacherData(teacherObj);
+                function executeSaveTeacher(retryCount) {
+                    if (retryCount === 0) {
+                        Swal.fire({ title: 'กำลังบันทึก...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
+                    } else {
+                        Swal.fire({ title: 'ระบบกำลังเข้าคิวบันทึกซ้ำ...', text: 'กำลังลองใหม่อีกครั้ง (รอบที่ ' + retryCount + '/2)...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
+                    }
+                    google.script.run
+                        .withSuccessHandler(function(res) {
+                            if(btnSave) { btnSave.disabled = false; btnSave.classList.remove('opacity-50', 'cursor-not-allowed'); }
+                            let parsed = (typeof res === 'string') ? JSON.parse(res) : res;
+                            if(parsed.status === 'success') {
+                                Swal.fire({ icon: 'success', title: 'บันทึกสำเร็จ', showConfirmButton: false, timer: 1500 });
+                                fetchTeachersData(); 
+                                fetchStudentsData(); 
+                                closeTeacherModal();
+                            } else if (isLockTimeoutError(parsed.message) && retryCount < 2) {
+                                console.warn('[Lock Timeout] Retrying saveTeacher...', retryCount + 1);
+                                setTimeout(function() { executeSaveTeacher(retryCount + 1); }, 1500);
+                            } else { 
+                                Swal.fire('เกิดข้อผิดพลาด', parsed.message, 'error'); 
+                            }
+                        })
+                        .withFailureHandler(function(err) {
+                            if (isLockTimeoutError(err.message) && retryCount < 2) {
+                                console.warn('[Lock Timeout Failure] Retrying saveTeacher...', retryCount + 1);
+                                setTimeout(function() { executeSaveTeacher(retryCount + 1); }, 1500);
+                            } else {
+                                if(btnSave) { btnSave.disabled = false; btnSave.classList.remove('opacity-50', 'cursor-not-allowed'); }
+                                Swal.fire('เกิดข้อผิดพลาด', err.message, 'error');
+                            }
+                        })
+                        .saveTeacherData(teacherObj);
+                }
+                executeSaveTeacher(0);
             } else {
                 if(btnSave) { btnSave.disabled = false; btnSave.classList.remove('opacity-50', 'cursor-not-allowed'); }
                 if (editId) {
@@ -3907,27 +3940,54 @@
                 cancelButtonText: 'ยกเลิก'
             }).then(function(result) {
                 if (result.isConfirmed) {
-                    if (typeof google !== 'undefined' && google.script) {
-                        Swal.fire({ title: 'กำลังลบ...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
-                        google.script.run
-                            .withSuccessHandler(function(res) {
-                                let parsed = JSON.parse(res);
-                                if(parsed.status === 'success') {
-                                    Swal.fire({ icon: 'success', title: 'ลบข้อมูลสำเร็จ', showConfirmButton: false, timer: 1500 });
-                                    fetchTeachersData();
-                                } else { Swal.fire('เกิดข้อผิดพลาด', parsed.message, 'error'); }
-                            })
-                            .withFailureHandler(function(err) { Swal.fire('เกิดข้อผิดพลาด', err.message, 'error'); })
-                            .deleteTeacherData(id);
-                    } else {
-                        teachersList = teachersList.filter(function(t) { return t.id !== id; });
-                        setCachedData(SIS_STORAGE_KEYS.TEACHERS, teachersList);
-                        renderTeachers();
-                        populateTeacherDatalist();
-                        Swal.fire('สำเร็จ!', 'ลบข้อมูลแล้ว (โหมดจำลอง)', 'success');
-                    }
+                    performDeleteTeacher(id, 0);
                 }
             });
+        }
+
+        function performDeleteTeacher(id, retryCount) {
+            // ⚡ ลบจาก Firebase ทันที
+            if (isFirebaseReady && firebaseDb) {
+                try {
+                    firebaseDb.ref('teachers/' + id).remove();
+                } catch(fbErr) {
+                    console.warn('[Firebase Delete Teacher Direct]', fbErr);
+                }
+            }
+
+            if (typeof google !== 'undefined' && google.script) {
+                if (retryCount === 0) {
+                    Swal.fire({ title: 'กำลังลบ...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
+                } else {
+                    Swal.fire({ title: 'ระบบกำลังเข้าคิวลบซ้ำ...', text: 'กำลังลองใหม่อีกครั้ง (รอบที่ ' + retryCount + '/2)...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
+                }
+                google.script.run
+                    .withSuccessHandler(function(res) {
+                        let parsed = (typeof res === 'string') ? JSON.parse(res) : res;
+                        if(parsed.status === 'success') {
+                            Swal.fire({ icon: 'success', title: 'ลบข้อมูลสำเร็จ', showConfirmButton: false, timer: 1500 });
+                            fetchTeachersData();
+                        } else if (isLockTimeoutError(parsed.message) && retryCount < 2) {
+                            setTimeout(function() { performDeleteTeacher(id, retryCount + 1); }, 1500);
+                        } else { 
+                            Swal.fire('เกิดข้อผิดพลาด', parsed.message, 'error'); 
+                        }
+                    })
+                    .withFailureHandler(function(err) { 
+                        if (isLockTimeoutError(err.message) && retryCount < 2) {
+                            setTimeout(function() { performDeleteTeacher(id, retryCount + 1); }, 1500);
+                        } else { 
+                            Swal.fire('เกิดข้อผิดพลาด', err.message, 'error'); 
+                        }
+                    })
+                    .deleteTeacherData(id);
+            } else {
+                teachersList = teachersList.filter(function(t) { return t.id !== id; });
+                setCachedData(SIS_STORAGE_KEYS.TEACHERS, teachersList);
+                renderTeachers();
+                populateTeacherDatalist();
+                Swal.fire('สำเร็จ!', 'ลบข้อมูลแล้ว (โหมดจำลอง)', 'success');
+            }
         }
 
         function logout() {
@@ -4746,16 +4806,51 @@
             saveStudentDataAPI(studentObj, editId);
         }
 
-        function saveStudentDataAPI(studentObj, editId) {
+        function saveStudentDataAPI(studentObj, editId, retryCount = 0) {
+            // ⚡ ซิงค์ลง Firebase Realtime Database ทันทีเพื่อความเร็วระดับเรียลไทม์
+            if (isFirebaseReady && firebaseDb) {
+                try {
+                    const studentClean = Object.assign({}, studentObj);
+                    delete studentClean.faceDescriptor;
+                    const sid = String(studentClean.id || studentClean.studentId || '').trim();
+                    if (sid) firebaseDb.ref('students/' + sid).set(studentClean);
+                } catch(e) {
+                    console.warn('[Firebase Sync Student Direct]', e);
+                }
+            }
+
             if (typeof google !== 'undefined' && google.script) {
-                Swal.fire({ title: 'กำลังบันทึกข้อมูล...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
+                if (retryCount === 0) {
+                    Swal.fire({ title: 'กำลังบันทึกข้อมูล...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
+                } else {
+                    Swal.fire({ title: 'ระบบกำลังเข้าคิวบันทึกซ้ำ...', text: 'กำลังลองใหม่อีกครั้ง (รอบที่ ' + retryCount + '/2)...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
+                }
                 google.script.run
                     .withSuccessHandler(function(res) {
-                        let parsed = JSON.parse(res);
-                        if(parsed.status === 'success') { Swal.fire({ icon: 'success', title: 'บันทึกข้อมูลสำเร็จ', showConfirmButton: false, timer: 1500 }); fetchStudentsData(); closeStudentModal(); } 
-                        else { Swal.fire('เกิดข้อผิดพลาด', parsed.message, 'error'); }
+                        let parsed = (typeof res === 'string') ? JSON.parse(res) : res;
+                        if(parsed.status === 'success') { 
+                            Swal.fire({ icon: 'success', title: 'บันทึกข้อมูลสำเร็จ', showConfirmButton: false, timer: 1500 }); 
+                            fetchStudentsData(); 
+                            closeStudentModal(); 
+                        } else if (isLockTimeoutError(parsed.message) && retryCount < 2) {
+                            console.warn('[Lock Timeout] Retrying saveStudentDataAPI...', retryCount + 1);
+                            setTimeout(function() {
+                                saveStudentDataAPI(studentObj, editId, retryCount + 1);
+                            }, 1500);
+                        } else { 
+                            Swal.fire('เกิดข้อผิดพลาด', parsed.message, 'error'); 
+                        }
                     })
-                    .withFailureHandler(function(err) { Swal.fire('เกิดข้อผิดพลาด', err.message, 'error'); })
+                    .withFailureHandler(function(err) { 
+                        if (isLockTimeoutError(err.message) && retryCount < 2) {
+                            console.warn('[Lock Timeout Failure] Retrying saveStudentDataAPI...', retryCount + 1);
+                            setTimeout(function() {
+                                saveStudentDataAPI(studentObj, editId, retryCount + 1);
+                            }, 1500);
+                        } else {
+                            Swal.fire('เกิดข้อผิดพลาด', err.message, 'error'); 
+                        }
+                    })
                     .saveStudentData(studentObj);
             } else {
                 if (editId) { const index = studentsList.findIndex(function(s) { return s.id === editId; }); if(index !== -1) studentsList[index] = studentObj; } 
@@ -4769,23 +4864,52 @@
             Swal.fire({ title: 'ยืนยันการลบ?', text: "คุณต้องการลบข้อมูลนักเรียนรหัส " + id + " ใช่หรือไม่", icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', cancelButtonColor: '#3085d6', confirmButtonText: 'ลบข้อมูล', cancelButtonText: 'ยกเลิก' })
             .then(function(result) {
                 if (result.isConfirmed) {
-                    if (typeof google !== 'undefined' && google.script) {
-                        Swal.fire({ title: 'กำลังลบข้อมูล...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
-                        google.script.run
-                            .withSuccessHandler(function(res) {
-                                let parsed = JSON.parse(res);
-                                if(parsed.status === 'success') { Swal.fire('สำเร็จ!', 'ลบข้อมูลออกจากระบบแล้ว', 'success'); fetchStudentsData(); } 
-                                else { Swal.fire('เกิดข้อผิดพลาด', parsed.message, 'error'); }
-                            })
-                            .withFailureHandler(function(err) { Swal.fire('เกิดข้อผิดพลาด', err.message, 'error'); })
-                            .deleteStudentData(id);
-                    } else {
-                        studentsList = studentsList.filter(function(s) { return s.id !== id; });
-                        saveStudentsToLocalStorage(); renderStudents();
-                        Swal.fire('สำเร็จ!', 'ลบข้อมูลออกจากระบบแล้ว (โหมดจำลอง)', 'success');
-                    }
+                    performDeleteStudent(id, 0);
                 }
             });
+        }
+
+        function performDeleteStudent(id, retryCount) {
+            // ⚡ ลบจาก Firebase ทันที
+            if (isFirebaseReady && firebaseDb) {
+                try {
+                    firebaseDb.ref('students/' + id).remove();
+                } catch(e) {
+                    console.warn('[Firebase Delete Student Direct]', e);
+                }
+            }
+
+            if (typeof google !== 'undefined' && google.script) {
+                if (retryCount === 0) {
+                    Swal.fire({ title: 'กำลังลบข้อมูล...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
+                } else {
+                    Swal.fire({ title: 'ระบบกำลังเข้าคิวลบซ้ำ...', text: 'กำลังลองใหม่อีกครั้ง (รอบที่ ' + retryCount + '/2)...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); }});
+                }
+                google.script.run
+                    .withSuccessHandler(function(res) {
+                        let parsed = (typeof res === 'string') ? JSON.parse(res) : res;
+                        if(parsed.status === 'success') { 
+                            Swal.fire('สำเร็จ!', 'ลบข้อมูลออกจากระบบแล้ว', 'success'); 
+                            fetchStudentsData(); 
+                        } else if (isLockTimeoutError(parsed.message) && retryCount < 2) {
+                            setTimeout(function() { performDeleteStudent(id, retryCount + 1); }, 1500);
+                        } else { 
+                            Swal.fire('เกิดข้อผิดพลาด', parsed.message, 'error'); 
+                        }
+                    })
+                    .withFailureHandler(function(err) { 
+                        if (isLockTimeoutError(err.message) && retryCount < 2) {
+                            setTimeout(function() { performDeleteStudent(id, retryCount + 1); }, 1500);
+                        } else { 
+                            Swal.fire('เกิดข้อผิดพลาด', err.message, 'error'); 
+                        }
+                    })
+                    .deleteStudentData(id);
+            } else {
+                studentsList = studentsList.filter(function(s) { return s.id !== id; });
+                saveStudentsToLocalStorage(); renderStudents();
+                Swal.fire('สำเร็จ!', 'ลบข้อมูลออกจากระบบแล้ว (โหมดจำลอง)', 'success');
+            }
         }
 
         let cardZoomLevel = 100;
