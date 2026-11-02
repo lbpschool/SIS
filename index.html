@@ -223,7 +223,8 @@
                     </div>
                     <!-- Stats Cards: สถิติรวมและแยกเพศ -->
                     <!-- Stats Cards: สถิติรวม 6 การ์ดขนาดกะทัดรัด ตัวอักษรใหญ่ชัดเจนเต็มการ์ดทุกอุปกรณ์ (Mobile / iPad / Desktop) -->
-                    <div class="grid grid-cols-2 min-[540px]:grid-cols-3 xl:grid-cols-6 gap-2.5 sm:gap-3 mb-4 sm:mb-6">
+                    <!-- Stats Cards แถวที่ 1: สถิติรวมและยอดมาเรียน -->
+                    <div class="grid grid-cols-2 min-[540px]:grid-cols-3 xl:grid-cols-6 gap-2.5 sm:gap-3 mb-2.5 sm:mb-3">
                         
                         <!-- การ์ดที่ 1: นักเรียนทั้งหมด -->
                         <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg sm:rounded-xl shadow-xs p-2.5 sm:p-3 relative overflow-hidden flex flex-col justify-center min-h-[66px] sm:min-h-[74px]">
@@ -290,7 +291,43 @@
                                 <p class="text-[11px] min-[375px]:text-xs sm:text-sm md:text-base font-bold text-teal-50 leading-tight">ไป-กลับ<span class="hidden sm:inline"> (มาเรียนวันนี้)</span></p>
                             </div>
                         </div>
+                    </div>
 
+                    <!-- Stats Cards แถวที่ 2: สถิติการลา/ขาด/กลับบ้าน 3 การ์ด แยกชาย-หญิง -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3 mb-4 sm:mb-6">
+                        
+                        <!-- การ์ดที่ 7: ลา/ขาด/กลับบ้าน รวม -->
+                        <div class="bg-gradient-to-br from-rose-500 to-red-600 rounded-lg sm:rounded-xl shadow-xs p-2.5 sm:p-3 relative overflow-hidden flex flex-col justify-center min-h-[66px] sm:min-h-[74px]">
+                            <i class="fas fa-user-times absolute -bottom-1 -right-1 text-3xl sm:text-4xl text-white opacity-15 transform -rotate-12"></i>
+                            <div class="relative z-10">
+                                <h3 class="text-xs min-[350px]:text-sm min-[375px]:text-base sm:text-xl md:text-2xl xl:text-[1.35rem] font-extrabold text-white tracking-tight drop-shadow-xs leading-none mb-1 whitespace-nowrap" id="statTotalAbsent">
+                                    <div class="h-5 sm:h-6 bg-white/30 rounded w-14 sm:w-20 animate-pulse"></div>
+                                </h3>
+                                <p class="text-[11px] min-[375px]:text-xs sm:text-sm md:text-base font-bold text-rose-100 leading-tight">ลา/ขาด/กลับบ้าน รวม</p>
+                            </div>
+                        </div>
+
+                        <!-- การ์ดที่ 8: ลา/ขาด/กลับบ้าน ชาย -->
+                        <div class="bg-gradient-to-br from-indigo-500 to-blue-700 rounded-lg sm:rounded-xl shadow-xs p-2.5 sm:p-3 relative overflow-hidden flex flex-col justify-center min-h-[66px] sm:min-h-[74px]">
+                            <i class="fas fa-male absolute -bottom-1 -right-1 text-3xl sm:text-4xl text-white opacity-15 transform -rotate-12"></i>
+                            <div class="relative z-10">
+                                <h3 class="text-xs min-[350px]:text-sm min-[375px]:text-base sm:text-xl md:text-2xl xl:text-[1.35rem] font-extrabold text-white tracking-tight drop-shadow-xs leading-none mb-1 whitespace-nowrap" id="statMaleAbsent">
+                                    <div class="h-5 sm:h-6 bg-white/30 rounded w-14 sm:w-20 animate-pulse"></div>
+                                </h3>
+                                <p class="text-[11px] min-[375px]:text-xs sm:text-sm md:text-base font-bold text-indigo-100 leading-tight">ลา/ขาด/กลับบ้าน (ชาย)</p>
+                            </div>
+                        </div>
+
+                        <!-- การ์ดที่ 9: ลา/ขาด/กลับบ้าน หญิง -->
+                        <div class="bg-gradient-to-br from-fuchsia-500 to-pink-600 rounded-lg sm:rounded-xl shadow-xs p-2.5 sm:p-3 relative overflow-hidden flex flex-col justify-center min-h-[66px] sm:min-h-[74px]">
+                            <i class="fas fa-female absolute -bottom-1 -right-1 text-3xl sm:text-4xl text-white opacity-15 transform -rotate-12"></i>
+                            <div class="relative z-10">
+                                <h3 class="text-xs min-[350px]:text-sm min-[375px]:text-base sm:text-xl md:text-2xl xl:text-[1.35rem] font-extrabold text-white tracking-tight drop-shadow-xs leading-none mb-1 whitespace-nowrap" id="statFemaleAbsent">
+                                    <div class="h-5 sm:h-6 bg-white/30 rounded w-14 sm:w-20 animate-pulse"></div>
+                                </h3>
+                                <p class="text-[11px] min-[375px]:text-xs sm:text-sm md:text-base font-bold text-fuchsia-100 leading-tight">ลา/ขาด/กลับบ้าน (หญิง)</p>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Charts: กราฟระดับชั้น และ การเข้าเรียน -->
@@ -3089,6 +3126,24 @@
             
             const statDayElem = document.getElementById('statDayPresent');
             if(statDayElem) statDayElem.innerText = dayPresentCount + '/' + totalDayActive + ' คน (' + dayPercent + '%)';
+
+            // ⚡ [เพิ่มใหม่] คำนวณสถิติลา/ขาด/กลับบ้าน (รวม, ชาย, หญิง)
+            const totalAbsent = activeStudents.length - presentCount;
+            const maleAbsent = totalMaleActive - malePresentCount;
+            const femaleAbsent = totalFemaleActive - femalePresentCount;
+
+            const totalAbsentPercent = activeStudents.length > 0 ? Math.round((totalAbsent / activeStudents.length) * 100) : 0;
+            const maleAbsentPercent = totalMaleActive > 0 ? Math.round((maleAbsent / totalMaleActive) * 100) : 0;
+            const femaleAbsentPercent = totalFemaleActive > 0 ? Math.round((femaleAbsent / totalFemaleActive) * 100) : 0;
+
+            const statTotalAbsentElem = document.getElementById('statTotalAbsent');
+            if(statTotalAbsentElem) statTotalAbsentElem.innerText = totalAbsent + '/' + activeStudents.length + ' คน (' + totalAbsentPercent + '%)';
+
+            const statMaleAbsentElem = document.getElementById('statMaleAbsent');
+            if(statMaleAbsentElem) statMaleAbsentElem.innerText = maleAbsent + '/' + totalMaleActive + ' คน (' + maleAbsentPercent + '%)';
+
+            const statFemaleAbsentElem = document.getElementById('statFemaleAbsent');
+            if(statFemaleAbsentElem) statFemaleAbsentElem.innerText = femaleAbsent + '/' + totalFemaleActive + ' คน (' + femaleAbsentPercent + '%)';
         }
 
         function updateGradeCards() {
@@ -6469,7 +6524,9 @@
             });
             
             const totalPresent = malePresent + femalePresent;
-            const absentCount = totalStudents - totalPresent;
+            const maleAbsent = totalMale - malePresent;
+            const femaleAbsent = totalFemale - femalePresent;
+            const absentCount = maleAbsent + femaleAbsent;
 
             const reportText = `📋 รายงานข้อมูลนักเรียนและการมาเรียน\n📅 ประจำวันที่: ${reportDate}\n\n` +
                                `👥 จำนวนนักเรียนทั้งหมด: ${totalStudents} คน\n` +
@@ -6478,7 +6535,9 @@
                                `✅ มาเรียนรวมทั้งสิ้น: ${totalPresent} คน\n` +
                                `  - นักเรียนชาย: ${malePresent} คน\n` +
                                `  - นักเรียนหญิง: ${femalePresent} คน\n\n` +
-                               `❌ ลา/ขาด/กลับบ้าน: ${absentCount} คน`;
+                               `❌ ลา/ขาด/กลับบ้านรวม: ${absentCount} คน\n` +
+                               `  - นักเรียนชาย: ${maleAbsent} คน\n` +
+                               `  - นักเรียนหญิง: ${femaleAbsent} คน`;
 
             const textArea = document.createElement("textarea");
             textArea.value = reportText;
