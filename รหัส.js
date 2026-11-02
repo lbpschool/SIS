@@ -86,6 +86,7 @@ function doPost(e) {
       case 'deleteTeacherData': result = JSON.parse(deleteTeacherData(params.id)); break;
       case 'saveStudentData': result = JSON.parse(saveStudentData(params.studentObj)); break;
       case 'deleteStudentData': result = JSON.parse(deleteStudentData(params.id, params.role)); break;
+      case 'removeDuplicateStudentRow': result = JSON.parse(removeDuplicateStudentRow()); break;
       case 'batchSaveFaceDescriptors': result = JSON.parse(batchSaveFaceDescriptors(params.descriptorMap)); break;
       case 'getFaceDescriptors': result = JSON.parse(getFaceDescriptors()); break;
       case 'getStudentHealthRecords': result = JSON.parse(getStudentHealthRecords(params.academicYear)); break;
@@ -277,6 +278,59 @@ function firebaseGet(path) {
     console.warn('[Firebase Get Error]', path, e);
     return null;
   }
+}
+
+function removeDuplicateStudentRow() {
+  const lock = LockService.getScriptLock();
+  let lockAcquired = false;
+  let deletedRow = -1;
+  let deletedName = '';
+  try {
+    lock.waitLock(30000);
+    lockAcquired = true;
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const sheet = ss.getSheetByName('Students');
+    if (!sheet) return JSON.stringify({ status: 'error', message: 'ไม่พบชีต Students' });
+    
+    const data = sheet.getDataRange().getValues();
+    for (let i = 1; i < data.length; i++) {
+      const sid = String(data[i][0]).trim();
+      const sname = String(data[i][2]).trim();
+      // ระบุแถวเฉพาะ เด็กชายปัณวิชย์ ทัดเทียม (ย์ + ท)
+      if (sid === '1532' && sname.indexOf('ทัดเทียม') > -1) {
+        deletedRow = i + 1;
+        deletedName = sname;
+        sheet.deleteRow(deletedRow);
+        SpreadsheetApp.flush();
+        sendLog('Delete Duplicate Student', 'Deleted duplicate row: ' + deletedRow + ' (' + deletedName + ')');
+        break;
+      }
+    }
+    
+    if (deletedRow === -1) {
+      return JSON.stringify({ status: 'error', message: 'ไม่พบแถวนักเรียนที่ต้องการลบในชีต' });
+    }
+  } catch(e) {
+    return JSON.stringify({ status: 'error', message: e.message });
+  } finally {
+    if (lockAcquired) {
+      try { lock.releaseLock(); } catch(err) {}
+    }
+  }
+  
+  // ซิงค์ฐานข้อมูลทั้งหมดขึ้น Firebase Realtime Database
+  try {
+    syncAllSheetsToFirebase();
+  } catch(syncErr) {
+    console.warn('[Sync After Duplicate Removal Error]', syncErr);
+  }
+  
+  return JSON.stringify({ 
+    status: 'success', 
+    deletedRow: deletedRow, 
+    deletedName: deletedName,
+    message: 'ลบแถวซ้ำ ' + deletedName + ' เรียบร้อย และซิงค์ขึ้น Firebase เรียบร้อย' 
+  });
 }
 
 function syncAllSheetsToFirebase() {
