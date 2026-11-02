@@ -51,6 +51,7 @@
     <!-- Firebase App & Realtime Database (Compat v9) -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 
     <script>
         tailwind.config = {
@@ -1813,6 +1814,19 @@
                 }
                 firebaseDb = firebase.database();
                 isFirebaseReady = true;
+
+                // 🛡️ ลงชื่อเข้าใช้แบบ Anonymous เพื่อสิทธิ์เข้าถึงตามกฎความปลอดภัย auth != null
+                if (firebase.auth) {
+                    firebase.auth().signInAnonymously()
+                        .then(() => {
+                            isFirebaseReady = true;
+                            console.log('[Firebase] Realtime Database & Anonymous Auth active 🛡️⚡');
+                        })
+                        .catch((authErr) => {
+                            console.warn('[Firebase] Anonymous Auth warning:', authErr);
+                            isFirebaseReady = true;
+                        });
+                }
                 console.log('[Firebase] Realtime Database initialized successfully ⚡');
             }
         } catch(e) {

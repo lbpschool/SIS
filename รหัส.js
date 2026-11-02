@@ -11,6 +11,7 @@ const IMAGE_FOLDER_ID = '1Es7lkQN6QsUxs8J0a23Tcn59U-DTW-sx'; // <--- นำ ID �
 
 // 3. ตั้งค่า Firebase Realtime Database (ความเร็วสูง โหนดสิงคโปร์)
 const FIREBASE_DB_URL = 'https://sis-lop-system-default-rtdb.asia-southeast1.firebasedatabase.app';
+const FIREBASE_API_KEY = 'AIzaSyBl9XUMf3GB-HKBQAWVWzIqnl0p9LLoQv8';
 
 // กำหนดหัวคอลัมน์ที่ต้องการทั้งหมดสำหรับนักเรียน (เพิ่ม faceDescriptor)
 const EXPECTED_HEADERS = [
@@ -175,11 +176,46 @@ function onOpen() {
   }
 }
 
+function getFirebaseAuthToken() {
+  try {
+    const cache = CacheService.getScriptCache();
+    const cachedToken = cache.get('FIREBASE_AUTH_TOKEN');
+    if (cachedToken) return cachedToken;
+    
+    if (!FIREBASE_API_KEY) return null;
+    const url = 'https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=' + FIREBASE_API_KEY;
+    const res = UrlFetchApp.fetch(url, {
+      method: 'post',
+      contentType: 'application/json',
+      payload: JSON.stringify({ returnSecureToken: true }),
+      muteHttpExceptions: true
+    });
+    if (res.getResponseCode() === 200) {
+      const data = JSON.parse(res.getContentText());
+      if (data && data.idToken) {
+        // แคช Token ไว้ 50 นาที (Token ของ Firebase มีอายุ 60 นาที)
+        cache.put('FIREBASE_AUTH_TOKEN', data.idToken, 3000);
+        return data.idToken;
+      }
+    }
+    console.warn('[Firebase Auth] Failed to get idToken:', res.getContentText());
+  } catch(e) {
+    console.warn('[Firebase Auth Error]', e);
+  }
+  return null;
+}
+
+function buildFirebaseUrl(path) {
+  const cleanPath = String(path).replace(/^\/+/, '');
+  const token = getFirebaseAuthToken();
+  const authQuery = token ? ('?auth=' + encodeURIComponent(token)) : '';
+  return FIREBASE_DB_URL + '/' + cleanPath + '.json' + authQuery;
+}
+
 function firebasePut(path, data) {
   try {
     if (!FIREBASE_DB_URL) return false;
-    const cleanPath = String(path).replace(/^\/+/, '');
-    const url = FIREBASE_DB_URL + '/' + cleanPath + '.json';
+    const url = buildFirebaseUrl(path);
     const options = {
       method: 'put',
       contentType: 'application/json',
@@ -197,8 +233,7 @@ function firebasePut(path, data) {
 function firebasePatch(path, data) {
   try {
     if (!FIREBASE_DB_URL) return false;
-    const cleanPath = String(path).replace(/^\/+/, '');
-    const url = FIREBASE_DB_URL + '/' + cleanPath + '.json';
+    const url = buildFirebaseUrl(path);
     const options = {
       method: 'patch',
       contentType: 'application/json',
@@ -216,8 +251,7 @@ function firebasePatch(path, data) {
 function firebaseDelete(path) {
   try {
     if (!FIREBASE_DB_URL) return false;
-    const cleanPath = String(path).replace(/^\/+/, '');
-    const url = FIREBASE_DB_URL + '/' + cleanPath + '.json';
+    const url = buildFirebaseUrl(path);
     const options = {
       method: 'delete',
       muteHttpExceptions: true
@@ -233,8 +267,7 @@ function firebaseDelete(path) {
 function firebaseGet(path) {
   try {
     if (!FIREBASE_DB_URL) return null;
-    const cleanPath = String(path).replace(/^\/+/, '');
-    const url = FIREBASE_DB_URL + '/' + cleanPath + '.json';
+    const url = buildFirebaseUrl(path);
     const res = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
     if (res.getResponseCode() >= 200 && res.getResponseCode() < 300) {
       return JSON.parse(res.getContentText());
