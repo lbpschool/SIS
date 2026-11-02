@@ -222,132 +222,136 @@
                         </button>
                     </div>
                     <!-- Stats Cards: สถิติรวมและแยกเพศ -->
-                    <!-- Stats Cards: สถิติรวม 6 การ์ดขนาดกะทัดรัด ตัวอักษรใหญ่ชัดเจนเต็มการ์ดทุกอุปกรณ์ (Mobile / iPad / Desktop) -->
-                    <!-- Stats Cards แถวที่ 1: นักเรียนทั้งหมด (ขนาดยาว 2 ช่อง) + ชาย, หญิง, อยู่ประจำ, ไป-กลับ (มาเรียน) -->
-                    <div class="grid grid-cols-2 min-[540px]:grid-cols-3 xl:grid-cols-6 gap-2.5 sm:gap-3 mb-2.5 sm:mb-3">
+                    <!-- Stats Cards: จัดกลุ่ม 3 หมวดหมู่ รองรับมือถือและคอมพิวเตอร์อย่างสวยงามและเป็นระเบียบ -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-2.5 sm:gap-3 mb-4 sm:mb-6">
                         
-                        <!-- การ์ดที่ 1: นักเรียนทั้งหมด (ขยายขนาดยาว 2 ช่อง) -->
-                        <div class="col-span-2 xl:col-span-2 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg sm:rounded-xl shadow-xs p-2.5 sm:p-3 relative overflow-hidden flex flex-col justify-center min-h-[66px] sm:min-h-[74px]">
-                            <i class="fas fa-users absolute -bottom-1 -right-1 text-3xl sm:text-4xl text-white opacity-15 transform -rotate-12"></i>
-                            <div class="relative z-10">
-                                <h3 class="text-xl min-[375px]:text-2xl sm:text-3xl md:text-4xl xl:text-3xl font-extrabold text-white tracking-tight drop-shadow-xs leading-none mb-1 whitespace-nowrap" id="statTotalStudents">
-                                    <div class="h-5 sm:h-6 bg-white/30 rounded w-12 sm:w-16 animate-pulse"></div>
-                                </h3>
-                                <p class="text-[11px] min-[375px]:text-xs sm:text-sm md:text-base font-bold text-blue-100 leading-tight">นักเรียนทั้งหมด<span class="hidden sm:inline"> (ปัจจุบัน)</span></p>
+                        <!-- หมวดที่ 1: ภาพรวมนักเรียนทั้งหมด (นักเรียนทั้งหมด + มาเรียนรวม & ขาด/ลารวม) -->
+                        <div class="grid grid-cols-2 gap-2.5 sm:gap-3">
+                            <!-- การ์ดที่ 1: นักเรียนทั้งหมด (กว้างเต็ม 2 ช่อง) -->
+                            <div class="col-span-2 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg sm:rounded-xl shadow-xs p-2.5 sm:p-3 relative overflow-hidden flex flex-col justify-center min-h-[66px] sm:min-h-[74px]">
+                                <i class="fas fa-users absolute -bottom-1 -right-1 text-3xl sm:text-4xl text-white opacity-15 transform -rotate-12"></i>
+                                <div class="relative z-10">
+                                    <h3 class="text-xl min-[375px]:text-2xl sm:text-3xl md:text-4xl xl:text-3xl font-extrabold text-white tracking-tight drop-shadow-xs leading-none mb-1 whitespace-nowrap" id="statTotalStudents">
+                                        <div class="h-5 sm:h-6 bg-white/30 rounded w-12 sm:w-16 animate-pulse"></div>
+                                    </h3>
+                                    <p class="text-[11px] min-[375px]:text-xs sm:text-sm md:text-base font-bold text-blue-100 leading-tight">นักเรียนทั้งหมด<span class="hidden sm:inline"> (ปัจจุบัน)</span></p>
+                                </div>
+                            </div>
+
+                            <!-- การ์ดที่ 2: มาเรียนวันนี้รวม (อยู่ข้างล่างการ์ดนักเรียนทั้งหมด) -->
+                            <div class="col-span-1 bg-gradient-to-br from-amber-400 to-orange-500 rounded-lg sm:rounded-xl shadow-xs p-2.5 sm:p-3 relative overflow-hidden flex flex-col justify-center min-h-[66px] sm:min-h-[74px]">
+                                <i class="fas fa-calendar-check absolute -bottom-1 -right-1 text-3xl sm:text-4xl text-white opacity-15 transform -rotate-12"></i>
+                                <div class="relative z-10">
+                                    <h3 class="text-xs min-[350px]:text-sm min-[375px]:text-base sm:text-xl md:text-2xl xl:text-[1.35rem] font-extrabold text-white tracking-tight drop-shadow-xs leading-none mb-1 whitespace-nowrap" id="statAttendanceToday">
+                                        <div class="h-5 sm:h-6 bg-white/30 rounded w-14 sm:w-20 animate-pulse"></div>
+                                    </h3>
+                                    <p class="text-[11px] min-[375px]:text-xs sm:text-sm md:text-base font-bold text-orange-50 leading-tight">มาเรียนวันนี้รวม</p>
+                                </div>
+                            </div>
+
+                            <!-- การ์ดที่ 3: ลา/ขาด/กลับบ้าน รวม (อยู่คู่กับมาเรียนวันนี้รวม) -->
+                            <div class="col-span-1 bg-gradient-to-br from-rose-500 to-red-600 rounded-lg sm:rounded-xl shadow-xs p-2.5 sm:p-3 relative overflow-hidden flex flex-col justify-center min-h-[66px] sm:min-h-[74px]">
+                                <i class="fas fa-user-times absolute -bottom-1 -right-1 text-3xl sm:text-4xl text-white opacity-15 transform -rotate-12"></i>
+                                <div class="relative z-10">
+                                    <h3 class="text-xs min-[350px]:text-sm min-[375px]:text-base sm:text-xl md:text-2xl xl:text-[1.35rem] font-extrabold text-white tracking-tight drop-shadow-xs leading-none mb-1 whitespace-nowrap" id="statTotalAbsent">
+                                        <div class="h-5 sm:h-6 bg-white/30 rounded w-14 sm:w-20 animate-pulse"></div>
+                                    </h3>
+                                    <p class="text-[11px] min-[375px]:text-xs sm:text-sm md:text-base font-bold text-rose-100 leading-tight">ลา/ขาด/กลับบ้าน รวม</p>
+                                </div>
                             </div>
                         </div>
 
-                        <!-- การ์ดที่ 2: นักเรียนชาย (มาเรียนวันนี้) -->
-                        <div class="col-span-1 bg-gradient-to-br from-sky-400 to-cyan-500 rounded-lg sm:rounded-xl shadow-xs p-2.5 sm:p-3 relative overflow-hidden flex flex-col justify-center min-h-[66px] sm:min-h-[74px]">
-                            <i class="fas fa-male absolute -bottom-1 -right-1 text-3xl sm:text-4xl text-white opacity-15 transform -rotate-12"></i>
-                            <div class="relative z-10">
-                                <h3 class="text-xs min-[350px]:text-sm min-[375px]:text-base sm:text-xl md:text-2xl xl:text-[1.35rem] font-extrabold text-white tracking-tight drop-shadow-xs leading-none mb-1 whitespace-nowrap" id="statMalePresent">
-                                    <div class="h-5 sm:h-6 bg-white/30 rounded w-14 sm:w-20 animate-pulse"></div>
-                                </h3>
-                                <p class="text-[11px] min-[375px]:text-xs sm:text-sm md:text-base font-bold text-cyan-50 leading-tight">นักเรียนชาย<span class="hidden sm:inline"> (มาเรียนวันนี้)</span></p>
+                        <!-- หมวดที่ 2: สถิตินักเรียนชายและหญิง (มาเรียน vs ลา/ขาด/กลับบ้าน) -->
+                        <div class="grid grid-cols-2 gap-2.5 sm:gap-3">
+                            <!-- การ์ดที่ 4: นักเรียนชาย (มาเรียนวันนี้) -->
+                            <div class="col-span-1 bg-gradient-to-br from-sky-400 to-cyan-500 rounded-lg sm:rounded-xl shadow-xs p-2.5 sm:p-3 relative overflow-hidden flex flex-col justify-center min-h-[66px] sm:min-h-[74px]">
+                                <i class="fas fa-male absolute -bottom-1 -right-1 text-3xl sm:text-4xl text-white opacity-15 transform -rotate-12"></i>
+                                <div class="relative z-10">
+                                    <h3 class="text-xs min-[350px]:text-sm min-[375px]:text-base sm:text-xl md:text-2xl xl:text-[1.35rem] font-extrabold text-white tracking-tight drop-shadow-xs leading-none mb-1 whitespace-nowrap" id="statMalePresent">
+                                        <div class="h-5 sm:h-6 bg-white/30 rounded w-14 sm:w-20 animate-pulse"></div>
+                                    </h3>
+                                    <p class="text-[11px] min-[375px]:text-xs sm:text-sm md:text-base font-bold text-cyan-50 leading-tight">นักเรียนชาย<span class="hidden sm:inline"> (มาเรียนวันนี้)</span></p>
+                                </div>
+                            </div>
+
+                            <!-- การ์ดที่ 5: นักเรียนหญิง (มาเรียนวันนี้) -->
+                            <div class="col-span-1 bg-gradient-to-br from-pink-400 to-rose-500 rounded-lg sm:rounded-xl shadow-xs p-2.5 sm:p-3 relative overflow-hidden flex flex-col justify-center min-h-[66px] sm:min-h-[74px]">
+                                <i class="fas fa-female absolute -bottom-1 -right-1 text-3xl sm:text-4xl text-white opacity-15 transform -rotate-12"></i>
+                                <div class="relative z-10">
+                                    <h3 class="text-xs min-[350px]:text-sm min-[375px]:text-base sm:text-xl md:text-2xl xl:text-[1.35rem] font-extrabold text-white tracking-tight drop-shadow-xs leading-none mb-1 whitespace-nowrap" id="statFemalePresent">
+                                        <div class="h-5 sm:h-6 bg-white/30 rounded w-14 sm:w-20 animate-pulse"></div>
+                                    </h3>
+                                    <p class="text-[11px] min-[375px]:text-xs sm:text-sm md:text-base font-bold text-rose-50 leading-tight">นักเรียนหญิง<span class="hidden sm:inline"> (มาเรียนวันนี้)</span></p>
+                                </div>
+                            </div>
+
+                            <!-- การ์ดที่ 6: ลา/ขาด/กลับบ้าน ชาย (อยู่ข้างล่างต่อจากนักเรียนชาย) -->
+                            <div class="col-span-1 bg-gradient-to-br from-indigo-500 to-blue-700 rounded-lg sm:rounded-xl shadow-xs p-2.5 sm:p-3 relative overflow-hidden flex flex-col justify-center min-h-[66px] sm:min-h-[74px]">
+                                <i class="fas fa-male absolute -bottom-1 -right-1 text-3xl sm:text-4xl text-white opacity-15 transform -rotate-12"></i>
+                                <div class="relative z-10">
+                                    <h3 class="text-xs min-[350px]:text-sm min-[375px]:text-base sm:text-xl md:text-2xl xl:text-[1.35rem] font-extrabold text-white tracking-tight drop-shadow-xs leading-none mb-1 whitespace-nowrap" id="statMaleAbsent">
+                                        <div class="h-5 sm:h-6 bg-white/30 rounded w-14 sm:w-20 animate-pulse"></div>
+                                    </h3>
+                                    <p class="text-[11px] min-[375px]:text-xs sm:text-sm md:text-base font-bold text-indigo-100 leading-tight">ลา/ขาด/กลับบ้าน (ชาย)</p>
+                                </div>
+                            </div>
+
+                            <!-- การ์ดที่ 7: ลา/ขาด/กลับบ้าน หญิง (อยู่ข้างล่างต่อจากนักเรียนหญิง) -->
+                            <div class="col-span-1 bg-gradient-to-br from-fuchsia-500 to-pink-600 rounded-lg sm:rounded-xl shadow-xs p-2.5 sm:p-3 relative overflow-hidden flex flex-col justify-center min-h-[66px] sm:min-h-[74px]">
+                                <i class="fas fa-female absolute -bottom-1 -right-1 text-3xl sm:text-4xl text-white opacity-15 transform -rotate-12"></i>
+                                <div class="relative z-10">
+                                    <h3 class="text-xs min-[350px]:text-sm min-[375px]:text-base sm:text-xl md:text-2xl xl:text-[1.35rem] font-extrabold text-white tracking-tight drop-shadow-xs leading-none mb-1 whitespace-nowrap" id="statFemaleAbsent">
+                                        <div class="h-5 sm:h-6 bg-white/30 rounded w-14 sm:w-20 animate-pulse"></div>
+                                    </h3>
+                                    <p class="text-[11px] min-[375px]:text-xs sm:text-sm md:text-base font-bold text-fuchsia-100 leading-tight">ลา/ขาด/กลับบ้าน (หญิง)</p>
+                                </div>
                             </div>
                         </div>
 
-                        <!-- การ์ดที่ 3: นักเรียนหญิง (มาเรียนวันนี้) -->
-                        <div class="col-span-1 bg-gradient-to-br from-pink-400 to-rose-500 rounded-lg sm:rounded-xl shadow-xs p-2.5 sm:p-3 relative overflow-hidden flex flex-col justify-center min-h-[66px] sm:min-h-[74px]">
-                            <i class="fas fa-female absolute -bottom-1 -right-1 text-3xl sm:text-4xl text-white opacity-15 transform -rotate-12"></i>
-                            <div class="relative z-10">
-                                <h3 class="text-xs min-[350px]:text-sm min-[375px]:text-base sm:text-xl md:text-2xl xl:text-[1.35rem] font-extrabold text-white tracking-tight drop-shadow-xs leading-none mb-1 whitespace-nowrap" id="statFemalePresent">
-                                    <div class="h-5 sm:h-6 bg-white/30 rounded w-14 sm:w-20 animate-pulse"></div>
-                                </h3>
-                                <p class="text-[11px] min-[375px]:text-xs sm:text-sm md:text-base font-bold text-rose-50 leading-tight">นักเรียนหญิง<span class="hidden sm:inline"> (มาเรียนวันนี้)</span></p>
+                        <!-- หมวดที่ 3: สถิติประเภทการมาเรียน อยู่ประจำและไป-กลับ -->
+                        <div class="grid grid-cols-2 gap-2.5 sm:gap-3">
+                            <!-- การ์ดที่ 8: นักเรียนอยู่ประจำ (มาเรียนวันนี้) -->
+                            <div class="col-span-1 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg sm:rounded-xl shadow-xs p-2.5 sm:p-3 relative overflow-hidden flex flex-col justify-center min-h-[66px] sm:min-h-[74px]">
+                                <i class="fas fa-bed absolute -bottom-1 -right-1 text-3xl sm:text-4xl text-white opacity-15 transform -rotate-12"></i>
+                                <div class="relative z-10">
+                                    <h3 class="text-xs min-[350px]:text-sm min-[375px]:text-base sm:text-xl md:text-2xl xl:text-[1.35rem] font-extrabold text-white tracking-tight drop-shadow-xs leading-none mb-1 whitespace-nowrap" id="statBoardingPresent">
+                                        <div class="h-5 sm:h-6 bg-white/30 rounded w-14 sm:w-20 animate-pulse"></div>
+                                    </h3>
+                                    <p class="text-[11px] min-[375px]:text-xs sm:text-sm md:text-base font-bold text-purple-100 leading-tight">อยู่ประจำ<span class="hidden sm:inline"> (มาเรียนวันนี้)</span></p>
+                                </div>
                             </div>
-                        </div>
 
-                        <!-- การ์ดที่ 4: นักเรียนอยู่ประจำ (มาเรียนวันนี้) -->
-                        <div class="col-span-1 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg sm:rounded-xl shadow-xs p-2.5 sm:p-3 relative overflow-hidden flex flex-col justify-center min-h-[66px] sm:min-h-[74px]">
-                            <i class="fas fa-bed absolute -bottom-1 -right-1 text-3xl sm:text-4xl text-white opacity-15 transform -rotate-12"></i>
-                            <div class="relative z-10">
-                                <h3 class="text-xs min-[350px]:text-sm min-[375px]:text-base sm:text-xl md:text-2xl xl:text-[1.35rem] font-extrabold text-white tracking-tight drop-shadow-xs leading-none mb-1 whitespace-nowrap" id="statBoardingPresent">
-                                    <div class="h-5 sm:h-6 bg-white/30 rounded w-14 sm:w-20 animate-pulse"></div>
-                                </h3>
-                                <p class="text-[11px] min-[375px]:text-xs sm:text-sm md:text-base font-bold text-purple-100 leading-tight">อยู่ประจำ<span class="hidden sm:inline"> (มาเรียนวันนี้)</span></p>
+                            <!-- การ์ดที่ 9: นักเรียนไป-กลับ (มาเรียนวันนี้) -->
+                            <div class="col-span-1 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-lg sm:rounded-xl shadow-xs p-2.5 sm:p-3 relative overflow-hidden flex flex-col justify-center min-h-[66px] sm:min-h-[74px]">
+                                <i class="fas fa-bus absolute -bottom-1 -right-1 text-3xl sm:text-4xl text-white opacity-15 transform -rotate-12"></i>
+                                <div class="relative z-10">
+                                    <h3 class="text-xs min-[350px]:text-sm min-[375px]:text-base sm:text-xl md:text-2xl xl:text-[1.35rem] font-extrabold text-white tracking-tight drop-shadow-xs leading-none mb-1 whitespace-nowrap" id="statDayPresent">
+                                        <div class="h-5 sm:h-6 bg-white/30 rounded w-14 sm:w-20 animate-pulse"></div>
+                                    </h3>
+                                    <p class="text-[11px] min-[375px]:text-xs sm:text-sm md:text-base font-bold text-teal-50 leading-tight">ไป-กลับ<span class="hidden sm:inline"> (มาเรียนวันนี้)</span></p>
+                                </div>
                             </div>
-                        </div>
 
-                        <!-- การ์ดที่ 5: นักเรียนไป-กลับ (มาเรียนวันนี้) -->
-                        <div class="col-span-1 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-lg sm:rounded-xl shadow-xs p-2.5 sm:p-3 relative overflow-hidden flex flex-col justify-center min-h-[66px] sm:min-h-[74px]">
-                            <i class="fas fa-bus absolute -bottom-1 -right-1 text-3xl sm:text-4xl text-white opacity-15 transform -rotate-12"></i>
-                            <div class="relative z-10">
-                                <h3 class="text-xs min-[350px]:text-sm min-[375px]:text-base sm:text-xl md:text-2xl xl:text-[1.35rem] font-extrabold text-white tracking-tight drop-shadow-xs leading-none mb-1 whitespace-nowrap" id="statDayPresent">
-                                    <div class="h-5 sm:h-6 bg-white/30 rounded w-14 sm:w-20 animate-pulse"></div>
-                                </h3>
-                                <p class="text-[11px] min-[375px]:text-xs sm:text-sm md:text-base font-bold text-teal-50 leading-tight">ไป-กลับ<span class="hidden sm:inline"> (มาเรียนวันนี้)</span></p>
+                            <!-- การ์ดที่ 10: อยู่ประจำ (กลับบ้าน) (อยู่ข้างล่างต่อจากอยู่ประจำ) -->
+                            <div class="col-span-1 bg-gradient-to-br from-purple-700 to-violet-900 rounded-lg sm:rounded-xl shadow-xs p-2.5 sm:p-3 relative overflow-hidden flex flex-col justify-center min-h-[66px] sm:min-h-[74px]">
+                                <i class="fas fa-home absolute -bottom-1 -right-1 text-3xl sm:text-4xl text-white opacity-15 transform -rotate-12"></i>
+                                <div class="relative z-10">
+                                    <h3 class="text-xs min-[350px]:text-sm min-[375px]:text-base sm:text-xl md:text-2xl xl:text-[1.35rem] font-extrabold text-white tracking-tight drop-shadow-xs leading-none mb-1 whitespace-nowrap" id="statBoardingAbsent">
+                                        <div class="h-5 sm:h-6 bg-white/30 rounded w-14 sm:w-20 animate-pulse"></div>
+                                    </h3>
+                                    <p class="text-[11px] min-[375px]:text-xs sm:text-sm md:text-base font-bold text-purple-100 leading-tight">อยู่ประจำ (กลับบ้าน)</p>
+                                </div>
                             </div>
-                        </div>
-                    </div>
 
-                    <!-- Stats Cards แถวที่ 2: สถิติมาเรียนรวม + ลา/ขาด/กลับบ้าน (ประกบคู่ตรงแถวตามสไตล์ที่ 2) -->
-                    <div class="grid grid-cols-2 min-[540px]:grid-cols-3 xl:grid-cols-6 gap-2.5 sm:gap-3 mb-4 sm:mb-6">
-                        
-                        <!-- การ์ดที่ 6: มาเรียนวันนี้รวม (ย้ายลงมาไว้คู่กับ ลา/ขาด/กลับบ้าน รวม ใต้การ์ดนักเรียนทั้งหมด) -->
-                        <div class="col-span-1 bg-gradient-to-br from-amber-400 to-orange-500 rounded-lg sm:rounded-xl shadow-xs p-2.5 sm:p-3 relative overflow-hidden flex flex-col justify-center min-h-[66px] sm:min-h-[74px]">
-                            <i class="fas fa-calendar-check absolute -bottom-1 -right-1 text-3xl sm:text-4xl text-white opacity-15 transform -rotate-12"></i>
-                            <div class="relative z-10">
-                                <h3 class="text-xs min-[350px]:text-sm min-[375px]:text-base sm:text-xl md:text-2xl xl:text-[1.35rem] font-extrabold text-white tracking-tight drop-shadow-xs leading-none mb-1 whitespace-nowrap" id="statAttendanceToday">
-                                    <div class="h-5 sm:h-6 bg-white/30 rounded w-14 sm:w-20 animate-pulse"></div>
-                                </h3>
-                                <p class="text-[11px] min-[375px]:text-xs sm:text-sm md:text-base font-bold text-orange-50 leading-tight">มาเรียนวันนี้รวม</p>
-                            </div>
-                        </div>
-
-                        <!-- การ์ดที่ 7: ลา/ขาด/กลับบ้าน รวม (ย่อขนาดเท่ากันกับมาเรียนรวม) -->
-                        <div class="col-span-1 bg-gradient-to-br from-rose-500 to-red-600 rounded-lg sm:rounded-xl shadow-xs p-2.5 sm:p-3 relative overflow-hidden flex flex-col justify-center min-h-[66px] sm:min-h-[74px]">
-                            <i class="fas fa-user-times absolute -bottom-1 -right-1 text-3xl sm:text-4xl text-white opacity-15 transform -rotate-12"></i>
-                            <div class="relative z-10">
-                                <h3 class="text-xs min-[350px]:text-sm min-[375px]:text-base sm:text-xl md:text-2xl xl:text-[1.35rem] font-extrabold text-white tracking-tight drop-shadow-xs leading-none mb-1 whitespace-nowrap" id="statTotalAbsent">
-                                    <div class="h-5 sm:h-6 bg-white/30 rounded w-14 sm:w-20 animate-pulse"></div>
-                                </h3>
-                                <p class="text-[11px] min-[375px]:text-xs sm:text-sm md:text-base font-bold text-rose-100 leading-tight">ลา/ขาด/กลับบ้าน รวม</p>
-                            </div>
-                        </div>
-
-                        <!-- การ์ดที่ 8: ลา/ขาด/กลับบ้าน ชาย (ตรงกับชายมาเรียน) -->
-                        <div class="col-span-1 bg-gradient-to-br from-indigo-500 to-blue-700 rounded-lg sm:rounded-xl shadow-xs p-2.5 sm:p-3 relative overflow-hidden flex flex-col justify-center min-h-[66px] sm:min-h-[74px]">
-                            <i class="fas fa-male absolute -bottom-1 -right-1 text-3xl sm:text-4xl text-white opacity-15 transform -rotate-12"></i>
-                            <div class="relative z-10">
-                                <h3 class="text-xs min-[350px]:text-sm min-[375px]:text-base sm:text-xl md:text-2xl xl:text-[1.35rem] font-extrabold text-white tracking-tight drop-shadow-xs leading-none mb-1 whitespace-nowrap" id="statMaleAbsent">
-                                    <div class="h-5 sm:h-6 bg-white/30 rounded w-14 sm:w-20 animate-pulse"></div>
-                                </h3>
-                                <p class="text-[11px] min-[375px]:text-xs sm:text-sm md:text-base font-bold text-indigo-100 leading-tight">ลา/ขาด/กลับบ้าน (ชาย)</p>
-                            </div>
-                        </div>
-
-                        <!-- การ์ดที่ 9: ลา/ขาด/กลับบ้าน หญิง (ตรงกับหญิงมาเรียน) -->
-                        <div class="col-span-1 bg-gradient-to-br from-fuchsia-500 to-pink-600 rounded-lg sm:rounded-xl shadow-xs p-2.5 sm:p-3 relative overflow-hidden flex flex-col justify-center min-h-[66px] sm:min-h-[74px]">
-                            <i class="fas fa-female absolute -bottom-1 -right-1 text-3xl sm:text-4xl text-white opacity-15 transform -rotate-12"></i>
-                            <div class="relative z-10">
-                                <h3 class="text-xs min-[350px]:text-sm min-[375px]:text-base sm:text-xl md:text-2xl xl:text-[1.35rem] font-extrabold text-white tracking-tight drop-shadow-xs leading-none mb-1 whitespace-nowrap" id="statFemaleAbsent">
-                                    <div class="h-5 sm:h-6 bg-white/30 rounded w-14 sm:w-20 animate-pulse"></div>
-                                </h3>
-                                <p class="text-[11px] min-[375px]:text-xs sm:text-sm md:text-base font-bold text-fuchsia-100 leading-tight">ลา/ขาด/กลับบ้าน (หญิง)</p>
-                            </div>
-                        </div>
-
-                        <!-- การ์ดที่ 10: อยู่ประจำ (กลับบ้าน) (ตรงกับอยู่ประจำมาเรียน) -->
-                        <div class="col-span-1 bg-gradient-to-br from-purple-700 to-violet-900 rounded-lg sm:rounded-xl shadow-xs p-2.5 sm:p-3 relative overflow-hidden flex flex-col justify-center min-h-[66px] sm:min-h-[74px]">
-                            <i class="fas fa-home absolute -bottom-1 -right-1 text-3xl sm:text-4xl text-white opacity-15 transform -rotate-12"></i>
-                            <div class="relative z-10">
-                                <h3 class="text-xs min-[350px]:text-sm min-[375px]:text-base sm:text-xl md:text-2xl xl:text-[1.35rem] font-extrabold text-white tracking-tight drop-shadow-xs leading-none mb-1 whitespace-nowrap" id="statBoardingAbsent">
-                                    <div class="h-5 sm:h-6 bg-white/30 rounded w-14 sm:w-20 animate-pulse"></div>
-                                </h3>
-                                <p class="text-[11px] min-[375px]:text-xs sm:text-sm md:text-base font-bold text-purple-100 leading-tight">อยู่ประจำ (กลับบ้าน)</p>
-                            </div>
-                        </div>
-
-                        <!-- การ์ดที่ 11: ไป-กลับ (ไม่มาโรงเรียน) (ตรงกับไป-กลับมาเรียน) -->
-                        <div class="col-span-1 bg-gradient-to-br from-teal-700 to-emerald-900 rounded-lg sm:rounded-xl shadow-xs p-2.5 sm:p-3 relative overflow-hidden flex flex-col justify-center min-h-[66px] sm:min-h-[74px]">
-                            <i class="fas fa-bus-alt absolute -bottom-1 -right-1 text-3xl sm:text-4xl text-white opacity-15 transform -rotate-12"></i>
-                            <div class="relative z-10">
-                                <h3 class="text-xs min-[350px]:text-sm min-[375px]:text-base sm:text-xl md:text-2xl xl:text-[1.35rem] font-extrabold text-white tracking-tight drop-shadow-xs leading-none mb-1 whitespace-nowrap" id="statDayAbsent">
-                                    <div class="h-5 sm:h-6 bg-white/30 rounded w-14 sm:w-20 animate-pulse"></div>
-                                </h3>
-                                <p class="text-[11px] min-[375px]:text-xs sm:text-sm md:text-base font-bold text-teal-100 leading-tight">ไป-กลับ (ไม่มาโรงเรียน)</p>
+                            <!-- การ์ดที่ 11: ไป-กลับ (ไม่มาโรงเรียน) (อยู่ข้างล่างต่อจากไป-กลับ) -->
+                            <div class="col-span-1 bg-gradient-to-br from-teal-700 to-emerald-900 rounded-lg sm:rounded-xl shadow-xs p-2.5 sm:p-3 relative overflow-hidden flex flex-col justify-center min-h-[66px] sm:min-h-[74px]">
+                                <i class="fas fa-bus-alt absolute -bottom-1 -right-1 text-3xl sm:text-4xl text-white opacity-15 transform -rotate-12"></i>
+                                <div class="relative z-10">
+                                    <h3 class="text-xs min-[350px]:text-sm min-[375px]:text-base sm:text-xl md:text-2xl xl:text-[1.35rem] font-extrabold text-white tracking-tight drop-shadow-xs leading-none mb-1 whitespace-nowrap" id="statDayAbsent">
+                                        <div class="h-5 sm:h-6 bg-white/30 rounded w-14 sm:w-20 animate-pulse"></div>
+                                    </h3>
+                                    <p class="text-[11px] min-[375px]:text-xs sm:text-sm md:text-base font-bold text-teal-100 leading-tight">ไป-กลับ (ไม่มาโรงเรียน)</p>
+                                </div>
                             </div>
                         </div>
 
