@@ -5585,57 +5585,103 @@
         }
 
         // =====================================================================
-        // ถ่ายภาพและประมวลผลเปรียบเทียบใบหน้า (Snap & Match Engine)
+        // ถ่ายภาพและประมวลผลเปรียบเทียบใบหน้า (Snap & Match Engine - Optimized for Mobile)
         // =====================================================================
         async function captureAndMatchFace() {
             const video = document.getElementById('webcamVideo');
             const canvas = document.getElementById('faceCanvas');
-            if (!video || !canvas || video.paused || video.ended) return;
+            const btnSnap = document.getElementById('btnTakeSnapshot');
+            const btnCountdown = document.getElementById('btnCountdownSnapshot');
+            if (!video || !canvas || video.paused || video.ended || video.readyState < 2) return;
+
+            // 1. ล็อคปุ่มและแสดงสถานะ Loading เพื่อป้องกันการกดซ้ำ
+            if (btnSnap) {
+                btnSnap.disabled = true;
+                btnSnap.classList.add('opacity-75', 'cursor-not-allowed');
+                btnSnap.innerHTML = `<i class="fas fa-spinner fa-spin text-base mr-2"></i> กำลังค้นหา...`;
+            }
+            if (btnCountdown) {
+                btnCountdown.disabled = true;
+                btnCountdown.classList.add('opacity-75', 'cursor-not-allowed');
+            }
+
+            const restoreButtons = () => {
+                if (btnSnap) {
+                    btnSnap.disabled = false;
+                    btnSnap.classList.remove('opacity-75', 'cursor-not-allowed');
+                    btnSnap.innerHTML = `<i class="fas fa-camera text-base mr-2"></i> 📸 ถ่ายภาพค้นหา`;
+                }
+                if (btnCountdown) {
+                    btnCountdown.disabled = false;
+                    btnCountdown.classList.remove('opacity-75', 'cursor-not-allowed');
+                }
+            };
 
             stopFaceDetection();
-
-            const displaySize = { width: video.videoWidth || 640, height: video.videoHeight || 480 };
-            faceapi.matchDimensions(canvas, displaySize);
 
             const statusText = document.getElementById('scanStatusText');
             if (statusText) statusText.innerText = 'กำลังประมวลผลรูปถ่าย...';
 
-            // สร้าง Canvas ชั่วคราวสกัดภาพนิ่งความละเอียดสูงจากวิดีโอ
-            const snapCanvas = document.createElement('canvas');
-            snapCanvas.width = displaySize.width;
-            snapCanvas.height = displaySize.height;
-            const snapCtx = snapCanvas.getContext('2d');
-            snapCtx.drawImage(video, 0, 0, snapCanvas.width, snapCanvas.height);
+            // 2. จัดการสเกลภาพให้เหมาะสมกับ Mobile (Downscaling to max 640px ป้องกันมือถือค้าง)
+            const rawWidth = video.videoWidth || 640;
+            const rawHeight = video.videoHeight || 480;
+            
+            const maxDim = 640;
+            let targetWidth = rawWidth;
+            let targetHeight = rawHeight;
+            if (rawWidth > maxDim) {
+                targetWidth = maxDim;
+                targetHeight = Math.round((rawHeight * maxDim) / rawWidth);
+            }
 
-            // หยุดเล่นวิดีโอเพื่อ Freeze ภาพนิ่งบนหน้าจอ
+            const displaySize = { width: rawWidth, height: rawHeight };
+            faceapi.matchDimensions(canvas, displaySize);
+
+            // สร้าง Canvas ขนาดที่ย่อแล้วสำหรับ AI ประมวลผลรวดเร็ว ไม่กินแรมมือถือ
+            const snapCanvas = document.createElement('canvas');
+            snapCanvas.width = targetWidth;
+            snapCanvas.height = targetHeight;
+            const snapCtx = snapCanvas.getContext('2d');
+            snapCtx.drawImage(video, 0, 0, targetWidth, targetHeight);
+
+            // หยุดวิดีโอเพื่อคงภาพถ่าย
             video.pause();
 
-            // ตรวจสอบและเตรียม faceMatcher หากยังไม่มี
+            // 3. ตรวจสอบและเตรียม faceMatcher หากยังไม่มี
             if (!faceMatcher) {
+                if (statusText) statusText.innerText = 'กำลังเตรียมข้อมูลใบหน้า...';
                 await buildFaceMatcher(false);
             }
 
             try {
+                // ให้เวลาเบราว์เซอร์อัปเดต UI 50ms ก่อนเริ่มรันคำนวณ AI
+                await new Promise(r => setTimeout(r, 50));
+
                 const detection = await faceapi.detectSingleFace(snapCanvas).withFaceLandmarks().withFaceDescriptor();
                 const ctx = canvas.getContext('2d');
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
 
                 if (detection) {
-                    const resizedDetection = faceapi.resizeResults(detection, displaySize);
-                    
+                    // ปรับขนาด Box กลับมาให้ตรงกับความละเอียดของ Canvas หน้าจอ
+                    const scaleFactor = rawWidth / targetWidth;
+                    const scaledBox = {
+                        x: detection.detection.box.x * scaleFactor,
+                        y: detection.detection.box.y * scaleFactor,
+                        width: detection.detection.box.width * scaleFactor,
+                        height: detection.detection.box.height * scaleFactor
+                    };
+
                     let bestMatch = null;
                     if (faceMatcher) {
-                        bestMatch = faceMatcher.findBestMatch(resizedDetection.descriptor);
+                        bestMatch = faceMatcher.findBestMatch(detection.descriptor);
                     }
-
-                    const box = resizedDetection.detection.box;
 
                     if (bestMatch && bestMatch.label !== 'unknown' && bestMatch.distance < SIS_CONFIG.FACE_THRESHOLD) {
                         const matchedStudent = studentsList.find(s => String(s.id) === String(bestMatch.label));
                         const displayName = matchedStudent ? `${matchedStudent.name}${matchedStudent.nickname ? ' (' + matchedStudent.nickname + ')' : ''}` : bestMatch.label;
                         const confidencePercent = Math.round((1 - bestMatch.distance) * 100);
 
-                        const drawBox = new faceapi.draw.DrawBox(box, { 
+                        const drawBox = new faceapi.draw.DrawBox(scaledBox, { 
                             label: `${displayName} [${confidencePercent}%]`,
                             boxColor: '#16a34a',
                             drawLabelOptions: { fontSize: 16, fontColor: '#ffffff', backgroundColor: '#16a34a' }
@@ -5651,7 +5697,7 @@
                         }, 600);
                     } else {
                         const drawLabel = faceMatcher ? 'ไม่พบในระบบ' : 'ยังไม่ได้สกัดข้อมูลใบหน้า';
-                        const drawBox = new faceapi.draw.DrawBox(box, { 
+                        const drawBox = new faceapi.draw.DrawBox(scaledBox, { 
                             label: drawLabel, 
                             boxColor: '#ef4444',
                             drawLabelOptions: { fontSize: 14, fontColor: '#ffffff', backgroundColor: '#ef4444' }
@@ -5674,6 +5720,8 @@
                 if (statusText) statusText.innerText = 'ไม่พบใบหน้าหรือเกิดข้อผิดพลาดในการประมวลผล: ' + (err.message || 'กรุณาลองถ่ายใหม่อีกครั้ง');
                 document.getElementById('snapshotControlGroup').classList.add('hidden');
                 document.getElementById('btnRetakeSnapshot').classList.remove('hidden');
+            } finally {
+                restoreButtons();
             }
         }
 
@@ -5712,18 +5760,23 @@
                 const ctx = canvas.getContext('2d');
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
             }
-            if (video) video.play();
+            if (video && video.paused) {
+                video.play().catch(e => console.warn("Video play error on reset:", e));
+            }
 
             document.getElementById('btnRetakeSnapshot').classList.add('hidden');
             document.getElementById('snapshotControlGroup').classList.remove('hidden');
             const statusText = document.getElementById('scanStatusText');
-            if (statusText) statusText.innerText = `วางใบหน้าให้ตรงกรอบ แล้วกด '📸 ถ่ายภาพค้นหา'`;
+            if (statusText) statusText.innerText = `จัดใบหน้าให้อยู่ในกรอบ แล้วกด '📸 ถ่ายภาพค้นหา'`;
         }
 
         // =====================================================================
-        // ระบบจัดเก็บข้อมูลเวกเตอร์ใบหน้าใน IndexedDB (Descriptor Cache)
+        // ระบบจัดเก็บข้อมูลเวกเตอร์ใบหน้าใน IndexedDB (Descriptor Cache - Singleton & Bulk Support)
         // =====================================================================
+        let faceDBInstance = null;
+
         function openFaceDescriptorDB() {
+            if (faceDBInstance) return Promise.resolve(faceDBInstance);
             return new Promise((resolve, reject) => {
                 const req = indexedDB.open('SIS_FaceDescriptors_Store', 1);
                 req.onupgradeneeded = (e) => {
@@ -5732,9 +5785,42 @@
                         db.createObjectStore('descriptors', { keyPath: 'studentId' });
                     }
                 };
-                req.onsuccess = () => resolve(req.result);
+                req.onsuccess = () => {
+                    faceDBInstance = req.result;
+                    resolve(faceDBInstance);
+                };
                 req.onerror = () => reject(req.error);
             });
+        }
+
+        async function getAllStoredDescriptors() {
+            try {
+                const db = await openFaceDescriptorDB();
+                return new Promise((resolve) => {
+                    const tx = db.transaction('descriptors', 'readonly');
+                    const store = tx.objectStore('descriptors');
+                    const req = store.getAll();
+                    req.onsuccess = () => resolve(req.result || []);
+                    req.onerror = () => resolve([]);
+                });
+            } catch (e) {
+                return [];
+            }
+        }
+
+        async function saveStoredDescriptorsBulk(items) {
+            try {
+                const db = await openFaceDescriptorDB();
+                return new Promise((resolve) => {
+                    const tx = db.transaction('descriptors', 'readwrite');
+                    const store = tx.objectStore('descriptors');
+                    items.forEach(item => store.put(item));
+                    tx.oncomplete = () => resolve(true);
+                    tx.onerror = () => resolve(false);
+                });
+            } catch (e) {
+                return false;
+            }
         }
 
         async function getStoredDescriptor(studentId, profileImgUrl) {
@@ -5760,22 +5846,11 @@
         }
 
         async function saveStoredDescriptor(studentId, profileImgUrl, descriptorFloat32) {
-            try {
-                const db = await openFaceDescriptorDB();
-                return new Promise((resolve) => {
-                    const tx = db.transaction('descriptors', 'readwrite');
-                    const store = tx.objectStore('descriptors');
-                    store.put({
-                        studentId: studentId,
-                        profileImgUrl: profileImgUrl,
-                        descriptor: Array.from(descriptorFloat32)
-                    });
-                    tx.oncomplete = () => resolve(true);
-                    tx.onerror = () => resolve(false);
-                });
-            } catch (e) {
-                return false;
-            }
+            return saveStoredDescriptorsBulk([{
+                studentId: studentId,
+                profileImgUrl: profileImgUrl,
+                descriptor: Array.from(descriptorFloat32)
+            }]);
         }
 
         async function clearFaceDescriptorDB() {
@@ -5909,7 +5984,7 @@
 
                 // สร้าง Face Matcher ในพื้นหลังแบบไม่บังกล้อง
                 if (!faceMatcher) {
-                    await buildFaceMatcher(false);
+                    buildFaceMatcher(false).catch(e => console.warn('Background buildFaceMatcher error:', e));
                 }
 
             } catch (error) {
@@ -5976,19 +6051,29 @@
                 }
                 
                 video.srcObject = window.videoStream;
-                
-                video.onloadedmetadata = () => {
-                    video.play().catch(e => console.warn("Auto-play prevented", e));
-                };
-                
-                video.onplay = () => {
+
+                const updateCameraStatus = () => {
                     if (currentScanMode === 'live') {
                         if (statusText) statusText.innerText = `กำลังค้นหาใบหน้าแบบสด... (${currentFacingMode === 'user' ? 'กล้องหน้า' : 'กล้องหลัง'})`;
                         startFaceDetection(video);
                     } else {
-                        if (statusText) statusText.innerText = `วางใบหน้าให้ตรงกรอบ แล้วกด '📸 ถ่ายภาพค้นหา'`;
+                        if (statusText) statusText.innerText = `จัดใบหน้าให้อยู่ในกรอบ แล้วกด '📸 ถ่ายภาพค้นหา'`;
                     }
                 };
+
+                video.onloadedmetadata = () => {
+                    video.play().then(updateCameraStatus).catch(e => {
+                        console.warn("Auto-play prevented", e);
+                        updateCameraStatus();
+                    });
+                };
+                
+                video.onplay = updateCameraStatus;
+                
+                // หากวิดีโอเริ่มเล่นทันทีแล้ว
+                if (video.readyState >= 2 && !video.paused) {
+                    updateCameraStatus();
+                }
                 
             } catch (err) {
                 console.error("Camera Error:", err);
@@ -6098,106 +6183,133 @@
         }
 
         // =====================================================================
-        // ดึงเวกเตอร์ใบหน้าจาก Google Sheets / IndexedDB (0.01 วินาที ไร้ป็อปอัป)
+        // ดึงเวกเตอร์ใบหน้าจาก Google Sheets / IndexedDB (0.01 วินาที ไร้ป็อปอัป - Optimized Bulk)
         // =====================================================================
+        let isBuildingFaceMatcher = false;
+
         async function buildFaceMatcher(showNoDataAlert = false) {
-            const labeledFaceDescriptors = [];
-            let countWithDescriptor = 0;
+            if (isBuildingFaceMatcher) return false;
+            isBuildingFaceMatcher = true;
+            try {
+                const labeledFaceDescriptors = [];
+                let countWithDescriptor = 0;
 
-            for (let student of studentsList) {
-                if (student.commuteType === 'จบการศึกษา') continue;
-                
-                // 1. ตรวจสอบเวกเตอร์จากหน่วยความจำ
-                if (student.faceDescriptor && typeof student.faceDescriptor === 'string' && student.faceDescriptor.trim().length > 10) {
-                    try {
-                        const descArray = JSON.parse(student.faceDescriptor);
-                        if (Array.isArray(descArray) && descArray.length === 128) {
-                            labeledFaceDescriptors.push(new faceapi.LabeledFaceDescriptors(String(student.id), [new Float32Array(descArray)]));
-                            countWithDescriptor++;
-                            continue;
-                        }
-                    } catch (e) {
-                        console.warn('[Face] Descriptor parse error for student:', student.id, e);
+                // 1. ตรวจสอบเวกเตอร์จากหน่วยความจำก่อน (เร็วที่สุด 0 วินาที)
+                for (let student of studentsList) {
+                    if (student.commuteType === 'จบการศึกษา') continue;
+                    
+                    if (student.faceDescriptor && typeof student.faceDescriptor === 'string' && student.faceDescriptor.trim().length > 10) {
+                        try {
+                            const descArray = JSON.parse(student.faceDescriptor);
+                            if (Array.isArray(descArray) && descArray.length === 128) {
+                                labeledFaceDescriptors.push(new faceapi.LabeledFaceDescriptors(String(student.id), [new Float32Array(descArray)]));
+                                countWithDescriptor++;
+                            }
+                        } catch (e) {}
                     }
                 }
 
-                // 2. ตรวจสอบ IndexedDB แคชในเครื่อง
-                if (student.profileImg && student.profileImg.trim() !== '') {
-                    const cachedDesc = await getStoredDescriptor(student.id, student.profileImg);
-                    if (cachedDesc && cachedDesc.length === 128) {
-                        labeledFaceDescriptors.push(new faceapi.LabeledFaceDescriptors(String(student.id), [cachedDesc]));
-                        student.faceDescriptor = JSON.stringify(Array.from(cachedDesc));
-                        countWithDescriptor++;
-                    }
-                }
-            }
+                // 2. ถ้าในหน่วยความจำยังไม่มี ให้ดึงจาก IndexedDB รวดเดียว (Bulk Query ครั้งเดียว 3ms)
+                if (countWithDescriptor === 0) {
+                    const cachedList = await getAllStoredDescriptors();
+                    if (cachedList && cachedList.length > 0) {
+                        const cacheMap = {};
+                        cachedList.forEach(item => { if (item.studentId) cacheMap[String(item.studentId)] = item; });
 
-            // 3. [เพิ่มในเฟส 3] หากในเครื่องยังไม่มีเวกเตอร์ ให้ดึงเฉพาะเวกเตอร์แบบ On-demand จาก Google Apps Script
-            if (countWithDescriptor === 0 && typeof google !== 'undefined' && google.script && google.script.run) {
-                try {
-                    const statusText = document.getElementById('scanStatusText');
-                    if (statusText) statusText.innerText = 'กำลังซิงค์ข้อมูลใบหน้าจากเซิร์ฟเวอร์...';
-
-                    const res = await new Promise((resolve) => {
-                        google.script.run
-                            .withSuccessHandler(r => resolve(typeof r === 'string' ? JSON.parse(r) : r))
-                            .withFailureHandler(err => {
-                                console.warn('[Face] On-demand face sync failed:', err);
-                                resolve(null);
-                            })
-                            .getFaceDescriptors();
-                    });
-
-                    if (res && res.status === 'success' && res.data) {
-                        const descMap = res.data;
                         for (let student of studentsList) {
                             if (student.commuteType === 'จบการศึกษา') continue;
-                            const descStr = descMap[String(student.id)];
-                            if (descStr && descStr.length > 10) {
-                                try {
-                                    const descArray = JSON.parse(descStr);
-                                    if (Array.isArray(descArray) && descArray.length === 128) {
-                                        const f32 = new Float32Array(descArray);
-                                        labeledFaceDescriptors.push(new faceapi.LabeledFaceDescriptors(String(student.id), [f32]));
-                                        student.faceDescriptor = descStr;
-                                        countWithDescriptor++;
-                                        if (student.profileImg) {
-                                            saveStoredDescriptor(student.id, student.profileImg, f32);
-                                        }
-                                    }
-                                } catch (parseErr) {}
+                            const cached = cacheMap[String(student.id)];
+                            if (cached && cached.descriptor && cached.descriptor.length === 128) {
+                                const f32 = new Float32Array(cached.descriptor);
+                                labeledFaceDescriptors.push(new faceapi.LabeledFaceDescriptors(String(student.id), [f32]));
+                                student.faceDescriptor = JSON.stringify(Array.from(f32));
+                                countWithDescriptor++;
                             }
                         }
                     }
-                } catch(e) {
-                    console.warn('[Face] Error during on-demand descriptor load:', e);
                 }
-            }
 
-            const badge = document.getElementById('faceCountBadge');
+                // 3. หากในเครื่องยังไม่มีเวกเตอร์ ให้ดึงจากเซิร์ฟเวอร์แบบ On-demand
+                if (countWithDescriptor === 0 && typeof google !== 'undefined' && google.script && google.script.run) {
+                    try {
+                        const statusText = document.getElementById('scanStatusText');
+                        if (statusText) statusText.innerText = 'กำลังซิงค์ข้อมูลใบหน้าจากเซิร์ฟเวอร์...';
 
-            if (labeledFaceDescriptors.length > 0) {
-                faceMatcher = new faceapi.FaceMatcher(labeledFaceDescriptors, SIS_CONFIG.FACE_THRESHOLD);
-                if (badge) {
-                    badge.innerText = `พร้อมสแกน ${countWithDescriptor} คน`;
-                    badge.classList.remove('hidden');
+                        const res = await new Promise((resolve) => {
+                            const timer = setTimeout(() => resolve(null), 10000); // 10s timeout ป้องกันค้าง
+                            google.script.run
+                                .withSuccessHandler(r => {
+                                    clearTimeout(timer);
+                                    resolve(typeof r === 'string' ? JSON.parse(r) : r);
+                                })
+                                .withFailureHandler(err => {
+                                    clearTimeout(timer);
+                                    console.warn('[Face] On-demand face sync failed:', err);
+                                    resolve(null);
+                                })
+                                .getFaceDescriptors();
+                        });
+
+                        if (res && res.status === 'success' && res.data) {
+                            const descMap = res.data;
+                            const toSaveInBulk = [];
+                            for (let student of studentsList) {
+                                if (student.commuteType === 'จบการศึกษา') continue;
+                                const descStr = descMap[String(student.id)];
+                                if (descStr && descStr.length > 10) {
+                                    try {
+                                        const descArray = JSON.parse(descStr);
+                                        if (Array.isArray(descArray) && descArray.length === 128) {
+                                            const f32 = new Float32Array(descArray);
+                                            labeledFaceDescriptors.push(new faceapi.LabeledFaceDescriptors(String(student.id), [f32]));
+                                            student.faceDescriptor = descStr;
+                                            countWithDescriptor++;
+                                            toSaveInBulk.push({
+                                                studentId: student.id,
+                                                profileImgUrl: student.profileImg || '',
+                                                descriptor: Array.from(f32)
+                                            });
+                                        }
+                                    } catch (parseErr) {}
+                                }
+                            }
+                            // บันทึกลง IndexedDB รวดเดียวใน Transaction เดียว
+                            if (toSaveInBulk.length > 0) {
+                                saveStoredDescriptorsBulk(toSaveInBulk);
+                            }
+                        }
+                    } catch(e) {
+                        console.warn('[Face] Error during on-demand descriptor load:', e);
+                    }
                 }
-                return true;
-            } else {
-                if (badge) {
-                    badge.innerText = `ยังไม่มีข้อมูลสกัด`;
-                    badge.classList.remove('hidden');
+
+                const badge = document.getElementById('faceCountBadge');
+
+                if (labeledFaceDescriptors.length > 0) {
+                    faceMatcher = new faceapi.FaceMatcher(labeledFaceDescriptors, SIS_CONFIG.FACE_THRESHOLD);
+                    if (badge) {
+                        badge.innerText = `พร้อมสแกน ${countWithDescriptor} คน`;
+                        badge.classList.remove('hidden');
+                    }
+                    return true;
+                } else {
+                    if (badge) {
+                        badge.innerText = `ยังไม่มีข้อมูลสกัด`;
+                        badge.classList.remove('hidden');
+                    }
+                    if (showNoDataAlert) {
+                        Swal.fire({
+                            icon: 'info',
+                            title: 'ยังไม่มีข้อมูลใบหน้านักเรียน',
+                            text: 'กดปุ่ม "⚡ สกัดข้อมูลใบหน้าทั้งหมด" ด้านล่างของหน้าต่างกล้องเพื่อเริ่มสกัดรูปถ่ายนักเรียนลง Google Sheets',
+                            confirmButtonColor: '#9333ea',
+                            confirmButtonText: 'รับทราบ'
+                        });
+                    }
+                    return false;
                 }
-                if (showNoDataAlert) {
-                    Swal.fire({
-                        icon: 'info',
-                        title: 'ยังไม่มีข้อมูลใบหน้านักเรียน',
-                        text: 'กดปุ่ม "⚡ สกัดข้อมูลใบหน้าทั้งหมด" ด้านล่างของหน้าต่างกล้องเพื่อเริ่มสกัดรูปถ่ายนักเรียนลง Google Sheets',
-                        confirmButtonColor: '#9333ea',
-                        confirmButtonText: 'รับทราบ'
-                    });
-                }
-                return false;
+            } finally {
+                isBuildingFaceMatcher = false;
             }
         }
 
