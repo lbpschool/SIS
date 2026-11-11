@@ -225,20 +225,31 @@
                     <!-- Stats Cards: จัดกลุ่ม 3 หมวดหมู่ รองรับมือถือและคอมพิวเตอร์อย่างสวยงามและเป็นระเบียบ -->
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-2.5 sm:gap-3 mb-4 sm:mb-6">
                         
-                        <!-- หมวดที่ 1: ภาพรวมนักเรียนทั้งหมด (นักเรียนทั้งหมด + มาเรียนรวม & ขาด/ลารวม) -->
+                        <!-- หมวดที่ 1: ภาพรวมนักเรียนทั้งหมด (นักเรียนทั้งหมด, On-hand, มาเรียนรวม, ขาด/ลารวม) -->
                         <div class="grid grid-cols-2 gap-2.5 sm:gap-3">
-                            <!-- การ์ดที่ 1: นักเรียนทั้งหมด (กว้างเต็ม 2 ช่อง) -->
-                            <div class="col-span-2 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg sm:rounded-xl shadow-xs p-2.5 sm:p-3 relative overflow-hidden flex flex-col justify-center h-[74px] sm:h-[82px]">
+                            <!-- การ์ดที่ 1: นักเรียนทั้งหมด (แถวบน ซ้าย) -->
+                            <div class="col-span-1 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg sm:rounded-xl shadow-xs p-2.5 sm:p-3 relative overflow-hidden flex flex-col justify-center h-[74px] sm:h-[82px]">
                                 <i class="fas fa-users absolute -bottom-1 -right-1 text-3xl sm:text-4xl text-white opacity-15 transform -rotate-12"></i>
                                 <div class="relative z-10">
-                                    <h3 class="text-xl min-[375px]:text-2xl sm:text-3xl md:text-4xl xl:text-3xl font-extrabold text-white tracking-tight drop-shadow-xs leading-none mb-1 whitespace-nowrap" id="statTotalStudents">
+                                    <h3 class="text-xl min-[350px]:text-2xl sm:text-3xl md:text-4xl xl:text-3xl font-extrabold text-white tracking-tight drop-shadow-xs leading-none mb-1 whitespace-nowrap" id="statTotalStudents">
                                         <div class="h-5 sm:h-6 bg-white/30 rounded w-12 sm:w-16 animate-pulse"></div>
                                     </h3>
                                     <p class="text-[11px] min-[375px]:text-xs sm:text-sm md:text-base font-bold text-blue-100 leading-tight whitespace-nowrap truncate">นักเรียนทั้งหมด<span class="hidden sm:inline"> (ปัจจุบัน)</span></p>
                                 </div>
                             </div>
 
-                            <!-- การ์ดที่ 2: มาเรียนวันนี้รวม (อยู่ข้างล่างการ์ดนักเรียนทั้งหมด) -->
+                            <!-- การ์ดที่ 2: On-hand เรียนที่บ้าน (แถวบน ขวา) -->
+                            <div class="col-span-1 bg-gradient-to-br from-amber-500 to-amber-600 rounded-lg sm:rounded-xl shadow-xs p-2.5 sm:p-3 relative overflow-hidden flex flex-col justify-center h-[74px] sm:h-[82px]">
+                                <i class="fas fa-book-reader absolute -bottom-1 -right-1 text-3xl sm:text-4xl text-white opacity-15 transform -rotate-12"></i>
+                                <div class="relative z-10">
+                                    <h3 class="text-xs min-[350px]:text-sm min-[375px]:text-base sm:text-xl md:text-2xl xl:text-[1.35rem] font-extrabold text-white tracking-tight drop-shadow-xs leading-none mb-1 whitespace-nowrap" id="statTotalOnhand">
+                                        <div class="h-5 sm:h-6 bg-white/30 rounded w-14 sm:w-20 animate-pulse"></div>
+                                    </h3>
+                                    <p class="text-[11px] min-[375px]:text-xs sm:text-sm md:text-base font-bold text-amber-100 leading-tight whitespace-nowrap truncate">On-hand<span class="hidden sm:inline"> (เรียนที่บ้าน)</span></p>
+                                </div>
+                            </div>
+
+                            <!-- การ์ดที่ 3: มาเรียนวันนี้รวม (แถวล่าง ซ้าย) -->
                             <div class="col-span-1 bg-gradient-to-br from-amber-400 to-orange-500 rounded-lg sm:rounded-xl shadow-xs p-2.5 sm:p-3 relative overflow-hidden flex flex-col justify-center h-[74px] sm:h-[82px]">
                                 <i class="fas fa-calendar-check absolute -bottom-1 -right-1 text-3xl sm:text-4xl text-white opacity-15 transform -rotate-12"></i>
                                 <div class="relative z-10">
@@ -249,7 +260,7 @@
                                 </div>
                             </div>
 
-                            <!-- การ์ดที่ 3: ลา/ขาด/กลับบ้าน รวม (อยู่คู่กับมาเรียนวันนี้รวม) -->
+                            <!-- การ์ดที่ 4: ลา/ขาด/กลับบ้าน รวม (แถวล่าง ขวา) -->
                             <div class="col-span-1 bg-gradient-to-br from-rose-500 to-red-600 rounded-lg sm:rounded-xl shadow-xs p-2.5 sm:p-3 relative overflow-hidden flex flex-col justify-center h-[74px] sm:h-[82px]">
                                 <i class="fas fa-user-times absolute -bottom-1 -right-1 text-3xl sm:text-4xl text-white opacity-15 transform -rotate-12"></i>
                                 <div class="relative z-10">
@@ -3115,6 +3126,7 @@
             const activeStudents = studentsList.filter(function(s) { return s.commuteType !== 'จบการศึกษา'; });
             let unknownGenderStudents = [];
 
+            let onhandTotalCount = 0;
             activeStudents.forEach(function(st) {
                 const gender = getGender(st.name);
                 
@@ -3135,6 +3147,8 @@
                     
                     if (st.commuteType === 'อยู่ประจำ') boardingPresentCount++;
                     else if (st.commuteType === 'ไป-กลับ') dayPresentCount++;
+                } else if(status === 'onhand' || status === 'on-hand') {
+                    onhandTotalCount++;
                 }
             });
 
@@ -3175,6 +3189,10 @@
 
             const statTotalAbsentElem = document.getElementById('statTotalAbsent');
             if(statTotalAbsentElem) statTotalAbsentElem.innerText = totalAbsent + '/' + activeStudents.length + ' คน (' + totalAbsentPercent + '%)';
+
+            const onhandTotalPercent = activeStudents.length > 0 ? Math.round((onhandTotalCount / activeStudents.length) * 100) : 0;
+            const statTotalOnhandElem = document.getElementById('statTotalOnhand');
+            if(statTotalOnhandElem) statTotalOnhandElem.innerText = onhandTotalCount + '/' + activeStudents.length + ' คน (' + onhandTotalPercent + '%)';
 
             const statMaleAbsentElem = document.getElementById('statMaleAbsent');
             if(statMaleAbsentElem) statMaleAbsentElem.innerText = maleAbsent + '/' + totalMaleActive + ' คน (' + maleAbsentPercent + '%)';
