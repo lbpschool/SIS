@@ -543,8 +543,12 @@ function getInitialAppData(dateStr) {
           todayStats[sId] = { status: 'present', remark: '' };
         }
       } else {
-        if (latestRecords[sId] && latestRecords[sId].date === targetDate) {
-          todayStats[sId] = { status: latestRecords[sId].status, remark: latestRecords[sId].remark };
+        if (latestRecords[sId]) {
+          if (latestRecords[sId].date === targetDate) {
+            todayStats[sId] = { status: latestRecords[sId].status, remark: latestRecords[sId].remark };
+          } else if (latestRecords[sId].status === 'onhand' || latestRecords[sId].status === 'on-hand') {
+            todayStats[sId] = { status: 'onhand', remark: latestRecords[sId].remark || '' };
+          }
         }
       }
     }
@@ -1078,8 +1082,12 @@ function getAttendanceData(dateStr, grade) {
           result[sId] = { status: 'present', remark: '' }; 
         }
       } else {
-        if (latestRecords[sId] && latestRecords[sId].date === targetDate) {
-          result[sId] = { status: latestRecords[sId].status, remark: latestRecords[sId].remark };
+        if (latestRecords[sId]) {
+          if (latestRecords[sId].date === targetDate) {
+            result[sId] = { status: latestRecords[sId].status, remark: latestRecords[sId].remark };
+          } else if (latestRecords[sId].status === 'onhand' || latestRecords[sId].status === 'on-hand') {
+            result[sId] = { status: 'onhand', remark: latestRecords[sId].remark || '' };
+          }
         }
       }
     }
@@ -1208,8 +1216,12 @@ function getTodayAttendanceStats(dateStr) {
           result[sId] = { status: 'present', remark: '' };
         }
       } else {
-        if (latestRecords[sId] && latestRecords[sId].date === dateStr) {
-          result[sId] = { status: latestRecords[sId].status, remark: latestRecords[sId].remark };
+        if (latestRecords[sId]) {
+          if (latestRecords[sId].date === dateStr) {
+            result[sId] = { status: latestRecords[sId].status, remark: latestRecords[sId].remark };
+          } else if (latestRecords[sId].status === 'onhand' || latestRecords[sId].status === 'on-hand') {
+            result[sId] = { status: 'onhand', remark: latestRecords[sId].remark || '' };
+          }
         }
       }
     }

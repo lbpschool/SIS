@@ -2355,6 +2355,16 @@
                 } else {
                     if (attData[dateStr] && attData[dateStr][st.id]) {
                         result[st.id] = { status: attData[dateStr][st.id].status, remark: attData[dateStr][st.id].remark };
+                    } else {
+                        let latestDate = null, latestRecord = null;
+                        Object.keys(attData).forEach(function(d) {
+                            if (d <= dateStr && attData[d][st.id]) {
+                                if (!latestDate || d >= latestDate) { latestDate = d; latestRecord = attData[d][st.id]; }
+                            }
+                        });
+                        if (latestRecord && (latestRecord.status === 'onhand' || latestRecord.status === 'on-hand')) {
+                            result[st.id] = { status: 'onhand', remark: latestRecord.remark };
+                        }
                     }
                 }
             });
@@ -3443,6 +3453,7 @@
                     if(attStatus === 'present' || attStatus === 'late') attBadge = '<span class="inline-flex bg-green-100 text-green-700 text-xs font-medium px-3 py-1 rounded-full whitespace-nowrap border border-green-200"><i class="fas fa-check-circle mr-1 mt-0.5"></i>มาเรียน</span>';
                     else if(attStatus === 'absent' || attStatus === 'leave') attBadge = '<span class="inline-flex bg-red-100 text-red-700 text-xs font-medium px-3 py-1 rounded-full whitespace-nowrap border border-red-200" title="' + attRemark + '"><i class="fas fa-times-circle mr-1 mt-0.5"></i>ไม่มาโรงเรียน' + (attRemark ? '<span class="ml-1 opacity-80">(' + attRemark + ')</span>' : '') + '</span>';
                     else if(attStatus === 'home') attBadge = '<span class="inline-flex bg-purple-100 text-purple-700 text-xs font-medium px-3 py-1 rounded-full whitespace-nowrap border border-purple-200" title="' + attRemark + '"><i class="fas fa-house-user mr-1 mt-0.5"></i>กลับบ้าน' + (attRemark ? '<span class="ml-1 opacity-80">(' + attRemark + ')</span>' : '') + '</span>';
+                    else if(attStatus === 'onhand' || attStatus === 'on-hand') attBadge = '<span class="inline-flex bg-amber-100 text-amber-800 text-xs font-medium px-3 py-1 rounded-full whitespace-nowrap border border-amber-200" title="' + attRemark + '"><i class="fas fa-book-reader mr-1 mt-0.5"></i>On-hand' + (attRemark ? '<span class="ml-1 opacity-80">(' + attRemark + ')</span>' : '') + '</span>';
                     else attBadge = '<span class="inline-flex bg-gray-100 text-gray-500 text-xs font-medium px-3 py-1 rounded-full whitespace-nowrap border border-gray-200">ยังไม่เช็คชื่อ</span>';
 
                     let dynTeacher = st.teacher, dynCo1 = st.coTeacher, dynCo2 = st.coTeacher2;
@@ -3818,17 +3829,19 @@
                 let radioOptions = '';
                 
                 if (st.commuteType === 'อยู่ประจำ') {
-                    finalStatus = (finalStatus !== 'present' && finalStatus !== 'home') ? 'present' : finalStatus;
+                    finalStatus = (finalStatus !== 'present' && finalStatus !== 'home' && finalStatus !== 'onhand') ? 'present' : finalStatus;
                     
                     radioOptions = 
                         '<label class="inline-flex items-center text-green-600 cursor-pointer p-1"><input type="radio" name="att_' + st.id + '" value="present" ' + (finalStatus === 'present' ? 'checked' : '') + ' onchange="toggleRemark(\'' + st.id + '\')" class="form-radio h-5 w-5 text-green-600"><span class="ml-2 font-medium">มาเรียน</span></label>' +
-                        '<label class="inline-flex items-center text-purple-600 cursor-pointer p-1"><input type="radio" name="att_' + st.id + '" value="home" ' + (finalStatus === 'home' ? 'checked' : '') + ' onchange="toggleRemark(\'' + st.id + '\')" class="form-radio h-5 w-5 text-purple-600"><span class="ml-2 font-medium">กลับบ้าน</span></label>';
+                        '<label class="inline-flex items-center text-purple-600 cursor-pointer p-1"><input type="radio" name="att_' + st.id + '" value="home" ' + (finalStatus === 'home' ? 'checked' : '') + ' onchange="toggleRemark(\'' + st.id + '\')" class="form-radio h-5 w-5 text-purple-600"><span class="ml-2 font-medium">กลับบ้าน</span></label>' +
+                        '<label class="inline-flex items-center text-amber-600 cursor-pointer p-1"><input type="radio" name="att_' + st.id + '" value="onhand" ' + (finalStatus === 'onhand' ? 'checked' : '') + ' onchange="toggleRemark(\'' + st.id + '\')" class="form-radio h-5 w-5 text-amber-600"><span class="ml-2 font-medium">On-hand</span></label>';
                 } else {
-                    finalStatus = (finalStatus !== 'present' && finalStatus !== 'absent') ? 'present' : finalStatus;
+                    finalStatus = (finalStatus !== 'present' && finalStatus !== 'absent' && finalStatus !== 'onhand') ? 'present' : finalStatus;
                     
                     radioOptions = 
                         '<label class="inline-flex items-center text-green-600 cursor-pointer p-1"><input type="radio" name="att_' + st.id + '" value="present" ' + (finalStatus === 'present' ? 'checked' : '') + ' onchange="toggleRemark(\'' + st.id + '\')" class="form-radio h-5 w-5 text-green-600"><span class="ml-2 font-medium">มาเรียน</span></label>' +
-                        '<label class="inline-flex items-center text-red-600 cursor-pointer p-1"><input type="radio" name="att_' + st.id + '" value="absent" ' + (finalStatus === 'absent' ? 'checked' : '') + ' onchange="toggleRemark(\'' + st.id + '\')" class="form-radio h-5 w-5 text-red-600"><span class="ml-2 font-medium">ไม่มาโรงเรียน</span></label>';
+                        '<label class="inline-flex items-center text-red-600 cursor-pointer p-1"><input type="radio" name="att_' + st.id + '" value="absent" ' + (finalStatus === 'absent' ? 'checked' : '') + ' onchange="toggleRemark(\'' + st.id + '\')" class="form-radio h-5 w-5 text-red-600"><span class="ml-2 font-medium">ไม่มาโรงเรียน</span></label>' +
+                        '<label class="inline-flex items-center text-amber-600 cursor-pointer p-1"><input type="radio" name="att_' + st.id + '" value="onhand" ' + (finalStatus === 'onhand' ? 'checked' : '') + ' onchange="toggleRemark(\'' + st.id + '\')" class="form-radio h-5 w-5 text-amber-600"><span class="ml-2 font-medium">On-hand</span></label>';
                 }
 
                 let tr = document.createElement('tr');
@@ -3841,7 +3854,7 @@
                                 '<div class="flex space-x-2 sm:space-x-4 bg-gray-50 p-1.5 rounded-lg border border-gray-100">' +
                                     radioOptions +
                                 '</div>' +
-                                '<input type="text" id="remark_' + st.id + '" placeholder="' + (finalStatus === 'home' ? 'ระบุเหตุผลที่กลับบ้าน...' : 'ระบุเหตุผลที่ขาด...') + '" value="' + remark + '" class="border border-gray-300 rounded-lg px-3 py-2 text-sm w-full sm:flex-1 outline-none focus:ring-2 focus:ring-school-500 transition ' + ((finalStatus === 'absent' || finalStatus === 'home') ? 'block' : 'hidden') + '">' +
+                                '<input type="text" id="remark_' + st.id + '" placeholder="' + (finalStatus === 'home' ? 'ระบุเหตุผลที่กลับบ้าน...' : (finalStatus === 'onhand' ? 'ระบุรายละเอียด On-hand (ถ้ามี)...' : 'ระบุเหตุผลที่ขาด...')) + '" value="' + remark + '" class="border border-gray-300 rounded-lg px-3 py-2 text-sm w-full sm:flex-1 outline-none focus:ring-2 focus:ring-school-500 transition ' + ((finalStatus === 'absent' || finalStatus === 'home' || finalStatus === 'onhand') ? 'block' : 'hidden') + '">' +
                             '</div>' +
                         '</div>' +
                     '</td>';
@@ -3860,12 +3873,14 @@
             const radio = document.querySelector('input[name="att_' + id + '"]:checked');
             const remarkInput = document.getElementById('remark_' + id);
             if(remarkInput) {
-                if (radio && (radio.value === 'absent' || radio.value === 'home')) {
+                if (radio && (radio.value === 'absent' || radio.value === 'home' || radio.value === 'onhand')) {
                     remarkInput.classList.remove('hidden'); 
                     remarkInput.classList.add('block'); 
                     remarkInput.focus();
                     if(radio.value === 'home') {
                         remarkInput.placeholder = "ระบุเหตุผลที่กลับบ้าน...";
+                    } else if(radio.value === 'onhand') {
+                        remarkInput.placeholder = "ระบุรายละเอียด On-hand (ถ้ามี)...";
                     } else {
                         remarkInput.placeholder = "ระบุเหตุผลที่ขาด...";
                     }
@@ -6631,6 +6646,7 @@
                     if(attStatus === 'present' || attStatus === 'late') attBadge = '<span class="inline-flex bg-green-100 text-green-700 text-xs font-medium px-3 py-1 rounded-full whitespace-nowrap border border-green-200"><i class="fas fa-check-circle mr-1 mt-0.5"></i>มาเรียน</span>';
                     else if(attStatus === 'absent' || attStatus === 'leave') attBadge = '<span class="inline-flex bg-red-100 text-red-700 text-xs font-medium px-3 py-1 rounded-full whitespace-nowrap border border-red-200" title="' + attRemark + '"><i class="fas fa-times-circle mr-1 mt-0.5"></i>ไม่มาโรงเรียน' + (attRemark ? '<span class="ml-1 opacity-80">(' + attRemark + ')</span>' : '') + '</span>';
                     else if(attStatus === 'home') attBadge = '<span class="inline-flex bg-purple-100 text-purple-700 text-xs font-medium px-3 py-1 rounded-full whitespace-nowrap border border-purple-200" title="' + attRemark + '"><i class="fas fa-house-user mr-1 mt-0.5"></i>กลับบ้าน' + (attRemark ? '<span class="ml-1 opacity-80">(' + attRemark + ')</span>' : '') + '</span>';
+                    else if(attStatus === 'onhand' || attStatus === 'on-hand') attBadge = '<span class="inline-flex bg-amber-100 text-amber-800 text-xs font-medium px-3 py-1 rounded-full whitespace-nowrap border border-amber-200" title="' + attRemark + '"><i class="fas fa-book-reader mr-1 mt-0.5"></i>On-hand' + (attRemark ? '<span class="ml-1 opacity-80">(' + attRemark + ')</span>' : '') + '</span>';
                     else attBadge = '<span class="inline-flex bg-gray-100 text-gray-500 text-xs font-medium px-3 py-1 rounded-full whitespace-nowrap border border-gray-200">ยังไม่เช็คชื่อ</span>';
                     if(badgeCell.innerHTML !== attBadge) badgeCell.innerHTML = attBadge;
                 }
@@ -6656,6 +6672,7 @@
             let totalFemale = 0;
             let malePresent = 0;
             let femalePresent = 0;
+            let onhandCount = 0;
             
             const activeStudents = studentsList.filter(s => s.commuteType !== 'จบการศึกษา');
             const totalStudents = activeStudents.length;
@@ -6671,6 +6688,8 @@
                 if(status === 'present' || status === 'late') {
                     if (gender === 'male') malePresent++;
                     else if (gender === 'female') femalePresent++;
+                } else if (status === 'onhand' || status === 'on-hand') {
+                    onhandCount++;
                 }
             });
             
@@ -6679,7 +6698,7 @@
             const femaleAbsent = totalFemale - femalePresent;
             const absentCount = maleAbsent + femaleAbsent;
 
-            const reportText = `📋 รายงานข้อมูลนักเรียนและการมาเรียน\n📅 ประจำวันที่: ${reportDate}\n\n` +
+            let reportText = `📋 รายงานข้อมูลนักเรียนและการมาเรียน\n📅 ประจำวันที่: ${reportDate}\n\n` +
                                `👥 จำนวนนักเรียนทั้งหมด: ${totalStudents} คน\n` +
                                `  - ชาย: ${totalMale} คน\n` +
                                `  - หญิง: ${totalFemale} คน\n\n` +
@@ -6690,31 +6709,45 @@
                                `  - นักเรียนชาย: ${maleAbsent} คน\n` +
                                `  - นักเรียนหญิง: ${femaleAbsent} คน`;
 
-            const textArea = document.createElement("textarea");
-            textArea.value = reportText;
-            
-            textArea.style.top = "0";
-            textArea.style.left = "0";
-            textArea.style.position = "fixed";
-            textArea.style.opacity = "0";
-            
-            document.body.appendChild(textArea);
-            textArea.focus();
-            textArea.select();
-            
-            try {
-                document.execCommand('copy');
+            if (onhandCount > 0) {
+                reportText += `\n  - On-hand (เรียนที่บ้าน): ${onhandCount} คน`;
+            }
+
+            const copyTextToClipboard = (text) => {
+                if (navigator.clipboard && window.isSecureContext) {
+                    return navigator.clipboard.writeText(text);
+                } else {
+                    return new Promise((resolve, reject) => {
+                        let textArea = document.createElement("textarea");
+                        textArea.value = text;
+                        textArea.style.position = "fixed";
+                        textArea.style.top = "0";
+                        textArea.style.left = "0";
+                        textArea.style.opacity = "0";
+                        document.body.appendChild(textArea);
+                        textArea.focus();
+                        textArea.select();
+                        try {
+                            textArea.setSelectionRange(0, 99999);
+                            document.execCommand('copy') ? resolve() : reject();
+                        } catch (err) {
+                            reject(err);
+                        }
+                        document.body.removeChild(textArea);
+                    });
+                }
+            };
+
+            copyTextToClipboard(reportText).then(() => {
                 Swal.fire({
                     icon: 'success',
                     title: 'คัดลอกรายงานสำเร็จ!',
                     text: 'คุณสามารถนำไปวาง (Paste) ในแชท LINE ได้ทันที',
                     confirmButtonColor: '#00c300' 
                 });
-            } catch (err) {
+            }).catch(() => {
                 Swal.fire('ข้อผิดพลาด', 'เบราว์เซอร์ของคุณไม่รองรับการคัดลอกอัตโนมัติ', 'error');
-            }
-            
-            document.body.removeChild(textArea);
+            });
         }
 
         // =========================================================================
