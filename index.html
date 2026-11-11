@@ -238,14 +238,17 @@
                                 </div>
                             </div>
 
-                            <!-- การ์ดที่ 2: On-hand เรียนที่บ้าน (แถวบน ขวา) -->
-                            <div class="col-span-1 bg-gradient-to-br from-amber-500 to-amber-600 rounded-lg sm:rounded-xl shadow-xs p-2.5 sm:p-3 relative overflow-hidden flex flex-col justify-center h-[74px] sm:h-[82px]">
+                            <!-- การ์ดที่ 2: On-hand เรียนที่บ้าน (แถวบน ขวา - คลิกเพื่อดูรายชื่อ) -->
+                            <div onclick="filterByAttendanceStatusFromDashboard('onhand')" class="col-span-1 bg-gradient-to-br from-amber-500 to-amber-600 rounded-lg sm:rounded-xl shadow-xs p-2.5 sm:p-3 relative overflow-hidden flex flex-col justify-center h-[74px] sm:h-[82px] cursor-pointer hover:shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all" title="คลิกเพื่อดูรายชื่อนักเรียน On-hand">
                                 <i class="fas fa-book-reader absolute -bottom-1 -right-1 text-3xl sm:text-4xl text-white opacity-15 transform -rotate-12"></i>
                                 <div class="relative z-10">
                                     <h3 class="text-xs min-[350px]:text-sm min-[375px]:text-base sm:text-xl md:text-2xl xl:text-[1.35rem] font-extrabold text-white tracking-tight drop-shadow-xs leading-none mb-1 whitespace-nowrap" id="statTotalOnhand">
                                         <div class="h-5 sm:h-6 bg-white/30 rounded w-14 sm:w-20 animate-pulse"></div>
                                     </h3>
-                                    <p class="text-[11px] min-[375px]:text-xs sm:text-sm md:text-base font-bold text-amber-100 leading-tight whitespace-nowrap truncate">On-hand<span class="hidden sm:inline"> (เรียนที่บ้าน)</span></p>
+                                    <p class="text-[11px] min-[375px]:text-xs sm:text-sm md:text-base font-bold text-amber-100 leading-tight whitespace-nowrap truncate flex items-center justify-between">
+                                        <span>On-hand<span class="hidden sm:inline"> (เรียนที่บ้าน)</span></span>
+                                        <i class="fas fa-chevron-right text-[10px] opacity-75 ml-1"></i>
+                                    </p>
                                 </div>
                             </div>
 
@@ -439,27 +442,38 @@
                         <div class="flex flex-col gap-2 w-full xl:w-auto flex-1">
                             <!-- ช่องค้นหา -->
                             <div class="relative w-full shrink-0">
-                                <input type="text" id="searchStudent" placeholder="ค้นหา รหัสนักเรียน, ชื่อ..." class="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-school-500 focus:ring-1 focus:ring-school-500 text-sm transition-colors shadow-sm">
+                                <input type="text" id="searchStudent" placeholder="ค้นหา รหัสนักเรียน, ชื่อ หรือ On-hand..." class="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-school-500 focus:ring-1 focus:ring-school-500 text-sm transition-colors shadow-sm">
                                 <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
                             </div>
                             
-                            <!-- ตัวกรอง 3 อัน (เรียง 3 คอลัมน์) -->
-                            <div class="grid grid-cols-3 gap-1.5 sm:gap-2 w-full shrink-0">
+                            <!-- ตัวกรอง 4 อัน (เรียง 2 คอลัมน์บนมือถือ / 4 คอลัมน์บนจอใหญ่) -->
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-1.5 sm:gap-2 w-full shrink-0">
                                 <div class="relative w-full shrink-0">
                                     <select id="filterGrade" class="w-full border border-gray-200 rounded-lg pl-2 pr-6 py-2 outline-none focus:border-school-500 focus:ring-1 focus:ring-school-500 text-gray-600 bg-white text-[11px] sm:text-sm appearance-none cursor-pointer transition-colors shadow-sm">
-                                        <option value="">ชั้นเรียน</option>
+                                        <option value="">ทุกห้องเรียน</option>
                                     </select>
                                     <i class="fas fa-chevron-down absolute right-2 top-3 text-gray-400 pointer-events-none text-[10px]"></i>
                                 </div>
                                 <div class="relative w-full shrink-0">
                                     <select id="filterDormitory" class="w-full border border-gray-200 rounded-lg pl-2 pr-6 py-2 outline-none focus:border-school-500 focus:ring-1 focus:ring-school-500 text-gray-600 bg-white text-[11px] sm:text-sm appearance-none cursor-pointer transition-colors shadow-sm">
-                                        <option value="">เรือนนอน</option>
+                                        <option value="">ทุกเรือนนอน</option>
                                     </select>
                                     <i class="fas fa-chevron-down absolute right-2 top-3 text-gray-400 pointer-events-none text-[10px]"></i>
                                 </div>
                                 <div class="relative w-full shrink-0">
                                     <select id="filterLearningSource" class="w-full border border-gray-200 rounded-lg pl-2 pr-6 py-2 outline-none focus:border-school-500 focus:ring-1 focus:ring-school-500 text-gray-600 bg-white text-[11px] sm:text-sm appearance-none cursor-pointer transition-colors shadow-sm">
-                                        <option value="">แหล่งเรียนรู้</option>
+                                        <option value="">ทุกแหล่งเรียนรู้</option>
+                                    </select>
+                                    <i class="fas fa-chevron-down absolute right-2 top-3 text-gray-400 pointer-events-none text-[10px]"></i>
+                                </div>
+                                <div class="relative w-full shrink-0">
+                                    <select id="filterAttendanceStatus" class="w-full border border-gray-200 rounded-lg pl-2 pr-6 py-2 outline-none focus:border-school-500 focus:ring-1 focus:ring-school-500 text-gray-600 bg-white text-[11px] sm:text-sm appearance-none cursor-pointer transition-colors shadow-sm">
+                                        <option value="">ทุกสถานะเช็คชื่อ</option>
+                                        <option value="onhand" class="text-amber-600 font-medium">🏠 On-hand (เรียนที่บ้าน)</option>
+                                        <option value="present" class="text-green-600 font-medium">✅ มาเรียน</option>
+                                        <option value="absent" class="text-red-600 font-medium">❌ ไม่มาโรงเรียน/ลา</option>
+                                        <option value="home" class="text-purple-600 font-medium">🏡 กลับบ้าน</option>
+                                        <option value="pending" class="text-gray-500 font-medium">⏳ ยังไม่เช็คชื่อ</option>
                                     </select>
                                     <i class="fas fa-chevron-down absolute right-2 top-3 text-gray-400 pointer-events-none text-[10px]"></i>
                                 </div>
@@ -2135,6 +2149,9 @@
             const filterLearningSourceEl = document.getElementById('filterLearningSource');
             if(filterLearningSourceEl) filterLearningSourceEl.addEventListener('change', renderStudents);
 
+            const filterAttendanceStatusEl = document.getElementById('filterAttendanceStatus');
+            if(filterAttendanceStatusEl) filterAttendanceStatusEl.addEventListener('change', renderStudents);
+
             const searchTeacherInput = document.getElementById('searchTeacher');
             if(searchTeacherInput) searchTeacherInput.addEventListener('input', debounce(renderTeachers, 250));
             
@@ -3428,6 +3445,27 @@
             }
         }
 
+        function filterByAttendanceStatusFromDashboard(status) {
+            switchPage('students');
+            const filterStatusEl = document.getElementById('filterAttendanceStatus');
+            if(filterStatusEl) {
+                filterStatusEl.value = status;
+            }
+            const searchInput = document.getElementById('searchStudent');
+            if(searchInput) searchInput.value = '';
+            
+            const filterGrade = document.getElementById('filterGrade');
+            if(filterGrade) filterGrade.value = '';
+            
+            const filterDorm = document.getElementById('filterDormitory');
+            if(filterDorm) filterDorm.value = '';
+
+            const filterLearning = document.getElementById('filterLearningSource');
+            if(filterLearning) filterLearning.value = '';
+
+            renderStudents();
+        }
+
         function renderStudents() {
             const tbody = document.getElementById('studentTableBody');
             if(!tbody) return;
@@ -3451,22 +3489,65 @@
             });
             
             const searchInput = document.getElementById('searchStudent');
-            const filterGrade = document.getElementById('filterGrade'), filterDorm = document.getElementById('filterDormitory'), filterLearning = document.getElementById('filterLearningSource');
+            const filterGrade = document.getElementById('filterGrade'), 
+                  filterDorm = document.getElementById('filterDormitory'), 
+                  filterLearning = document.getElementById('filterLearningSource'),
+                  filterAttStatus = document.getElementById('filterAttendanceStatus');
             
-            const searchStr = searchInput ? searchInput.value.toLowerCase() : "";
-            const selGrade = filterGrade ? filterGrade.value : "", selDorm = filterDorm ? filterDorm.value : "", selLearning = filterLearning ? filterLearning.value : "";
+            const searchStr = searchInput ? searchInput.value.toLowerCase().trim() : "";
+            const selGrade = filterGrade ? filterGrade.value : "", 
+                  selDorm = filterDorm ? filterDorm.value : "", 
+                  selLearning = filterLearning ? filterLearning.value : "",
+                  selStatus = filterAttStatus ? filterAttStatus.value : "";
 
             // 💡 [อัปเดตความเร็ว] ใช้ DocumentFragment วาดข้อมูลในหน่วยความจำก่อนแสดงผล
             const fragment = document.createDocumentFragment();
 
             sortedStudents.forEach(function(st) {
-                const passesSearch = st.name.toLowerCase().includes(searchStr) || String(st.id).includes(searchStr) || (st.nickname && st.nickname.toLowerCase().includes(searchStr));
-                const passesGrade = selGrade === "" || st.grade === selGrade, passesDorm = selDorm === "" || st.dormitory === selDorm, passesLearning = selLearning === "" || st.learningSource === selLearning;
-                const isFilterActive = selGrade !== "" || selDorm !== "" || selLearning !== "";
+                const attData = todayAttendanceStats[st.id];
+                const attStatus = attData ? (typeof attData === 'string' ? attData : attData.status) : null;
+                const attRemark = attData && typeof attData === 'object' && attData.remark ? attData.remark : '';
+
+                // Smart search: ค้นหาทั้ง ชื่อ, รหัส, ชื่อเล่น และคำสำคัญสถานะ (onhand, on-hand, เรียนที่บ้าน, มาเรียน, ขาด/ลา, กลับบ้าน)
+                const isOnhandQuery = (searchStr === 'onhand' || searchStr === 'on-hand' || searchStr === 'on hand' || searchStr === 'เรียนที่บ้าน' || searchStr === 'on');
+                const isPresentQuery = (searchStr === 'มาเรียน' || searchStr === 'มา');
+                const isAbsentQuery = (searchStr === 'ไม่มา' || searchStr === 'ขาด' || searchStr === 'ลา' || searchStr === 'ไม่มาโรงเรียน');
+                const isHomeQuery = (searchStr === 'กลับบ้าน');
+                const isPendingQuery = (searchStr === 'ยังไม่เช็ค' || searchStr === 'ยังไม่เช็คชื่อ');
+
+                const isStatusMatchBySearch = (isOnhandQuery && (attStatus === 'onhand' || attStatus === 'on-hand')) ||
+                                              (isPresentQuery && (attStatus === 'present' || attStatus === 'late')) ||
+                                              (isAbsentQuery && (attStatus === 'absent' || attStatus === 'leave')) ||
+                                              (isHomeQuery && (attStatus === 'home')) ||
+                                              (isPendingQuery && !attStatus);
+
+                const passesSearch = searchStr === "" || 
+                    st.name.toLowerCase().includes(searchStr) || 
+                    String(st.id).includes(searchStr) || 
+                    (st.nickname && st.nickname.toLowerCase().includes(searchStr)) ||
+                    isStatusMatchBySearch;
+
+                const passesGrade = selGrade === "" || st.grade === selGrade;
+                const passesDorm = selDorm === "" || st.dormitory === selDorm;
+                const passesLearning = selLearning === "" || st.learningSource === selLearning;
+
+                let passesStatus = true;
+                if (selStatus === 'onhand') {
+                    passesStatus = (attStatus === 'onhand' || attStatus === 'on-hand');
+                } else if (selStatus === 'present') {
+                    passesStatus = (attStatus === 'present' || attStatus === 'late');
+                } else if (selStatus === 'absent') {
+                    passesStatus = (attStatus === 'absent' || attStatus === 'leave');
+                } else if (selStatus === 'home') {
+                    passesStatus = (attStatus === 'home');
+                } else if (selStatus === 'pending') {
+                    passesStatus = !attStatus;
+                }
+
+                const isFilterActive = selGrade !== "" || selDorm !== "" || selLearning !== "" || selStatus !== "";
                 const passesGraduation = isFilterActive ? (st.commuteType !== 'จบการศึกษา') : true;
                 
-                if(passesSearch && passesGrade && passesDorm && passesLearning && passesGraduation) {
-                    const attData = todayAttendanceStats[st.id], attStatus = attData ? (typeof attData === 'string' ? attData : attData.status) : null, attRemark = attData && typeof attData === 'object' && attData.remark ? attData.remark : '';
+                if(passesSearch && passesGrade && passesDorm && passesLearning && passesGraduation && passesStatus) {
                     let attBadge = '';
                     if(attStatus === 'present' || attStatus === 'late') attBadge = '<span class="inline-flex bg-green-100 text-green-700 text-xs font-medium px-3 py-1 rounded-full whitespace-nowrap border border-green-200"><i class="fas fa-check-circle mr-1 mt-0.5"></i>มาเรียน</span>';
                     else if(attStatus === 'absent' || attStatus === 'leave') attBadge = '<span class="inline-flex bg-red-100 text-red-700 text-xs font-medium px-3 py-1 rounded-full whitespace-nowrap border border-red-200" title="' + attRemark + '"><i class="fas fa-times-circle mr-1 mt-0.5"></i>ไม่มาโรงเรียน' + (attRemark ? '<span class="ml-1 opacity-80">(' + attRemark + ')</span>' : '') + '</span>';
